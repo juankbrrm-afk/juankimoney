@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+@import "@fontsource/inter-tight/500.css";
+@import "@fontsource/inter-tight/600.css";
+@import "@fontsource/inter-tight/700.css";
+
+@theme {
+  --font-sans: "Inter Tight", ui-sans-serif, system-ui, sans-serif;
+
+  /* Quiet-luxury palette — accent colors should almost never appear */
+  --color-paper: #ffffff;
+  --color-ivory: #f7f3ec;
+  --color-cream: #efe6d8;
+  --color-sand: #ddd0ba;
+  --color-stone: #b6a996;
+  --color-taupe: #8a7d68;
+  --color-warmgray: #6b6255;
+  --color-charcoal: #262220;
+  --color-black: #0b0a09;
+
+  --ease-luxury: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-ivory);
+    color: var(--color-black);
+    font-family: var(--font-sans);
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background: var(--color-black);
+    color: var(--color-ivory);
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .tracking-luxe {
+    letter-spacing: 0.28em;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
