@@ -15,9 +15,10 @@
     <link rel="canonical" href="{{ canonical_url }}">
     {{ content_for_header }}
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700&display=swap" rel="stylesheet">
     {{ 'theme.css.liquid' | asset_url | stylesheet_tag }}
-    {{ 'inter-tight-500.woff2' | asset_url | preload_tag: as: 'font', type: 'font/woff2', crossorigin: 'anonymous' }}
-    {{ 'inter-tight-600.woff2' | asset_url | preload_tag: as: 'font', type: 'font/woff2', crossorigin: 'anonymous' }}
   </head>
   <body data-template="{{ template.name }}">
     <div class="loading-screen" aria-hidden="true">
