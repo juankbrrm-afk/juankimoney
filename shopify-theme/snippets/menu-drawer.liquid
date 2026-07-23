@@ -1,0 +1,32 @@
+{% liquid
+  assign primary_menu = linklists['main-menu']
+  assign secondary_menu = linklists['footer']
+%}
+<div class="menu-drawer" aria-hidden="true">
+  <nav class="menu-drawer__nav">
+    <ul class="menu-drawer__primary">
+      {% for link in primary_menu.links %}
+        <li><a href="{{ link.url }}" data-cursor-hover data-menu-close>{{ link.title }}</a></li>
+      {% endfor %}
+    </ul>
+
+    <div class="menu-drawer__side">
+      <ul class="menu-drawer__secondary">
+        {% for link in secondary_menu.links %}
+          <li><a href="{{ link.url }}" data-cursor-hover data-menu-close>{{ link.title }}</a></li>
+        {% endfor %}
+      </ul>
+
+      <div>
+        <p class="menu-drawer__descriptor">{{ settings.brand_descriptor }}</p>
+        <div class="menu-drawer__social">
+          {% if settings.social_instagram %}<a href="{{ settings.social_instagram }}" target="_blank" rel="noreferrer" data-cursor-hover>Instagram</a>{% endif %}
+          {% if settings.social_pinterest %}<a href="{{ settings.social_pinterest }}" target="_blank" rel="noreferrer" data-cursor-hover>Pinterest</a>{% endif %}
+          {% if settings.social_tiktok %}<a href="{{ settings.social_tiktok }}" target="_blank" rel="noreferrer" data-cursor-hover>TikTok</a>{% endif %}
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="menu-drawer__footer">{{ shop.address.country }}</div>
+</div>

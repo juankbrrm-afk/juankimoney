@@ -1,0 +1,47 @@
+<div class="wrap" style="padding-top:128px;padding-bottom:96px;display:grid;grid-template-columns:1fr;gap:64px">
+  <div>
+    <span class="eyebrow">Contact</span>
+    <h1 style="margin-top:24px;font-size:clamp(2rem,5vw,3.25rem)">We're here for anything you need.</h1>
+    <p style="margin-top:24px;max-width:380px;font-size:14px;line-height:1.7;color:var(--color-warmgray)">For styling questions, order support, or press inquiries, reach us directly. We reply within one business day.</p>
+
+    <dl style="margin-top:56px;display:flex;flex-direction:column;gap:32px">
+      <div>
+        <dt class="eyebrow">Email</dt>
+        <dd style="margin:8px 0 0;font-size:16px">{{ shop.email }}</dd>
+      </div>
+      <div>
+        <dt class="eyebrow">Ateliers</dt>
+        <dd style="margin:8px 0 0;font-size:16px">{{ shop.address.city }}{% if shop.address.city and shop.address.country %}, {% endif %}{{ shop.address.country }}</dd>
+      </div>
+    </dl>
+  </div>
+
+  <div>
+    {% form 'contact' %}
+      {% if form.posted_successfully? %}
+        <p style="font-size:18px;line-height:1.6">Thank you for reaching out. A member of our team will be in touch shortly.</p>
+      {% else %}
+        {% if form.errors %}
+          <p style="color:#b3261e;font-size:13px;margin-bottom:16px">{{ form.errors | default_errors }}</p>
+        {% endif %}
+        <label style="display:flex;flex-direction:column;gap:8px;margin-bottom:28px">
+          <span class="eyebrow">Name</span>
+          <input type="text" name="contact[name]" required style="border:none;border-bottom:1px solid rgba(0,0,0,0.2);background:transparent;padding-bottom:12px;font-size:15px">
+        </label>
+        <label style="display:flex;flex-direction:column;gap:8px;margin-bottom:28px">
+          <span class="eyebrow">Email</span>
+          <input type="email" name="contact[email]" required style="border:none;border-bottom:1px solid rgba(0,0,0,0.2);background:transparent;padding-bottom:12px;font-size:15px">
+        </label>
+        <label style="display:flex;flex-direction:column;gap:8px;margin-bottom:28px">
+          <span class="eyebrow">Message</span>
+          <textarea name="contact[body]" required rows="4" style="border:none;border-bottom:1px solid rgba(0,0,0,0.2);background:transparent;padding-bottom:12px;font-size:15px;resize:vertical"></textarea>
+        </label>
+        <button type="submit" class="btn-outline" data-cursor-hover>Send Message</button>
+      {% endif %}
+    {% endform %}
+  </div>
+</div>
+
+{% schema %}
+{ "name": "Contact content", "settings": [] }
+{% endschema %}

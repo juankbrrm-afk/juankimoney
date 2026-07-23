@@ -1,0 +1,32 @@
+{% comment %} Usage: {% render 'product-card', product: product %} {% endcomment %}
+<div>
+  <div style="position:relative">
+    <a href="{{ product.url }}" class="product-card" data-cursor-hover>
+      <div class="editorial-image editorial-image--45 product-card__media">
+        {% if product.featured_image %}
+          {{ product.featured_image | image_url: width: 800 | image_tag: loading: 'lazy', alt: product.title }}
+        {% endif %}
+      </div>
+    </a>
+    <button
+      type="button"
+      class="wishlist-btn"
+      data-wishlist-toggle="{{ product.id }}"
+      data-active="false"
+      data-cursor-hover
+      aria-label="Save to wishlist"
+    >♡</button>
+    {% if product.compare_at_price > product.price %}
+      <span style="position:absolute;left:12px;top:12px;background:rgba(247,243,236,0.9);padding:4px 8px;font-size:10px;font-weight:600;letter-spacing:0.28em;text-transform:uppercase;">Sale</span>
+    {% endif %}
+  </div>
+  <a href="{{ product.url }}" data-cursor-hover>
+    <p class="product-card__name">{{ product.title }}</p>
+    <p class="product-card__price">
+      {% if product.compare_at_price > product.price %}
+        <span class="compare">{{ product.compare_at_price | money_without_trailing_zeros }}</span>
+      {% endif %}
+      {{ product.price | money_without_trailing_zeros }}
+    </p>
+  </a>
+</div>

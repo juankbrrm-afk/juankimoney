@@ -1,0 +1,58 @@
+<div class="drawer-backdrop" data-cart-backdrop></div>
+<aside class="cart-drawer" data-cart-drawer aria-hidden="true">
+  <div class="cart-drawer__head">
+    <p class="cart-drawer__title">{{ 'general.bag' | t }}</p>
+    <button type="button" class="cart-drawer__close" data-cart-close data-cursor-hover>{{ 'general.close' | t }}</button>
+  </div>
+
+  <div data-cart-drawer-inner>
+    {% if cart.item_count == 0 %}
+      <div class="cart-drawer__empty">
+        <h3>{{ 'cart.empty_heading' | t }}</h3>
+        <p>{{ 'cart.empty_body' | t }}</p>
+        <a href="{{ routes.all_products_collection_url }}" class="btn-outline" data-cart-close data-cursor-hover>{{ 'general.continue_shopping' | t }}</a>
+      </div>
+    {% else %}
+      <ul class="cart-drawer__lines">
+        {% for line in cart.items %}
+          <li class="cart-line">
+            <img class="cart-line__image" src="{{ line.image | image_url: width: 200 }}" width="200" height="250" alt="{{ line.title | escape }}" loading="lazy">
+            <div class="cart-line__body">
+              <div class="cart-line__top">
+                <div>
+                  <p class="cart-line__name">{{ line.product.title }}</p>
+                  {% assign meta = '' %}
+                  {% for opt in line.variant.options %}
+                    {% unless opt == 'Default Title' %}
+                      {% assign meta = meta | append: opt | append: ' · ' %}
+                    {% endunless %}
+                  {% endfor %}
+                  {% if meta != '' %}
+                    <p class="cart-line__meta">{{ meta | remove: ' · ' | replace: ' ·', ' ·' }}</p>
+                  {% endif %}
+                </div>
+                <p class="cart-line__price">{{ line.final_line_price | money_without_trailing_zeros }}</p>
+              </div>
+              <div class="cart-line__controls">
+                <div class="qty-stepper">
+                  <button type="button" data-cart-qty-minus="{{ line.key }}" data-cursor-hover>−</button>
+                  <span data-cart-qty-value="{{ line.key }}">{{ line.quantity }}</span>
+                  <button type="button" data-cart-qty-plus="{{ line.key }}" data-cursor-hover>+</button>
+                </div>
+                <button type="button" class="cart-line__remove" data-cart-remove="{{ line.key }}" data-cursor-hover>{{ 'general.remove' | t }}</button>
+              </div>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+      <div class="cart-drawer__foot">
+        <div class="cart-drawer__subtotal">
+          <span>{{ 'general.subtotal' | t }}</span>
+          <span>{{ cart.total_price | money_without_trailing_zeros }}</span>
+        </div>
+        <a href="/checkout" class="btn-checkout" data-cursor-hover>{{ 'general.checkout' | t }}</a>
+        <button type="button" class="btn-continue" data-cart-close data-cursor-hover>{{ 'general.continue_shopping' | t }}</button>
+      </div>
+    {% endif %}
+  </div>
+</aside>

@@ -1,0 +1,24 @@
+<section class="newsletter">
+  <div class="wrap newsletter__inner">
+    <h2>{{ 'newsletter.heading' | t }}</h2>
+    <p style="margin-top:16px;font-size:14px;color:var(--color-warmgray);line-height:1.6">{{ 'newsletter.body' | t }}</p>
+
+    {% form 'customer', id: 'newsletter-form' %}
+      {% if form.posted_successfully? %}
+        <p style="margin-top:32px;font-size:14px;color:var(--color-warmgray)">{{ 'newsletter.success' | t }}</p>
+      {% else %}
+        <input type="hidden" name="contact[tags]" value="newsletter">
+        <input type="email" name="contact[email]" placeholder="{{ 'newsletter.placeholder' | t }}" required>
+        <button type="submit">{{ 'newsletter.cta' | t }}</button>
+      {% endif %}
+    {% endform %}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Newsletter",
+  "settings": [],
+  "presets": [{ "name": "Newsletter" }]
+}
+{% endschema %}

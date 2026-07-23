@@ -1,0 +1,50 @@
+{
+  "sections": {
+    "hero": {
+      "type": "hero",
+      "settings": {
+        "eyebrow": "MONÉA — 2024",
+        "heading": "Designed for women\nwho move with confidence.",
+        "cta_label": "Discover"
+      }
+    },
+    "collection-reveal": {
+      "type": "collection-reveal",
+      "settings": {
+        "eyebrow": "The Collection",
+        "heading": "Every silhouette tells a story.",
+        "cta_label": "Enter the Collection"
+      }
+    },
+    "featured": {
+      "type": "featured-collection",
+      "settings": {
+        "eyebrow": "",
+        "heading": "The Tailoring Edit",
+        "limit": 2,
+        "columns": "3",
+        "background": "ivory"
+      }
+    },
+    "best-sellers": {
+      "type": "featured-collection",
+      "settings": {
+        "eyebrow": "Best Sellers",
+        "heading": "Pieces our clients return to.",
+        "limit": 5,
+        "columns": "5",
+        "background": "cream"
+      }
+    },
+    "philosophy": {
+      "type": "philosophy"
+    },
+    "lifestyle": {
+      "type": "lifestyle-gallery"
+    },
+    "newsletter": {
+      "type": "newsletter"
+    }
+  },
+  "order": ["hero", "collection-reveal", "featured", "best-sellers", "philosophy", "lifestyle", "newsletter"]
+}

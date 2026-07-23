@@ -1,0 +1,39 @@
+<div class="wrap" style="padding-top:112px;padding-bottom:96px">
+  <h1 style="font-size:28px;margin-bottom:40px">{{ 'general.bag' | t }}</h1>
+
+  {% if cart.item_count == 0 %}
+    <div style="text-align:center;padding:64px 0">
+      <h3 style="font-size:24px">{{ 'cart.empty_heading' | t }}</h3>
+      <p style="margin-top:16px;color:var(--color-warmgray)">{{ 'cart.empty_body' | t }}</p>
+      <a href="{{ routes.all_products_collection_url }}" class="btn-outline" data-cursor-hover style="margin-top:32px;display:inline-block">{{ 'general.continue_shopping' | t }}</a>
+    </div>
+  {% else %}
+    {% form 'cart' %}
+      <ul style="list-style:none;padding:0;margin:0">
+        {% for line in cart.items %}
+          <li style="display:flex;gap:20px;padding:24px 0;border-top:1px solid rgba(0,0,0,0.1)">
+            <img src="{{ line.image | image_url: width: 200 }}" width="96" height="120" alt="{{ line.title | escape }}" style="width:96px;aspect-ratio:4/5;object-fit:cover">
+            <div style="flex:1">
+              <p style="font-weight:600">{{ line.product.title }}</p>
+              <p style="margin-top:4px;font-size:13px;color:var(--color-warmgray)">{{ line.variant.title }}</p>
+              <div style="margin-top:12px;display:flex;align-items:center;gap:12px">
+                <input type="number" name="updates[{{ line.key }}]" value="{{ line.quantity }}" min="0" style="width:56px;border:1px solid rgba(0,0,0,0.2);padding:6px;background:transparent">
+                <span>{{ line.final_line_price | money_without_trailing_zeros }}</span>
+              </div>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+      <div style="margin-top:32px;display:flex;justify-content:space-between;font-size:16px">
+        <span>{{ 'general.subtotal' | t }}</span>
+        <span>{{ cart.total_price | money_without_trailing_zeros }}</span>
+      </div>
+      <button type="submit" name="update" class="btn-outline" data-cursor-hover style="margin-top:24px">Update Cart</button>
+      <button type="submit" name="checkout" class="btn-solid" data-cursor-hover style="margin-top:12px;max-width:320px">{{ 'general.checkout' | t }}</button>
+    {% endform %}
+  {% endif %}
+</div>
+
+{% schema %}
+{ "name": "Cart page", "settings": [] }
+{% endschema %}

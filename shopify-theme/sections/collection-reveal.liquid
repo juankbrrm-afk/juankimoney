@@ -1,0 +1,57 @@
+<section class="collection-reveal" id="collection" data-collection-reveal>
+  <div class="collection-reveal__cta" data-reveal-cta style="opacity:0">
+    <span class="eyebrow">{{ section.settings.eyebrow }}</span>
+    <h2>{{ section.settings.heading }}</h2>
+    <a href="{{ section.settings.collection.url | default: routes.all_products_collection_url }}" class="btn-outline" data-cursor-hover>{{ section.settings.cta_label }}</a>
+  </div>
+
+  <div class="collection-reveal__panel" data-reveal-panel>
+    <div class="collection-reveal__grid">
+      {% for block in section.blocks %}
+        <div
+          class="editorial-image"
+          data-reveal-item
+          style="grid-column: span {{ block.settings.col_span }}; grid-row: span {{ block.settings.row_span }};"
+        >
+          {% if block.settings.image %}
+            {{ block.settings.image | image_url: width: 1200 | image_tag: loading: 'lazy', alt: '' }}
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Collection reveal",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "The Collection" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Every silhouette tells a story." },
+    { "type": "text", "id": "cta_label", "label": "CTA label", "default": "Enter the Collection" },
+    { "type": "collection", "id": "collection", "label": "Link to collection" }
+  ],
+  "blocks": [
+    {
+      "type": "image",
+      "name": "Gallery image",
+      "settings": [
+        { "type": "image_picker", "id": "image", "label": "Image" },
+        { "type": "range", "id": "col_span", "label": "Column span", "min": 2, "max": 6, "default": 3 },
+        { "type": "range", "id": "row_span", "label": "Row span", "min": 2, "max": 6, "default": 3 }
+      ]
+    }
+  ],
+  "default": {
+    "blocks": [
+      { "type": "image", "settings": { "col_span": 3, "row_span": 4 } },
+      { "type": "image", "settings": { "col_span": 3, "row_span": 3 } },
+      { "type": "image", "settings": { "col_span": 2, "row_span": 3 } },
+      { "type": "image", "settings": { "col_span": 3, "row_span": 3 } },
+      { "type": "image", "settings": { "col_span": 2, "row_span": 2 } },
+      { "type": "image", "settings": { "col_span": 3, "row_span": 3 } }
+    ]
+  },
+  "presets": [{ "name": "Collection reveal" }]
+}
+{% endschema %}

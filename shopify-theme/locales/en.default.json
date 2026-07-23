@@ -1,0 +1,46 @@
+{
+  "general": {
+    "menu": "Menu",
+    "close": "Close",
+    "search": "Search",
+    "bag": "Bag",
+    "continue_shopping": "Continue Shopping",
+    "checkout": "Checkout",
+    "subtotal": "Subtotal",
+    "remove": "Remove",
+    "quantity": "Qty"
+  },
+  "cart": {
+    "empty_heading": "Your wardrobe is waiting.",
+    "empty_body": "Discover timeless pieces designed for everyday elegance."
+  },
+  "product": {
+    "add_to_cart": "Add to Cart",
+    "sold_out": "Sold Out",
+    "size": "Size",
+    "size_guide": "Size Guide",
+    "color": "Color",
+    "complete_the_look": "Complete The Look",
+    "description": "Description",
+    "shipping": "Shipping",
+    "returns": "Returns",
+    "materials": "Materials",
+    "care": "Care Instructions"
+  },
+  "search": {
+    "placeholder": "Search the collection",
+    "no_results": "Nothing found. Try another search."
+  },
+  "404": {
+    "heading": "Looks like this page walked away.",
+    "body": "Even the most curated collections have a wrong turn. Let's bring you back.",
+    "cta": "Return Home"
+  },
+  "newsletter": {
+    "heading": "Stay Inspired",
+    "body": "Occasional notes on new arrivals and the world we design for. Nothing more.",
+    "placeholder": "Email address",
+    "cta": "Subscribe",
+    "success": "Thank you — you're on the list."
+  }
+}

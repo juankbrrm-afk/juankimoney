@@ -1,0 +1,10 @@
+<div class="page-404">
+  <span class="eyebrow">404</span>
+  <h1>{{ '404.heading' | t }}</h1>
+  <p>{{ '404.body' | t }}</p>
+  <a href="{{ routes.root_url }}" class="btn-outline" data-cursor-hover>{{ '404.cta' | t }}</a>
+</div>
+
+{% schema %}
+{ "name": "404", "settings": [] }
+{% endschema %}

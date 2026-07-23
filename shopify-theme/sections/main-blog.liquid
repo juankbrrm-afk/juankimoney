@@ -1,0 +1,23 @@
+<div class="wrap" style="padding-top:96px">
+  <div style="max-width:640px;margin:0 auto;padding:56px 0;text-align:center">
+    <span class="eyebrow">Journal</span>
+    <h1 style="margin-top:24px;font-size:clamp(2rem,5vw,3.5rem)">Notes on craft, style, and the world we design for.</h1>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr;gap:56px 40px;padding-bottom:96px" data-reveal>
+    {% for article in blog.articles %}
+      <a href="{{ article.url }}" data-cursor-hover>
+        <div class="editorial-image editorial-image--32">
+          {% if article.image %}{{ article.image | image_url: width: 900 | image_tag: loading: 'lazy', alt: article.title }}{% endif %}
+        </div>
+        <p class="eyebrow" style="margin-top:24px">{{ article.tags.first | default: 'Journal' }}</p>
+        <h2 style="margin-top:8px;font-size:24px">{{ article.title }}</h2>
+        <p style="margin-top:12px;font-size:14px;line-height:1.7;color:var(--color-warmgray)">{{ article.excerpt_or_content | strip_html | truncate: 140 }}</p>
+      </a>
+    {% endfor %}
+  </div>
+</div>
+
+{% schema %}
+{ "name": "Blog list", "settings": [] }
+{% endschema %}

@@ -1,0 +1,54 @@
+<footer class="site-footer">
+  <div class="wrap site-footer__top">
+    <div class="site-footer__brand">
+      <p>{{ settings.brand_name }}</p>
+      <p>{{ settings.brand_descriptor }}</p>
+      <div class="menu-drawer__social" style="margin-top:24px">
+        {% if settings.social_instagram %}<a href="{{ settings.social_instagram }}" target="_blank" rel="noreferrer" data-cursor-hover>Instagram</a>{% endif %}
+        {% if settings.social_pinterest %}<a href="{{ settings.social_pinterest }}" target="_blank" rel="noreferrer" data-cursor-hover>Pinterest</a>{% endif %}
+        {% if settings.social_tiktok %}<a href="{{ settings.social_tiktok }}" target="_blank" rel="noreferrer" data-cursor-hover>TikTok</a>{% endif %}
+      </div>
+    </div>
+
+    <div class="site-footer__cols">
+      {% for block in section.blocks %}
+        <div class="site-footer__col">
+          <p>{{ block.settings.title }}</p>
+          <ul>
+            {% for link in block.settings.menu.links %}
+              <li><a href="{{ link.url }}" data-cursor-hover>{{ link.title }}</a></li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="wrap site-footer__bottom">
+    <span>© {{ 'now' | date: '%Y' }} {{ settings.brand_name }}. All rights reserved.</span>
+    <span>{{ shop.address.city }}{% if shop.address.city and shop.address.country %}, {% endif %}{{ shop.address.country }}</span>
+  </div>
+</footer>
+
+{% schema %}
+{
+  "name": "Footer",
+  "blocks": [
+    {
+      "type": "column",
+      "name": "Column",
+      "settings": [
+        { "type": "text", "id": "title", "label": "Title", "default": "Shop" },
+        { "type": "link_list", "id": "menu", "label": "Menu" }
+      ]
+    }
+  ],
+  "default": {
+    "blocks": [
+      { "type": "column", "settings": { "title": "Shop" } },
+      { "type": "column", "settings": { "title": "House" } },
+      { "type": "column", "settings": { "title": "Client Care" } }
+    ]
+  }
+}
+{% endschema %}

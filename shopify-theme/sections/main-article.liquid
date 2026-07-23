@@ -1,0 +1,14 @@
+<div class="wrap" style="max-width:720px;padding-top:128px;padding-bottom:96px">
+  <p class="eyebrow" style="text-align:center">{{ article.tags.first | default: 'Journal' }}</p>
+  <h1 style="margin-top:16px;text-align:center;font-size:clamp(1.9rem,5vw,3rem)">{{ article.title }}</h1>
+  {% if article.image %}
+    <div class="editorial-image editorial-image--32" style="margin-top:48px">
+      {{ article.image | image_url: width: 1200 | image_tag: loading: 'eager', alt: article.title }}
+    </div>
+  {% endif %}
+  <div style="margin-top:48px;font-size:16px;line-height:1.8;color:var(--color-warmgray)">{{ article.content }}</div>
+</div>
+
+{% schema %}
+{ "name": "Article", "settings": [] }
+{% endschema %}

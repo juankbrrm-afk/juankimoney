@@ -1,0 +1,15 @@
+<div class="search-drawer" aria-hidden="true">
+  <div class="search-drawer__inner">
+    <div class="search-drawer__field">
+      <input
+        type="text"
+        name="q"
+        placeholder="{{ 'search.placeholder' | t }}"
+        autocomplete="off"
+        data-search-input
+      >
+      <button type="button" data-search-close data-cursor-hover>Close</button>
+    </div>
+    <div class="search-results" data-search-results></div>
+  </div>
+</div>

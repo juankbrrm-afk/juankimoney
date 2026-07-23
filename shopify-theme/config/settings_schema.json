@@ -1,0 +1,52 @@
+[
+  {
+    "name": "theme_info",
+    "theme_name": "MONÉA",
+    "theme_version": "1.0.0",
+    "theme_author": "MONÉA",
+    "theme_documentation_url": "https://monea.example.com/docs",
+    "theme_support_email": "hello@monea.com"
+  },
+  {
+    "name": "Brand",
+    "settings": [
+      {
+        "type": "text",
+        "id": "brand_name",
+        "label": "Brand name",
+        "default": "MONÉA"
+      },
+      {
+        "type": "text",
+        "id": "brand_tagline",
+        "label": "Tagline",
+        "default": "Quiet luxury, made to be worn."
+      },
+      {
+        "type": "textarea",
+        "id": "brand_descriptor",
+        "label": "Short descriptor (footer/menu)",
+        "default": "A fashion house for women who move with confidence."
+      }
+    ]
+  },
+  {
+    "name": "Colors",
+    "settings": [
+      { "type": "color", "id": "color_paper", "label": "Paper", "default": "#ffffff" },
+      { "type": "color", "id": "color_ivory", "label": "Ivory (background)", "default": "#f7f3ec" },
+      { "type": "color", "id": "color_cream", "label": "Cream", "default": "#efe6d8" },
+      { "type": "color", "id": "color_stone", "label": "Stone", "default": "#b6a996" },
+      { "type": "color", "id": "color_warmgray", "label": "Warm gray (secondary text)", "default": "#6b6255" },
+      { "type": "color", "id": "color_black", "label": "Black (text/ink)", "default": "#0b0a09" }
+    ]
+  },
+  {
+    "name": "Social",
+    "settings": [
+      { "type": "url", "id": "social_instagram", "label": "Instagram URL" },
+      { "type": "url", "id": "social_pinterest", "label": "Pinterest URL" },
+      { "type": "url", "id": "social_tiktok", "label": "TikTok URL" }
+    ]
+  }
+]

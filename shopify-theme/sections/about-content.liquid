@@ -1,0 +1,62 @@
+<div style="padding-top:96px">
+  <div class="wrap" style="max-width:900px;padding-top:64px;padding-bottom:64px;text-align:center">
+    <span class="eyebrow">The House</span>
+    <h1 style="margin-top:24px;font-size:clamp(2rem,6vw,4rem)">Our clothing is designed for women who value elegance over trends.</h1>
+  </div>
+
+  <div class="grid-2" data-reveal>
+    <div class="editorial-image" style="aspect-ratio:4/5">
+      {% if section.settings.image_1 %}{{ section.settings.image_1 | image_url: width: 1000 | image_tag: loading: 'lazy', alt: '' }}{% endif %}
+    </div>
+    <div style="display:flex;align-items:center;background:var(--color-cream);padding:64px 32px">
+      <div style="max-width:420px">
+        <span class="eyebrow">{{ settings.brand_name }}'s Philosophy</span>
+        <h2 style="margin-top:20px;font-size:32px">We don't chase trends.</h2>
+        <p style="margin-top:24px;font-size:15px;line-height:1.7;color:var(--color-warmgray)">We create timeless essentials designed to live inside your wardrobe for years — tailored silhouettes, premium fabrics, and a quiet confidence that never needs to raise its voice.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap" style="padding:96px 0">
+    <div style="display:grid;grid-template-columns:1fr;gap:56px 40px" data-reveal>
+      <div>
+        <h3 style="font-size:18px">Minimalism</h3>
+        <p style="margin-top:12px;font-size:14px;line-height:1.7;color:var(--color-warmgray)">Nothing is added without reason. Every silhouette is reduced to what it needs to be, and nothing more.</p>
+      </div>
+      <div>
+        <h3 style="font-size:18px">Timeless Silhouettes</h3>
+        <p style="margin-top:12px;font-size:14px;line-height:1.7;color:var(--color-warmgray)">We design for the wardrobe, not the season. Shapes chosen to remain quietly correct for years.</p>
+      </div>
+      <div>
+        <h3 style="font-size:18px">Premium Fabrics</h3>
+        <p style="margin-top:12px;font-size:14px;line-height:1.7;color:var(--color-warmgray)">Mulberry silk, grade-A cashmere, European linen — sourced for how they feel, drape, and age.</p>
+      </div>
+      <div>
+        <h3 style="font-size:18px">Confidence</h3>
+        <p style="margin-top:12px;font-size:14px;line-height:1.7;color:var(--color-warmgray)">Clothing that asks nothing of the woman wearing it, and gives her everything in return.</p>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px" data-reveal>
+    <div class="editorial-image" style="aspect-ratio:3/4">{% if section.settings.image_2 %}{{ section.settings.image_2 | image_url: width: 800 | image_tag: loading: 'lazy', alt: '' }}{% endif %}</div>
+    <div class="editorial-image" style="aspect-ratio:3/4">{% if section.settings.image_3 %}{{ section.settings.image_3 | image_url: width: 800 | image_tag: loading: 'lazy', alt: '' }}{% endif %}</div>
+    <div class="editorial-image" style="aspect-ratio:3/4">{% if section.settings.image_4 %}{{ section.settings.image_4 | image_url: width: 800 | image_tag: loading: 'lazy', alt: '' }}{% endif %}</div>
+  </div>
+
+  <div class="wrap" style="max-width:640px;padding:96px 0;text-align:center">
+    <p style="font-size:24px;font-weight:600;line-height:1.5">Less noise. More elegance. {{ settings.brand_name }} is not built for seasons — it is built to be worn.</p>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "About content",
+  "settings": [
+    { "type": "image_picker", "id": "image_1", "label": "Studio image" },
+    { "type": "image_picker", "id": "image_2", "label": "Gallery image 1" },
+    { "type": "image_picker", "id": "image_3", "label": "Gallery image 2" },
+    { "type": "image_picker", "id": "image_4", "label": "Gallery image 3" }
+  ]
+}
+{% endschema %}

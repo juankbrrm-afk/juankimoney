@@ -1,0 +1,32 @@
+<header class="site-header">
+  <div class="wrap site-header__row">
+    <button type="button" class="site-header__menu-btn" data-menu-toggle data-cursor-hover aria-label="Menu">
+      <span class="site-header__burger">
+        <span></span><span></span><span></span>
+      </span>
+      <span class="hide-mobile">Menu</span>
+    </button>
+
+    <a href="{{ routes.root_url }}" class="site-header__logo" data-cursor-hover>
+      {{ settings.brand_name }}
+    </a>
+
+    <div class="site-header__actions">
+      <button type="button" data-search-toggle data-cursor-hover aria-label="Search">Search</button>
+      <button type="button" data-cart-toggle data-cursor-hover aria-label="Bag">
+        Bag<span data-cart-count>{% if cart.item_count > 0 %} ({{ cart.item_count }}){% endif %}</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+{% style %}
+  @media (max-width: 640px) { .hide-mobile { display: none; } }
+{% endstyle %}
+
+{% schema %}
+{
+  "name": "Header",
+  "settings": []
+}
+{% endschema %}

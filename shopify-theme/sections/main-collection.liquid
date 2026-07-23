@@ -1,0 +1,45 @@
+<div class="shop-head">
+  <span class="eyebrow">{{ collection.title | default: 'The Collection' }}</span>
+  <h1 style="margin-top:20px;font-size:clamp(1.9rem,5vw,3.25rem)">Curated pieces, considered edits.</h1>
+</div>
+
+<div class="shop-filters">
+  <div class="wrap shop-filters__row">
+    <div class="shop-filters__cats no-scrollbar">
+      <a href="{{ routes.all_products_collection_url }}" {% if collection.handle == 'all' or collection.all_products_count == collection.products_count %}class="is-active"{% endif %} data-cursor-hover>All</a>
+      {% for c in collections %}
+        {% unless c.handle == 'all' or c.handle == 'frontpage' %}
+          <a href="{{ c.url }}" {% if c.handle == collection.handle %}class="is-active"{% endif %} data-cursor-hover>{{ c.title }}</a>
+        {% endunless %}
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="product-grid" style="padding:64px 0" data-reveal>
+    {% paginate collection.products by 24 %}
+      {% for product in collection.products %}
+        {% render 'product-card', product: product %}
+      {% endfor %}
+    {% endpaginate %}
+  </div>
+
+  {% if collection.products.size == 0 %}
+    <p style="text-align:center;padding-bottom:96px;color:var(--color-warmgray)">No pieces match this edit yet.</p>
+  {% endif %}
+
+  {% if paginate.pages > 1 %}
+    <nav style="display:flex;justify-content:center;gap:16px;padding-bottom:96px;font-size:12px;letter-spacing:0.1em;text-transform:uppercase">
+      {% if paginate.previous %}<a href="{{ paginate.previous.url }}" data-cursor-hover>Prev</a>{% endif %}
+      {% if paginate.next %}<a href="{{ paginate.next.url }}" data-cursor-hover>Next</a>{% endif %}
+    </nav>
+  {% endif %}
+</div>
+
+{% schema %}
+{
+  "name": "Collection grid",
+  "settings": []
+}
+{% endschema %}

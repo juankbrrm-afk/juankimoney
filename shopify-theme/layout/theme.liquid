@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="{{ request.locale.iso_code }}">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+      {{ page_title }}{% if page_title contains settings.brand_name %}{% else %} — {{ settings.brand_name }}{% endif %}
+    </title>
+    {% if page_description %}
+      <meta name="description" content="{{ page_description | escape }}">
+    {% else %}
+      <meta name="description" content="{{ settings.brand_descriptor | escape }}">
+    {% endif %}
+
+    <link rel="canonical" href="{{ canonical_url }}">
+    {{ content_for_header }}
+
+    {{ 'theme.css.liquid' | asset_url | stylesheet_tag }}
+    {{ 'inter-tight-500.woff2' | asset_url | preload_tag: as: 'font', type: 'font/woff2', crossorigin: 'anonymous' }}
+    {{ 'inter-tight-600.woff2' | asset_url | preload_tag: as: 'font', type: 'font/woff2', crossorigin: 'anonymous' }}
+  </head>
+  <body data-template="{{ template.name }}">
+    <div class="loading-screen" aria-hidden="true">
+      <span class="loading-screen__mark">{{ settings.brand_name }}</span>
+    </div>
+
+    {% section 'header' %}
+    {% render 'menu-drawer' %}
+    {% render 'search-drawer' %}
+    {% render 'cart-drawer' %}
+
+    <main id="MainContent">
+      {{ content_for_layout }}
+    </main>
+
+    {% section 'footer' %}
+
+    <script>
+      window.MONEA_I18N = {
+        emptyHeading: {{ 'cart.empty_heading' | t | json }},
+        emptyBody: {{ 'cart.empty_body' | t | json }},
+        noResults: {{ 'search.no_results' | t | json }},
+        shopUrl: {{ routes.all_products_collection_url | json }}
+      };
+    </script>
+    <script src="{{ 'theme.js' | asset_url }}" defer></script>
+  </body>
+</html>

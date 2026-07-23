@@ -1,0 +1,55 @@
+<section class="section">
+  <div class="wrap">
+    <div style="max-width:640px;margin:0 auto 56px;text-align:center">
+      {% if section.settings.eyebrow != blank %}<span class="eyebrow">{{ section.settings.eyebrow }}</span>{% endif %}
+      <h2 style="margin-top:16px">{{ section.settings.heading }}</h2>
+    </div>
+
+    <div class="gallery-row no-scrollbar" data-reveal>
+      {% for block in section.blocks %}
+        <div class="editorial-image editorial-image--{{ block.settings.aspect }}">
+          {% if block.settings.image %}
+            {{ block.settings.image | image_url: width: 800 | image_tag: loading: 'lazy', alt: block.settings.label }}
+          {% endif %}
+          {% if block.settings.label != blank %}
+            <span class="editorial-image__label">{{ block.settings.label }}</span>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Lifestyle gallery",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "The Lifestyle" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Worn in the world, not just photographed for it." }
+  ],
+  "blocks": [
+    {
+      "type": "image",
+      "name": "Image",
+      "settings": [
+        { "type": "image_picker", "id": "image", "label": "Image" },
+        { "type": "text", "id": "label", "label": "Caption" },
+        { "type": "select", "id": "aspect", "label": "Aspect", "options": [
+          { "value": "45", "label": "Portrait (4:5)" },
+          { "value": "sq", "label": "Square" }
+        ], "default": "45" }
+      ]
+    }
+  ],
+  "default": {
+    "blocks": [
+      { "type": "image", "settings": { "label": "Amalfi", "aspect": "45" } },
+      { "type": "image", "settings": { "label": "Lisbon", "aspect": "sq" } },
+      { "type": "image", "settings": { "label": "Mallorca", "aspect": "45" } },
+      { "type": "image", "settings": { "label": "Paris", "aspect": "sq" } },
+      { "type": "image", "settings": { "label": "Milan", "aspect": "45" } }
+    ]
+  },
+  "presets": [{ "name": "Lifestyle gallery" }]
+}
+{% endschema %}
