@@ -28,7 +28,7 @@
         <span>{{ 'general.subtotal' | t }}</span>
         <span>{{ cart.total_price | money_without_trailing_zeros }}</span>
       </div>
-      <button type="submit" name="update" class="btn-outline" data-cursor-hover style="margin-top:24px">Update Cart</button>
+      <button type="submit" name="update" class="btn-outline" data-cursor-hover style="margin-top:24px">{{ 'general.update_cart' | t }}</button>
       <button type="submit" name="checkout" class="btn-solid" data-cursor-hover style="margin-top:12px;max-width:320px">{{ 'general.checkout' | t }}</button>
     {% endform %}
   {% endif %}

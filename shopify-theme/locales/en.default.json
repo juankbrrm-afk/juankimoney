@@ -8,7 +8,11 @@
     "checkout": "Checkout",
     "subtotal": "Subtotal",
     "remove": "Remove",
-    "quantity": "Qty"
+    "quantity": "Qty",
+    "language": "Language",
+    "update_cart": "Update Cart",
+    "scroll": "Scroll",
+    "save_to_wishlist": "Save to wishlist"
   },
   "cart": {
     "empty_heading": "Your wardrobe is waiting.",
@@ -23,9 +27,18 @@
     "complete_the_look": "Complete The Look",
     "description": "Description",
     "shipping": "Shipping",
+    "shipping_text": "Complimentary shipping on all orders. Delivered within 3–5 business days, carefully packaged.",
     "returns": "Returns",
+    "returns_text": "Returns accepted within 30 days of delivery. Items must be unworn with tags attached.",
     "materials": "Materials",
-    "care": "Care Instructions"
+    "care": "Care Instructions",
+    "care_text": "Dry clean recommended. Store on a padded hanger, away from direct sunlight.",
+    "size_guide_note": "Measurements are approximate. For an in-between size, we recommend sizing up for a more relaxed fit.",
+    "sale_badge": "Sale",
+    "size_th": "Size",
+    "bust_th": "Bust (in)",
+    "waist_th": "Waist (in)",
+    "hip_th": "Hip (in)"
   },
   "search": {
     "placeholder": "Search the collection",
@@ -42,5 +55,48 @@
     "placeholder": "Email address",
     "cta": "Subscribe",
     "success": "Thank you — you're on the list."
+  },
+  "shop": {
+    "eyebrow": "The Collection",
+    "heading": "Curated pieces, considered edits.",
+    "all": "All",
+    "filters": "Filters",
+    "empty": "No pieces match this edit yet."
+  },
+  "about": {
+    "eyebrow": "The House",
+    "heading": "Our clothing is designed for women who value elegance over trends.",
+    "philosophy_eyebrow": "Philosophy",
+    "philosophy_heading": "We don't chase trends.",
+    "philosophy_body": "We create timeless essentials designed to live inside your wardrobe for years — tailored silhouettes, premium fabrics, and a quiet confidence that never needs to raise its voice.",
+    "pillar1_title": "Minimalism",
+    "pillar1_body": "Nothing is added without reason. Every silhouette is reduced to what it needs to be, and nothing more.",
+    "pillar2_title": "Timeless Silhouettes",
+    "pillar2_body": "We design for the wardrobe, not the season. Shapes chosen to remain quietly correct for years.",
+    "pillar3_title": "Premium Fabrics",
+    "pillar3_body": "Mulberry silk, grade-A cashmere, European linen — sourced for how they feel, drape, and age.",
+    "pillar4_title": "Confidence",
+    "pillar4_body": "Clothing that asks nothing of the woman wearing it, and gives her everything in return.",
+    "closing_quote": "Less noise. More elegance. %{brand} is not built for seasons — it is built to be worn."
+  },
+  "contact": {
+    "eyebrow": "Contact",
+    "heading": "We're here for anything you need.",
+    "body": "For styling questions, order support, or press inquiries, reach us directly. We reply within one business day.",
+    "email_label": "Email",
+    "ateliers_label": "Ateliers",
+    "form_name": "Name",
+    "form_email": "Email",
+    "form_message": "Message",
+    "form_submit": "Send Message",
+    "form_success": "Thank you for reaching out. A member of our team will be in touch shortly."
+  },
+  "journal": {
+    "eyebrow": "Journal",
+    "heading": "Notes on craft, style, and the world we design for."
+  },
+  "collections_index": {
+    "eyebrow": "Collections",
+    "heading": "Shop by edit."
   }
 }

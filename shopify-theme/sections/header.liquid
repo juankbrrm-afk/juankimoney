@@ -1,10 +1,10 @@
 <header class="site-header">
   <div class="wrap site-header__row">
-    <button type="button" class="site-header__menu-btn" data-menu-toggle data-cursor-hover aria-label="Menu">
+    <button type="button" class="site-header__menu-btn" data-menu-toggle data-cursor-hover aria-label="{{ 'general.menu' | t }}">
       <span class="site-header__burger">
         <span></span><span></span><span></span>
       </span>
-      <span class="hide-mobile">Menu</span>
+      <span class="hide-mobile">{{ 'general.menu' | t }}</span>
     </button>
 
     <a href="{{ routes.root_url }}" class="site-header__logo" data-cursor-hover>
@@ -12,9 +12,22 @@
     </a>
 
     <div class="site-header__actions">
-      <button type="button" data-search-toggle data-cursor-hover aria-label="Search">Search</button>
-      <button type="button" data-cart-toggle data-cursor-hover aria-label="Bag">
-        Bag<span data-cart-count>{% if cart.item_count > 0 %} ({{ cart.item_count }}){% endif %}</span>
+      {% if localization.available_languages.size > 1 %}
+        <div class="lang-switch hide-mobile">
+          {% form 'localization', id: 'lang-form' %}
+            <select name="locale_code" onchange="this.form.submit()" aria-label="{{ 'general.language' | t }}">
+              {% for language in localization.available_languages %}
+                <option value="{{ language.iso_code }}" {% if language.iso_code == localization.language.iso_code %}selected{% endif %}>
+                  {{ language.iso_code | upcase }}
+                </option>
+              {% endfor %}
+            </select>
+          {% endform %}
+        </div>
+      {% endif %}
+      <button type="button" data-search-toggle data-cursor-hover aria-label="{{ 'general.search' | t }}">{{ 'general.search' | t }}</button>
+      <button type="button" data-cart-toggle data-cursor-hover aria-label="{{ 'general.bag' | t }}">
+        {{ 'general.bag' | t }}<span data-cart-count>{% if cart.item_count > 0 %} ({{ cart.item_count }}){% endif %}</span>
       </button>
     </div>
   </div>
@@ -22,6 +35,20 @@
 
 {% style %}
   @media (max-width: 640px) { .hide-mobile { display: none; } }
+  .lang-switch select {
+    background: transparent;
+    border: none;
+    color: inherit;
+    font: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .lang-switch select option { color: #000; }
 {% endstyle %}
 
 {% schema %}

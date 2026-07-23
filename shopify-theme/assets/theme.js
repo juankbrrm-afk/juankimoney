@@ -5,6 +5,10 @@
   var header = document.querySelector(".site-header");
   var isHome = body.dataset.template === "index";
 
+  function i18n(key, fallback) {
+    return (window.MONEA_I18N && window.MONEA_I18N[key]) || fallback;
+  }
+
   /* ---------------- Header solid-on-scroll ---------------- */
   function updateHeaderState() {
     if (!header) return;
@@ -101,7 +105,7 @@
       '<span data-cart-qty-value="' + line.key + '">' + line.quantity + "</span>" +
       '<button type="button" data-cart-qty-plus="' + line.key + '" data-cursor-hover>+</button>' +
       "</div>" +
-      '<button type="button" class="cart-line__remove" data-cart-remove="' + line.key + '" data-cursor-hover>Remove</button>' +
+      '<button type="button" class="cart-line__remove" data-cart-remove="' + line.key + '" data-cursor-hover>' + i18n("remove", "Remove") + "</button>" +
       "</div>" +
       "</div>" +
       "</li>"
@@ -115,18 +119,18 @@
     if (!cart.items.length) {
       inner.innerHTML =
         '<div class="cart-drawer__empty">' +
-        "<h3>" + (window.MONEA_I18N ? window.MONEA_I18N.emptyHeading : "Your wardrobe is waiting.") + "</h3>" +
-        "<p>" + (window.MONEA_I18N ? window.MONEA_I18N.emptyBody : "") + "</p>" +
-        '<a href="' + (window.MONEA_I18N ? window.MONEA_I18N.shopUrl : "/collections/all") + '" class="btn-outline" data-cart-close data-cursor-hover>Continue Shopping</a>' +
+        "<h3>" + i18n("emptyHeading", "Your wardrobe is waiting.") + "</h3>" +
+        "<p>" + i18n("emptyBody", "") + "</p>" +
+        '<a href="' + i18n("shopUrl", "/collections/all") + '" class="btn-outline" data-cart-close data-cursor-hover>' + i18n("continueShopping", "Continue Shopping") + "</a>" +
         "</div>";
     } else {
       var linesHtml = cart.items.map(cartLineHtml).join("");
       inner.innerHTML =
         '<ul class="cart-drawer__lines">' + linesHtml + "</ul>" +
         '<div class="cart-drawer__foot">' +
-        '<div class="cart-drawer__subtotal"><span>Subtotal</span><span>' + money(cart.total_price) + "</span></div>" +
-        '<a href="/checkout" class="btn-checkout" data-cursor-hover>Checkout</a>' +
-        '<button type="button" class="btn-continue" data-cart-close data-cursor-hover>Continue Shopping</button>' +
+        '<div class="cart-drawer__subtotal"><span>' + i18n("subtotal", "Subtotal") + "</span><span>" + money(cart.total_price) + "</span></div>" +
+        '<a href="/checkout" class="btn-checkout" data-cursor-hover>' + i18n("checkout", "Checkout") + "</a>" +
+        '<button type="button" class="btn-continue" data-cart-close data-cursor-hover>' + i18n("continueShopping", "Continue Shopping") + "</button>" +
         "</div>";
       bindCartControls();
     }
@@ -436,7 +440,7 @@
           .then(function (data) {
             var products = (data.resources && data.resources.results && data.resources.results.products) || [];
             if (!products.length) {
-              searchResults.innerHTML = '<p style="grid-column:1/-1;font-size:14px;color:var(--color-warmgray)">' + (window.MONEA_I18N ? window.MONEA_I18N.noResults : "Nothing found.") + "</p>";
+              searchResults.innerHTML = '<p style="grid-column:1/-1;font-size:14px;color:var(--color-warmgray)">' + i18n("noResults", "Nothing found.") + "</p>";
               return;
             }
             searchResults.innerHTML = products

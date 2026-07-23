@@ -73,18 +73,18 @@
             data-label-soldout="{{ 'product.sold_out' | t }}"
             {% unless current_variant.available %}disabled{% endunless %}
           >{% if current_variant.available %}{{ 'product.add_to_cart' | t }}{% else %}{{ 'product.sold_out' | t }}{% endif %}</button>
-          <button type="button" class="wishlist-toggle" data-wishlist-toggle="{{ product.id }}" data-active="false" data-cursor-hover aria-label="Save to wishlist">♡</button>
+          <button type="button" class="wishlist-toggle" data-wishlist-toggle="{{ product.id }}" data-active="false" data-cursor-hover aria-label="{{ 'general.save_to_wishlist' | t }}">♡</button>
         </div>
       {% endform %}
 
       <div class="accordion">
         <div class="accordion-item">
           <button type="button" class="accordion-item__btn">{{ 'product.shipping' | t }}<span class="accordion-item__plus">+</span></button>
-          <div class="accordion-item__panel"><div><p>Complimentary shipping on all orders. Delivered within 3–5 business days, carefully packaged.</p></div></div>
+          <div class="accordion-item__panel"><div><p>{{ 'product.shipping_text' | t }}</p></div></div>
         </div>
         <div class="accordion-item">
           <button type="button" class="accordion-item__btn">{{ 'product.returns' | t }}<span class="accordion-item__plus">+</span></button>
-          <div class="accordion-item__panel"><div><p>Returns accepted within 30 days of delivery. Items must be unworn with tags attached.</p></div></div>
+          <div class="accordion-item__panel"><div><p>{{ 'product.returns_text' | t }}</p></div></div>
         </div>
         {% if product.metafields.custom.materials != blank %}
         <div class="accordion-item">
@@ -94,7 +94,7 @@
         {% endif %}
         <div class="accordion-item">
           <button type="button" class="accordion-item__btn">{{ 'product.care' | t }}<span class="accordion-item__plus">+</span></button>
-          <div class="accordion-item__panel"><div><p>Dry clean recommended. Store on a padded hanger, away from direct sunlight.</p></div></div>
+          <div class="accordion-item__panel"><div><p>{{ 'product.care_text' | t }}</p></div></div>
         </div>
       </div>
     </div>
@@ -126,7 +126,7 @@
       <button type="button" data-size-guide-close data-cursor-hover class="eyebrow">{{ 'general.close' | t }}</button>
     </div>
     <table>
-      <thead><tr><th>Size</th><th>Bust (in)</th><th>Waist (in)</th><th>Hip (in)</th></tr></thead>
+      <thead><tr><th>{{ 'product.size_th' | t }}</th><th>{{ 'product.bust_th' | t }}</th><th>{{ 'product.waist_th' | t }}</th><th>{{ 'product.hip_th' | t }}</th></tr></thead>
       <tbody>
         <tr><td>XS</td><td>32</td><td>24</td><td>34</td></tr>
         <tr><td>S</td><td>34</td><td>26</td><td>36</td></tr>
@@ -135,7 +135,7 @@
         <tr><td>XL</td><td>40</td><td>32</td><td>42</td></tr>
       </tbody>
     </table>
-    <p class="size-guide-modal__note">Measurements are approximate. For an in-between size, we recommend sizing up for a more relaxed fit.</p>
+    <p class="size-guide-modal__note">{{ 'product.size_guide_note' | t }}</p>
   </div>
 </div>
 

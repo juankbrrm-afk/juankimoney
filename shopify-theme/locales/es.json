@@ -1,0 +1,102 @@
+{
+  "general": {
+    "menu": "Menú",
+    "close": "Cerrar",
+    "search": "Buscar",
+    "bag": "Bolsa",
+    "continue_shopping": "Seguir Comprando",
+    "checkout": "Pagar",
+    "subtotal": "Subtotal",
+    "remove": "Eliminar",
+    "quantity": "Cant.",
+    "language": "Idioma",
+    "update_cart": "Actualizar Bolsa",
+    "scroll": "Desliza",
+    "save_to_wishlist": "Guardar en favoritos"
+  },
+  "cart": {
+    "empty_heading": "Tu guardarropa te espera.",
+    "empty_body": "Descubre piezas atemporales diseñadas para la elegancia de cada día."
+  },
+  "product": {
+    "add_to_cart": "Agregar a la Bolsa",
+    "sold_out": "Agotado",
+    "size": "Talla",
+    "size_guide": "Guía de Tallas",
+    "color": "Color",
+    "complete_the_look": "Completa el Look",
+    "description": "Descripción",
+    "shipping": "Envío",
+    "shipping_text": "Envío gratuito en todos los pedidos. Entrega en 3–5 días hábiles, empacado con cuidado.",
+    "returns": "Devoluciones",
+    "returns_text": "Se aceptan devoluciones dentro de 30 días desde la entrega. Las piezas deben estar sin usar y con etiquetas.",
+    "materials": "Materiales",
+    "care": "Cuidados",
+    "care_text": "Se recomienda lavado en seco. Guardar en gancho acolchado, lejos de la luz solar directa.",
+    "size_guide_note": "Las medidas son aproximadas. Si estás entre dos tallas, recomendamos elegir la mayor para un ajuste más relajado.",
+    "sale_badge": "Oferta",
+    "size_th": "Talla",
+    "bust_th": "Busto (in)",
+    "waist_th": "Cintura (in)",
+    "hip_th": "Cadera (in)"
+  },
+  "search": {
+    "placeholder": "Busca en la colección",
+    "no_results": "No se encontró nada. Intenta con otra búsqueda."
+  },
+  "404": {
+    "heading": "Parece que esta página se fue de paseo.",
+    "body": "Hasta las colecciones más cuidadas tienen un giro equivocado. Volvamos al inicio.",
+    "cta": "Volver al Inicio"
+  },
+  "newsletter": {
+    "heading": "Mantente Inspirada",
+    "body": "Notas ocasionales sobre nuevas llegadas y el mundo que diseñamos. Nada más.",
+    "placeholder": "Correo electrónico",
+    "cta": "Suscribirme",
+    "success": "Gracias — ya estás en la lista."
+  },
+  "shop": {
+    "eyebrow": "La Colección",
+    "heading": "Piezas curadas, ediciones cuidadas.",
+    "all": "Todo",
+    "filters": "Filtros",
+    "empty": "Aún no hay piezas en esta edición."
+  },
+  "about": {
+    "eyebrow": "La Casa",
+    "heading": "Nuestra ropa está diseñada para mujeres que valoran la elegancia sobre las tendencias.",
+    "philosophy_eyebrow": "Filosofía",
+    "philosophy_heading": "No perseguimos tendencias.",
+    "philosophy_body": "Creamos esenciales atemporales diseñados para vivir en tu guardarropa por años — siluetas a la medida, telas premium, y una confianza tranquila que nunca necesita alzar la voz.",
+    "pillar1_title": "Minimalismo",
+    "pillar1_body": "Nada se agrega sin razón. Cada silueta se reduce a lo esencial, y nada más.",
+    "pillar2_title": "Siluetas Atemporales",
+    "pillar2_body": "Diseñamos para el guardarropa, no para la temporada. Formas elegidas para mantenerse vigentes por años.",
+    "pillar3_title": "Telas Premium",
+    "pillar3_body": "Seda mulberry, cachemira de grado A, lino europeo — elegidos por cómo se sienten, caen y envejecen.",
+    "pillar4_title": "Confianza",
+    "pillar4_body": "Ropa que no le exige nada a la mujer que la usa, y le da todo a cambio.",
+    "closing_quote": "Menos ruido. Más elegancia. %{brand} no está hecha para temporadas — está hecha para ser usada."
+  },
+  "contact": {
+    "eyebrow": "Contacto",
+    "heading": "Estamos aquí para lo que necesites.",
+    "body": "Para preguntas de estilismo, soporte de pedidos, o prensa, contáctanos directamente. Respondemos dentro de un día hábil.",
+    "email_label": "Correo",
+    "ateliers_label": "Talleres",
+    "form_name": "Nombre",
+    "form_email": "Correo",
+    "form_message": "Mensaje",
+    "form_submit": "Enviar Mensaje",
+    "form_success": "Gracias por escribirnos. Un miembro de nuestro equipo se pondrá en contacto pronto."
+  },
+  "journal": {
+    "eyebrow": "Revista",
+    "heading": "Notas sobre oficio, estilo, y el mundo que diseñamos."
+  },
+  "collections_index": {
+    "eyebrow": "Colecciones",
+    "heading": "Compra por edición."
+  }
+}

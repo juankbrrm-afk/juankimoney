@@ -2,7 +2,7 @@
   <form action="{{ routes.search_url }}" method="get" style="max-width:640px;margin:0 auto">
     <div class="search-drawer__field" style="border-bottom:1px solid rgba(0,0,0,0.15);padding-bottom:16px">
       <input type="text" name="q" value="{{ search.terms | escape }}" placeholder="{{ 'search.placeholder' | t }}" style="font-size:28px">
-      <button type="submit" class="eyebrow">Search</button>
+      <button type="submit" class="eyebrow">{{ 'general.search' | t }}</button>
     </div>
   </form>
 

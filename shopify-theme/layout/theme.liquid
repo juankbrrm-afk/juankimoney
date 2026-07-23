@@ -40,7 +40,11 @@
         emptyHeading: {{ 'cart.empty_heading' | t | json }},
         emptyBody: {{ 'cart.empty_body' | t | json }},
         noResults: {{ 'search.no_results' | t | json }},
-        shopUrl: {{ routes.all_products_collection_url | json }}
+        shopUrl: {{ routes.all_products_collection_url | json }},
+        remove: {{ 'general.remove' | t | json }},
+        continueShopping: {{ 'general.continue_shopping' | t | json }},
+        subtotal: {{ 'general.subtotal' | t | json }},
+        checkout: {{ 'general.checkout' | t | json }}
       };
     </script>
     <script src="{{ 'theme.js' | asset_url }}" defer></script>

@@ -14,10 +14,10 @@
       data-wishlist-toggle="{{ product.id }}"
       data-active="false"
       data-cursor-hover
-      aria-label="Save to wishlist"
+      aria-label="{{ 'general.save_to_wishlist' | t }}"
     >♡</button>
     {% if product.compare_at_price > product.price %}
-      <span style="position:absolute;left:12px;top:12px;background:rgba(247,243,236,0.9);padding:4px 8px;font-size:10px;font-weight:600;letter-spacing:0.28em;text-transform:uppercase;">Sale</span>
+      <span style="position:absolute;left:12px;top:12px;background:rgba(247,243,236,0.9);padding:4px 8px;font-size:10px;font-weight:600;letter-spacing:0.28em;text-transform:uppercase;">{{ 'product.sale_badge' | t }}</span>
     {% endif %}
   </div>
   <a href="{{ product.url }}" data-cursor-hover>
