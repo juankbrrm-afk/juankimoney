@@ -29,6 +29,7 @@ export interface Place {
   zone: string;
   priceLevel: 1 | 2 | 3 | 4;
   description: string;
+  tags: string[];
   hours: string;
   kidsFriendly: boolean;
   avgRating: number;
@@ -39,4 +40,5 @@ export interface Place {
     instagram?: string;
     website?: string;
   };
+  photo: string;
 }

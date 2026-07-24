@@ -1,11 +1,12 @@
-import { PLACES, type Category, type Place } from "@/lib/data/places";
+import { loadPublishedPlaces, type Category, type Place } from "@/lib/data/places";
 
 /**
  * Placeholder de RAG: en producción esto es una búsqueda semántica por pgvector
  * sobre `place_embeddings` + filtros estructurados (docs/panama-ai/03-base-de-datos.md,
  * sección "Búsqueda semántica (RAG)"). Aquí, sin Supabase provisto todavía, hacemos
- * un scoring por palabras clave sobre el dataset semilla — mismo contrato de entrada/
- * salida, para que swapear la implementación real no toque el orquestador ni la UI.
+ * un scoring por palabras clave sobre el dataset compartido en /data/places.json — mismo
+ * contrato de entrada/salida, para que swapear la implementación real no toque el
+ * orquestador ni la UI.
  */
 export interface SearchFilters {
   categories?: Category[];
@@ -14,11 +15,12 @@ export interface SearchFilters {
   zone?: string;
 }
 
-export function searchPlaces(query: string, filters: SearchFilters = {}): Place[] {
+export async function searchPlaces(query: string, filters: SearchFilters = {}): Promise<Place[]> {
   const q = query.toLowerCase();
   const terms = q.split(/\s+/).filter(Boolean);
+  const places = await loadPublishedPlaces();
 
-  const scored = PLACES.filter((place) => {
+  const scored = places.filter((place) => {
     if (filters.categories?.length && !filters.categories.includes(place.category)) return false;
     if (filters.maxPriceLevel && place.priceLevel > filters.maxPriceLevel) return false;
     if (filters.kidsFriendly && !place.kidsFriendly) return false;
@@ -54,12 +56,13 @@ export interface ItineraryStop {
  * Heurística simple para el MVP: agrupa por zona para minimizar traslados, respeta el
  * tope de presupuesto sumando priceLevel como proxy de costo.
  */
-export function buildItinerary(
+export async function buildItinerary(
   placeIds: string[],
   opts: { hoursAvailable?: number; budgetUsd?: number } = {},
-): { stops: ItineraryStop[]; totalEstimatedUsd: number; withinBudget: boolean } {
+): Promise<{ stops: ItineraryStop[]; totalEstimatedUsd: number; withinBudget: boolean }> {
+  const places = await loadPublishedPlaces();
   const candidates = placeIds
-    .map((id) => PLACES.find((p) => p.id === id))
+    .map((id) => places.find((p) => p.id === id))
     .filter((p): p is Place => Boolean(p));
 
   const maxStops = opts.hoursAvailable ? Math.max(1, Math.floor(opts.hoursAvailable / 2)) : candidates.length;

@@ -7,6 +7,11 @@
     "zone": "Casco Antiguo",
     "priceLevel": 4,
     "description": "Menú de degustación que reinterpreta ingredientes panameños de mercado. Reserva obligatoria, mesas limitadas por noche.",
+    "tags": [
+      "fine dining",
+      "romantico",
+      "chef local"
+    ],
     "hours": "Mar-Sáb 19:00-23:00",
     "kidsFriendly": false,
     "avgRating": 4.8,
@@ -14,7 +19,8 @@
     "contacts": {
       "whatsapp": "+507 6000 0001",
       "instagram": "@dondejosepanama"
-    }
+    },
+    "photo": "/placeholder/restaurant-1.jpg"
   },
   {
     "id": "p2",
@@ -24,13 +30,19 @@
     "zone": "Casco Antiguo / Avenida Balboa",
     "priceLevel": 1,
     "description": "Ceviche recién hecho de pie frente al mar. La experiencia más panameña y económica para comer pescado del día.",
+    "tags": [
+      "economico",
+      "local",
+      "ceviche"
+    ],
     "hours": "Todos los días 08:00-17:00",
     "kidsFriendly": true,
     "avgRating": 4.5,
     "status": "published",
     "contacts": {
       "phone": "+507 212 0000"
-    }
+    },
+    "photo": "/placeholder/restaurant-2.jpg"
   },
   {
     "id": "p3",
@@ -40,6 +52,11 @@
     "zone": "Casco Antiguo",
     "priceLevel": 3,
     "description": "Terraza sobre los techos de Casco Antiguo, DJ desde el atardecer, la vista clásica del skyline al fondo.",
+    "tags": [
+      "vida nocturna",
+      "vistas",
+      "cocteleria"
+    ],
     "hours": "Todos los días 17:00-01:00",
     "kidsFriendly": false,
     "avgRating": 4.6,
@@ -47,7 +64,8 @@
     "contacts": {
       "instagram": "@tantalopanama",
       "website": "https://tantalohotel.com"
-    }
+    },
+    "photo": "/placeholder/rooftop-1.jpg"
   },
   {
     "id": "p4",
@@ -57,13 +75,19 @@
     "zone": "Golfo de Panamá (ferry desde la ciudad)",
     "priceLevel": 2,
     "description": "La playa más cercana a la ciudad accesible en ferry de 30 minutos. Ideal para medio día sin salir de la capital.",
+    "tags": [
+      "playa",
+      "escapada corta",
+      "ferry"
+    ],
     "hours": "Ferries desde 07:30, último regreso 17:00",
     "kidsFriendly": true,
     "avgRating": 4.3,
     "status": "published",
     "contacts": {
       "website": "https://tabogaexpress.com"
-    }
+    },
+    "photo": "/placeholder/beach-1.jpg"
   },
   {
     "id": "p5",
@@ -73,13 +97,19 @@
     "zone": "Amador",
     "priceLevel": 2,
     "description": "Diseñado por Frank Gehry, cuenta la historia de cómo el istmo de Panamá cambió la biodiversidad del planeta.",
+    "tags": [
+      "cultura",
+      "familia",
+      "arquitectura"
+    ],
     "hours": "Mar-Dom 10:00-18:00",
     "kidsFriendly": true,
     "avgRating": 4.6,
     "status": "published",
     "contacts": {
       "website": "https://biomuseopanama.org"
-    }
+    },
+    "photo": "/placeholder/museum-1.jpg"
   },
   {
     "id": "p6",
@@ -89,11 +119,17 @@
     "zone": "Casco Antiguo",
     "priceLevel": 1,
     "description": "Ruta autoguiada por las plazas coloniales, murallas y fachadas restauradas del centro histórico declarado Patrimonio de la Humanidad.",
+    "tags": [
+      "gratis",
+      "historia",
+      "caminata"
+    ],
     "hours": "Cualquier hora, mejor luz 16:00-18:00",
     "kidsFriendly": true,
     "avgRating": 4.7,
     "status": "published",
-    "contacts": {}
+    "contacts": {},
+    "photo": "/placeholder/tour-1.jpg"
   },
   {
     "id": "p7",
@@ -103,13 +139,19 @@
     "zone": "Corredor Sur",
     "priceLevel": 2,
     "description": "Ver de cerca un buque cruzar el Canal de Panamá, con centro de visitantes y museo. La actividad emblemática del país.",
+    "tags": [
+      "imperdible",
+      "familia",
+      "historia"
+    ],
     "hours": "Todos los días 08:00-17:00",
     "kidsFriendly": true,
     "avgRating": 4.7,
     "status": "published",
     "contacts": {
       "website": "https://pancanal.com"
-    }
+    },
+    "photo": "/placeholder/tour-2.jpg"
   },
   {
     "id": "p8",
@@ -119,6 +161,11 @@
     "zone": "Casco Antiguo",
     "priceLevel": 2,
     "description": "Hostel/hotel boutique con rooftop propio, ideal para viajeros que quieren estar caminando dentro del casco histórico.",
+    "tags": [
+      "boutique",
+      "mochilero-friendly",
+      "rooftop propio"
+    ],
     "hours": "Check-in 15:00 / Check-out 12:00",
     "kidsFriendly": false,
     "avgRating": 4.2,
@@ -126,7 +173,8 @@
     "contacts": {
       "website": "https://selina.com",
       "whatsapp": "+507 6000 0008"
-    }
+    },
+    "photo": "/placeholder/hotel-1.jpg"
   },
   {
     "id": "p9",
@@ -136,13 +184,19 @@
     "zone": "Casco Antiguo",
     "priceLevel": 4,
     "description": "Hotel boutique de lujo en un edificio colonial restaurado, a media cuadra de la Plaza de la Independencia.",
+    "tags": [
+      "lujo",
+      "boutique",
+      "romantico"
+    ],
     "hours": "Check-in 15:00 / Check-out 12:00",
     "kidsFriendly": false,
     "avgRating": 4.9,
     "status": "published",
     "contacts": {
       "website": "https://casacasco.com"
-    }
+    },
+    "photo": "/placeholder/hotel-2.jpg"
   },
   {
     "id": "p10",
@@ -152,13 +206,19 @@
     "zone": "Casco Antiguo",
     "priceLevel": 2,
     "description": "Bar dentro de un antiguo hostel-convento, ambiente under y buena música en vivo los fines de semana.",
+    "tags": [
+      "vida nocturna",
+      "musica en vivo",
+      "under"
+    ],
     "hours": "Jue-Sáb 20:00-02:00",
     "kidsFriendly": false,
     "avgRating": 4.4,
     "status": "published",
     "contacts": {
       "instagram": "@relicbarpanama"
-    }
+    },
+    "photo": "/placeholder/nightlife-1.jpg"
   },
   {
     "id": "p11",
@@ -168,13 +228,20 @@
     "zone": "Ciudad de Panamá",
     "priceLevel": 1,
     "description": "Selva tropical real dentro de los límites de la ciudad, senderos cortos con posibilidad de ver perezosos y tucanes.",
+    "tags": [
+      "naturaleza",
+      "gratis",
+      "familia",
+      "senderismo"
+    ],
     "hours": "Todos los días 06:00-17:00",
     "kidsFriendly": true,
     "avgRating": 4.5,
     "status": "published",
     "contacts": {
       "website": "https://parquemetropolitano.org"
-    }
+    },
+    "photo": "/placeholder/family-1.jpg"
   },
   {
     "id": "p12",
@@ -184,12 +251,18 @@
     "zone": "Amador",
     "priceLevel": 2,
     "description": "Comida típica panameña frente al mar con vista al skyline y a los barcos esperando para cruzar el Canal.",
+    "tags": [
+      "tipico",
+      "vistas",
+      "familia"
+    ],
     "hours": "Todos los días 11:00-22:00",
     "kidsFriendly": true,
     "avgRating": 4.4,
     "status": "published",
     "contacts": {
       "phone": "+507 314 0000"
-    }
+    },
+    "photo": "/placeholder/restaurant-3.jpg"
   }
 ]

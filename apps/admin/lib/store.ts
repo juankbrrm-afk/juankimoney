@@ -8,9 +8,12 @@ import type { Place } from "@/lib/types";
  * a un proyecto real. La forma de estas funciones (read/write async, un Place a la vez)
  * es intencionalmente la misma que tendrá el cliente de Supabase, para que migrar sea
  * cambiar la implementación de este archivo, no los call sites en app/negocios/*.
+ *
+ * Apunta a /data/places.json en la raíz del repo — el mismo archivo que lee apps/web —
+ * para que un negocio editado aquí se refleje de inmediato en el concierge (ver /data/README.md).
  */
 
-const DATA_PATH = path.join(process.cwd(), "data", "places.json");
+const DATA_PATH = path.join(process.cwd(), "..", "..", "data", "places.json");
 
 export async function listPlaces(): Promise<Place[]> {
   const raw = await fs.readFile(DATA_PATH, "utf-8");

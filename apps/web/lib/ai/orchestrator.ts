@@ -54,9 +54,9 @@ const TOOLS: Tool[] = [
   },
 ];
 
-function runTool(name: string, input: Record<string, unknown>) {
+async function runTool(name: string, input: Record<string, unknown>) {
   if (name === "search_places") {
-    const places = searchPlaces(String(input.query ?? ""), {
+    const places = await searchPlaces(String(input.query ?? ""), {
       categories: input.categories as never,
       maxPriceLevel: input.maxPriceLevel as never,
       kidsFriendly: input.kidsFriendly as never,
@@ -64,7 +64,7 @@ function runTool(name: string, input: Record<string, unknown>) {
     return { places, result: places.map((p) => ({ id: p.id, name: p.name, category: p.category })) };
   }
   if (name === "build_itinerary") {
-    const { stops, totalEstimatedUsd, withinBudget } = buildItinerary(
+    const { stops, totalEstimatedUsd, withinBudget } = await buildItinerary(
       (input.placeIds as string[]) ?? [],
       { hoursAvailable: input.hoursAvailable as number, budgetUsd: input.budgetUsd as number },
     );
@@ -78,15 +78,15 @@ function runTool(name: string, input: Record<string, unknown>) {
  * únicamente la búsqueda estructurada para poder probar el producto end-to-end sin
  * credenciales. Ver docs/panama-ai/09-mvp.md.
  */
-function runDemoMode(userMessage: string): OrchestratorResult {
-  const places = searchPlaces(userMessage);
+async function runDemoMode(userMessage: string): Promise<OrchestratorResult> {
+  const places = await searchPlaces(userMessage);
   const budgetMatch = userMessage.match(/\$(\d+)/);
   const hoursMatch = userMessage.match(/(\d+)\s*hora/);
   const itinerary = places.length
-    ? buildItinerary(places.map((p) => p.id), {
+    ? (await buildItinerary(places.map((p) => p.id), {
         budgetUsd: budgetMatch?.[1] ? Number(budgetMatch[1]) : undefined,
         hoursAvailable: hoursMatch?.[1] ? Number(hoursMatch[1]) : undefined,
-      }).stops
+      })).stops
     : null;
 
   const reply = places.length
@@ -133,20 +133,22 @@ export async function runConciergeTurn(
   while (response.stop_reason === "tool_use" && loops < 4) {
     loops += 1;
     const toolUses = response.content.filter((b): b is ToolUseBlock => b.type === "tool_use");
-    const toolResults = toolUses.map((toolUse) => {
-      const { result, places, stops } = runTool(toolUse.name, toolUse.input as Record<string, unknown>) as {
-        result: unknown;
-        places?: Place[];
-        stops?: ItineraryStop[];
-      };
-      if (places) collectedPlaces.push(...places);
-      if (stops) collectedItinerary = stops;
-      return {
-        type: "tool_result" as const,
-        tool_use_id: toolUse.id,
-        content: JSON.stringify(result),
-      };
-    });
+    const toolResults = await Promise.all(
+      toolUses.map(async (toolUse) => {
+        const { result, places, stops } = (await runTool(toolUse.name, toolUse.input as Record<string, unknown>)) as {
+          result: unknown;
+          places?: Place[];
+          stops?: ItineraryStop[];
+        };
+        if (places) collectedPlaces.push(...places);
+        if (stops) collectedItinerary = stops;
+        return {
+          type: "tool_result" as const,
+          tool_use_id: toolUse.id,
+          content: JSON.stringify(result),
+        };
+      }),
+    );
 
     messages.push({ role: "assistant", content: response.content });
     messages.push({ role: "user", content: toolResults });

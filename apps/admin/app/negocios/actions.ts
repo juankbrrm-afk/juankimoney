@@ -16,6 +16,10 @@ function parsePlaceForm(formData: FormData): Omit<Place, "id"> {
     zone: String(formData.get("zone") ?? "").trim(),
     priceLevel: Number(formData.get("priceLevel") ?? 2) as 1 | 2 | 3 | 4,
     description: String(formData.get("description") ?? "").trim(),
+    tags: String(formData.get("tags") ?? "")
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean),
     hours: String(formData.get("hours") ?? "").trim(),
     kidsFriendly: formData.get("kidsFriendly") === "on",
     avgRating: Number(formData.get("avgRating") ?? 0),
@@ -26,6 +30,7 @@ function parsePlaceForm(formData: FormData): Omit<Place, "id"> {
       instagram: String(formData.get("instagram") ?? "").trim() || undefined,
       website: String(formData.get("website") ?? "").trim() || undefined,
     },
+    photo: String(formData.get("photo") ?? "").trim() || "/placeholder/generic-1.jpg",
   };
 }
 

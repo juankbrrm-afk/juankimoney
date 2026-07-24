@@ -1,14 +1,15 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { findPlaceBySlug, PLACES } from "@/lib/data/places";
+import { findPlaceBySlug, loadPublishedPlaces } from "@/lib/data/places";
 
-export function generateStaticParams() {
-  return PLACES.map((p) => ({ slug: p.slug }));
+export async function generateStaticParams() {
+  const places = await loadPublishedPlaces();
+  return places.map((p) => ({ slug: p.slug }));
 }
 
 export default async function PlacePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const place = findPlaceBySlug(slug);
+  const place = await findPlaceBySlug(slug);
   if (!place) notFound();
 
   const waLink = place.contacts.whatsapp

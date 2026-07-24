@@ -55,6 +55,14 @@ export function PlaceForm({
         <textarea name="description" defaultValue={place?.description} rows={3} required className="input" />
       </Field>
 
+      <Field label="Tags (separados por coma)">
+        <input name="tags" defaultValue={place?.tags.join(", ")} placeholder="romantico, vistas, familia" className="input" />
+      </Field>
+
+      <Field label="Foto (ruta o URL — placeholder hasta tener Storage real)">
+        <input name="photo" defaultValue={place?.photo} placeholder="/placeholder/restaurant-1.jpg" className="input" />
+      </Field>
+
       <label className="flex items-center gap-2 text-sm text-ink">
         <input name="kidsFriendly" type="checkbox" defaultChecked={place?.kidsFriendly} />
         Apto para niños
