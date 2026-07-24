@@ -24,9 +24,11 @@ npm run dev   # sirve en :3001 para no chocar con apps/web en :3000
 
 - `/negocios` — listado, crear, editar y eliminar negocios (Server Actions reales, no mock de UI).
 - `/categorias` — vista de conteo por categoría (categorías son un catálogo fijo en este corte).
-- Persistencia en `data/places.json` vía `lib/store.ts` — mismo dataset que usa `apps/web` para el
-  modo demo del chat, pero **es una copia independiente**: editar aquí no cambia lo que ve el
-  concierge en `apps/web` todavía. Eso se resuelve migrando ambos a Supabase (ver Pendiente abajo).
+- Persistencia en `/data/places.json` (raíz del repo, ver `/data/README.md`) vía `lib/store.ts` —
+  **mismo archivo que lee `apps/web` en cada request**: un negocio editado o borrado aquí aparece
+  de inmediato en lo que recomienda el concierge, sin reiniciar nada. Verificado en vivo (no solo
+  revisado): con ambas apps corriendo, crear un lugar desde acá y consultarlo desde
+  `apps/web/api/chat` en el mismo minuto.
 
 ## Pendiente
 
@@ -35,6 +37,6 @@ npm run dev   # sirve en :3001 para no chocar con apps/web en :3000
    ya está pensada para que el cambio sea solo de implementación, no de los call sites.
 2. Auth + rol `staff`/`admin` (ver advertencia arriba) — bloqueante para cualquier deploy real.
 3. Categorías como tabla editable (hoy es el enum fijo de `lib/types.ts`).
-4. Subida de fotos a Supabase Storage (hoy no hay campo de imagen).
+4. Subida de fotos a Supabase Storage (hoy el campo "Foto" es solo una ruta/URL de texto).
 5. Vistas de `/eventos`, `/usuarios`, `/publicidad`, `/destacados`, `/analitica` de
    `docs/panama-ai/overview.md` — este corte solo cubre negocios y categorías.

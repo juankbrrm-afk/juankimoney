@@ -1,8 +1,9 @@
 # Panama AI — `apps/web`
 
 Primer corte funcional del MVP descrito en `docs/panama-ai/09-mvp.md`. Next.js 15 (App Router) +
-TypeScript + Tailwind v4. Sin dependencia de Supabase todavía — usa el dataset semilla en
-`lib/data/places.ts` como stand-in de la tabla `places` real.
+TypeScript + Tailwind v4. Sin dependencia de Supabase todavía — `lib/data/places.ts` lee de
+`/data/places.json` (raíz del repo, compartido con `apps/admin`, ver `/data/README.md`) como
+stand-in de la tabla `places` real.
 
 ## Correr en local
 
@@ -27,6 +28,9 @@ Abre `http://localhost:3000`.
 - Página de perfil de lugar (`/lugares/[slug]`) con los tres botones de acción
   (Reservar/Llamar/Navegar).
 - Itinerario básico ordenado por restricción de tiempo/presupuesto (`build_itinerary`).
+- Datos compartidos en vivo con `apps/admin`: un negocio editado en el dashboard aparece en el
+  siguiente mensaje del chat, sin reiniciar el servidor (verificado, no solo diseñado — ver el
+  commit que unificó `/data/places.json`).
 - Capa de pagos (`lib/payments/`) con la interfaz común y el enrutamiento Yappy/PagueloFacil
   definidos (no Stripe — decisión del negocio). **La llamada HTTP real a cada proveedor está
   bloqueada** hasta confirmar el endpoint exacto con acceso autenticado a su panel de
@@ -40,15 +44,14 @@ prioridad:
 
 1. **Streaming real de tokens** vía Vercel AI SDK (`ai` + `@ai-sdk/anthropic`) en vez de
    respuesta JSON completa — mejora percepción de velocidad.
-2. **Supabase real**: migrar `lib/data/places.ts` a las tablas de
-   `docs/panama-ai/03-base-de-datos.md`, con RLS, y `place_embeddings` con pgvector reemplazando
-   el scoring por palabras clave de `lib/ai/tools.ts`.
+2. **Supabase real**: migrar `lib/data/places.ts` de leer `/data/places.json` a consultar las
+   tablas de `docs/panama-ai/03-base-de-datos.md` (mismas firmas de función, solo cambia la
+   implementación), con RLS, y `place_embeddings` con pgvector reemplazando el scoring por
+   palabras clave de `lib/ai/tools.ts`.
 3. **Cuentas de usuario** (Supabase Auth) y guardar/compartir itinerario por link
    (`share_token`).
-4. **Dashboard admin interno** (`apps/admin`) para que el equipo cargue los 150-300 lugares
-   reales en vez de editar `places.ts` a mano.
-5. Fotografía real (Supabase Storage) reemplazando los bloques `bg-stone-100` placeholder.
-6. Integración de Google Maps embebido (`MapView`) sincronizado con los resultados.
+4. Fotografía real (Supabase Storage) reemplazando los bloques `bg-stone-100` placeholder.
+5. Integración de Google Maps embebido (`MapView`) sincronizado con los resultados.
 
 ## Credenciales necesarias que no puedo generar por ustedes
 
