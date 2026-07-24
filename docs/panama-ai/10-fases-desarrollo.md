@@ -42,7 +42,7 @@ pruebas con turistas reales.
 
 **Duración estimada**: 6-8 semanas.
 
-- Reservas nativas con Stripe Connect (`bookings`, `create_booking` tool, webhooks).
+- Reservas nativas con Yappy + PagueloFacil (`bookings`, `create_booking` tool, webhooks de ambos proveedores).
 - Dashboard self-service de negocio (`apps/admin`, rol `business_owner`): reclamar perfil, editar
   fotos/horarios/precios, ver reservas entrantes.
 - `escalate_emergency` con datos verificados de embajadas/hospitales.
@@ -58,7 +58,7 @@ saludables antes de activar cobros.
 
 **Duración estimada**: 6-8 semanas.
 
-- `business_plans`/`business_subscriptions` con checkout de Stripe, listados destacados
+- `business_plans`/`business_subscriptions` con checkout de PagueloFacil (cargo recurrente) o Yappy, listados destacados
   (`places.featured_until`), primeras campañas de `ad_campaigns` con el marcado "Patrocinado"
   obligatorio descrito en [`06-sistema-ia.md`](./06-sistema-ia.md).
 - Panel de analítica para negocios (vistas de perfil, clics en botones de acción, reservas).

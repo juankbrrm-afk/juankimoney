@@ -44,7 +44,7 @@ Tooltip, Badge, Avatar, Skeleton, Toast — construidos sobre Radix UI para acce
 | **MapView** | Mapa interactivo (Google Maps JS API envuelto) sincronizado con los resultados listados — hover en tarjeta resalta el pin |
 | **CategoryChips** | Filtros rápidos de intención ("Comida", "Playa", "Vida nocturna"...) sobre el chat, para usuarios que prefieren tocar antes que escribir |
 | **QuickIntentPrompts** | Sugerencias de prompt tipo "Tengo un día", "Voy con niños", "Quiero algo escondido" al iniciar conversación — reduce la fricción de la página en blanco |
-| **BookingModal** | Flujo de reserva/pago (Stripe Elements embebido) |
+| **BookingModal** | Flujo de reserva/pago — el usuario elige Yappy (redirección/QR) o PagueloFacil (checkout con tarjeta) |
 | **AdminDataTable** | Tabla con edición inline, usada en todo el dashboard admin (negocios, categorías, eventos) |
 | **AnalyticsCard / Sparkline** | Widgets de métricas del dashboard |
 | **LanguageSwitcher** | Cambio de idioma explícito, aunque el chat detecta idioma automáticamente por mensaje |

@@ -76,7 +76,7 @@ Ver el detalle de cómo cada línea se refleja en el esquema de datos en
 Next.js + React + TypeScript + Tailwind en el frontend, Supabase (Postgres + pgvector + Auth +
 Storage + Realtime) como backend de datos, Claude como motor conversacional/razonamiento con
 OpenAI como modelo de embeddings y fallback, Google Maps/Places + weather API para contexto
-geoespacial, Stripe para pagos, Vercel para hosting/edge, Cloudflare para DNS/WAF/cache de borde.
+geoespacial, Yappy + PagueloFacil para pagos, Vercel para hosting/edge, Cloudflare para DNS/WAF/cache de borde.
 
 ## Cómo pensamos las próximas expansiones
 

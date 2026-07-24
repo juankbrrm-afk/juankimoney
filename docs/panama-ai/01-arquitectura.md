@@ -38,7 +38,8 @@ flowchart TB
         Maps["Google Maps / Places API"]
         Weather["Weather API"]
         Translate["Google Translate API"]
-        StripeX["Stripe"]
+        Yappy["Yappy"]
+        PagueloFacil["PagueloFacil"]
         WhatsAppAPI["WhatsApp Business API"]
     end
 
@@ -57,7 +58,8 @@ flowchart TB
     NextApp --> Maps
     NextApp --> Weather
     NextApp --> Translate
-    NextApp --> StripeX
+    NextApp --> Yappy
+    NextApp --> PagueloFacil
     NextApp --> WhatsAppAPI
     CDN --> Storage
 ```
@@ -90,7 +92,8 @@ flowchart TB
 | **Supabase** | Postgres, Auth, Storage, Realtime, pgvector | Backend gestionado que no requiere equipo de DevOps para escalar hasta cientos de miles de usuarios; Postgres real (no un NoSQL propietario) evita vendor lock-in duro |
 | **Cloudflare** | DNS, WAF, cache de imágenes/CDN, protección anti-bot | Protege contra scraping agresivo de nuestro dataset de POIs (el activo más valioso de la empresa) y contra abuso del endpoint de IA (costos de tokens) |
 | **Upstash Redis** | Rate limiting, cache de respuestas de IA frecuentes, colas ligeras | Serverless, se integra nativo con Edge Functions de Vercel, sin servidores que mantener |
-| **Stripe** | Pagos de suscripciones de negocio, comisiones de reserva, checkout de experiencias | Estándar de facto; Stripe Connect permite pagar directo a negocios reteniendo comisión |
+| **Yappy** | Pagos de reserva/checkout con usuarios y negocios que operan en el ecosistema de Banco General | El método de pago móvil más adoptado en Panamá — decisión explícita del negocio, no usamos Stripe |
+| **PagueloFacil** | Suscripciones recurrentes de negocio, cobro a tarjeta de turista extranjero, ACH local | Pasarela panameña que cubre lo que Yappy no cubre: recurrencia y tarjeta internacional |
 | **Sentry** | Error tracking (frontend + backend) | No estaba en la lista original pero es no-negociable para producción — se agrega en Fase 0 |
 | **PostHog / Amplitude** | Analítica de producto y funnels | Necesario para medir la North Star Metric por país desde el día 1 |
 
@@ -139,7 +142,7 @@ confusión de CI/CD, variables de entorno y ownership.
 ## Seguridad y cumplimiento (líneas base desde el MVP)
 
 - RLS en todas las tablas sin excepción; ninguna tabla "abierta" por conveniencia de desarrollo.
-- Secretos de API (Claude, OpenAI, Maps, Stripe) solo en variables de entorno de servidor, nunca
+- Secretos de API (Claude, OpenAI, Maps, Yappy, PagueloFacil) solo en variables de entorno de servidor, nunca
   expuestos al cliente; todo acceso a IA pasa por Route Handlers server-side.
 - Rate limiting por IP y por usuario en el endpoint de chat (protege contra costos de tokens
   descontrolados).

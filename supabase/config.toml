@@ -1,0 +1,27 @@
+# Config de Supabase CLI para desarrollo local — ver
+# https://supabase.com/docs/guides/local-development/cli/config
+# Requiere Supabase CLI instalado (`npm install -g supabase` o vía brew) para `supabase start`.
+
+project_id = "panama-ai"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+
+[db]
+port = 54322
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000"]
+
+[auth.email]
+enable_signup = true
+enable_confirmations = false

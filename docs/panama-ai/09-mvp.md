@@ -36,7 +36,7 @@ mayoría del modelo de negocio.
 
 ## Explícitamente fuera del MVP
 
-- Reservas nativas con pago (Stripe) — se pospone a Fase 2.
+- Reservas nativas con pago (Yappy / PagueloFacil) — se pospone a Fase 2.
 - Dashboard self-service para negocios — el equipo interno carga y mantiene los datos.
 - Listados destacados, publicidad, suscripciones — cero monetización activa en el MVP.
 - Cobertura fuera de Ciudad de Panamá/Casco Antiguo.

@@ -27,6 +27,11 @@ Abre `http://localhost:3000`.
 - Página de perfil de lugar (`/lugares/[slug]`) con los tres botones de acción
   (Reservar/Llamar/Navegar).
 - Itinerario básico ordenado por restricción de tiempo/presupuesto (`build_itinerary`).
+- Capa de pagos (`lib/payments/`) con la interfaz común y el enrutamiento Yappy/PagueloFacil
+  definidos (no Stripe — decisión del negocio). **La llamada HTTP real a cada proveedor está
+  bloqueada** hasta confirmar el endpoint exacto con acceso autenticado a su panel de
+  desarrolladores — ver el comentario al inicio de `lib/payments/yappy.ts` y
+  `lib/payments/paguelofacil.ts` para el detalle de qué está confirmado y qué falta.
 
 ## Qué falta para llegar al MVP completo de `docs/panama-ai/09-mvp.md`
 
@@ -50,7 +55,8 @@ prioridad:
 - `ANTHROPIC_API_KEY` — cuenta en console.anthropic.com.
 - Proyecto Supabase (URL + anon key + service role key).
 - `GOOGLE_MAPS_API_KEY` con Places API habilitada.
-- Cuenta Stripe (modo test primero) para Fase 2 (reservas).
+- Cuenta de comercio Yappy (Banco General) y cuenta de comercio PagueloFacil (CCLW + API key),
+  ambas necesarias antes de poder completar `lib/payments/` — ver nota arriba.
 
 Ver `.env.example` para el set completo. Sin estas, el modo demo permite seguir desarrollando UI
 y lógica de producto igual.

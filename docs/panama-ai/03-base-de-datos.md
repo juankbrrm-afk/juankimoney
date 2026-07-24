@@ -139,17 +139,20 @@ itinerary_items (id uuid pk, itinerary_id uuid fk, place_id uuid fk, day smallin
 ### Transacciones y monetización
 
 ```sql
+-- payment_provider: 'yappy' | 'paguelofacil' — ver 04-apis.md#pagos-yappy--paguelofacil.
+-- Nunca se guarda información de tarjeta; solo la referencia que devuelve el proveedor.
 bookings (id uuid pk, place_id uuid fk, user_id uuid fk, itinerary_item_id uuid fk nullable,
           status text, -- pending | confirmed | cancelled | completed
           party_size smallint, scheduled_for timestamptz,
-          amount numeric, currency text, stripe_payment_intent_id text,
+          amount numeric, currency text,
+          payment_provider text, payment_reference text, payment_status text,
           commission_amount numeric, created_at timestamptz)
 
 business_plans (id uuid pk, country_id uuid fk, code text, -- 'free' | 'pro' | 'premium'
                  price_monthly numeric, currency text, features jsonb)
 
 business_subscriptions (id uuid pk, business_id uuid fk, plan_id uuid fk,
-                          stripe_subscription_id text, status text,
+                          payment_provider text, payment_reference text, status text,
                           current_period_end timestamptz)
 
 ad_campaigns (id uuid pk, business_id uuid fk, place_id uuid fk nullable,

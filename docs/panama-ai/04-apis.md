@@ -7,7 +7,7 @@ Tres capas de API distintas, cada una con su propio contrato de estabilidad:
 2. **API pública B2B/B2G** (consumida por terceros: hoteles, municipios, aeropuertos) —
    versionada, documentada, con SLA.
 3. **Integraciones salientes** (nosotros como consumidores de Google Maps, Weather, Translate,
-   Stripe, WhatsApp).
+   Yappy, PagueloFacil, WhatsApp).
 
 ## 4.1 API interna de producto
 
@@ -21,9 +21,10 @@ RLS (la autorización real vive en la base de datos, el Route Handler es una cap
 | `/api/places/[slug]` | `GET` | Perfil completo de un lugar |
 | `/api/itineraries` | `POST`, `GET` | Crear/listar itinerarios del usuario (o de la sesión anónima vía `share_token`) |
 | `/api/itineraries/[id]` | `PATCH`, `DELETE` | Modificar itinerario (mover ítem, cambiar día, quitar lugar) |
-| `/api/bookings` | `POST` | Crear reserva (dispara Stripe si aplica, notifica al negocio) |
+| `/api/bookings` | `POST` | Crear reserva (dispara cobro vía Yappy o PagueloFacil según elija el usuario, notifica al negocio) |
 | `/api/reviews` | `POST` | Crear reseña (requiere cuenta) |
-| `/api/webhooks/stripe` | `POST` | Webhook de pagos/suscripciones |
+| `/api/webhooks/yappy` | `POST` | Webhook de confirmación de pago de Yappy |
+| `/api/webhooks/paguelofacil` | `POST` | Webhook de confirmación de pago/suscripción de PagueloFacil |
 | `/api/webhooks/whatsapp` | `POST` | Webhook de confirmaciones de reserva vía WhatsApp Business |
 
 Autenticación: JWT de Supabase Auth en cookie httpOnly; sesiones anónimas para chat/itinerario
@@ -64,14 +65,42 @@ contratados en su plan. Cuotas y facturación por uso viven en `business_plans`/
 reutilizando el mismo modelo de suscripción que negocios individuales, con un `partner_type`
 adicional.
 
-## 4.3 Integraciones externas
+## 4.3 Pagos: Yappy + PagueloFacil
+
+Decisión explícita del negocio: **no se usa Stripe**. Se integran dos proveedores en paralelo,
+cada uno cubriendo un caso de uso distinto, detrás de una única interfaz interna
+(`packages/integrations/payments`) para que el resto del producto (bookings, suscripciones) nunca
+llame a un SDK de proveedor directo:
+
+| Proveedor | Cuándo se usa | Por qué |
+|---|---|---|
+| **Yappy** (Banco General) | Pagos de turista/usuario local con cuenta panameña — reservas de tours, propinas de reserva, checkout rápido por QR/notificación push | Es el método de pago móvil más adoptado en Panamá; para el usuario local es más rápido que meter una tarjeta |
+| **PagueloFacil** | Turista extranjero pagando con tarjeta, cargos recurrentes de suscripción de negocio (`business_subscriptions`), y ACH local como alternativa a Yappy | Pasarela panameña que sí soporta tarjeta internacional + recurrencia, cubre lo que Yappy no cubre (turista sin cuenta bancaria panameña, cobro automático mensual a negocios) |
+
+```
+packages/integrations/payments/
+  ├── types.ts          # PaymentIntent, PaymentResult — contrato común a ambos proveedores
+  ├── yappy.ts           # wrapper del SDK/API de Yappy Comercial
+  ├── paguelofacil.ts     # wrapper de la API de PagueloFacil (checkout + suscripciones recurrentes)
+  └── index.ts            # createPayment(provider, ...) — el resto del código nunca importa
+                           # yappy.ts/paguelofacil.ts directamente
+```
+
+Regla de enrutamiento por defecto (ajustable por el usuario en el checkout): si el monto es una
+reserva puntual y el usuario elige Yappy → `yappy.ts`; si es una suscripción recurrente de negocio
+o el usuario paga con tarjeta extranjera → `paguelofacil.ts`. `bookings.payment_provider` y
+`business_subscriptions.payment_provider` (ver [`03-base-de-datos.md`](./03-base-de-datos.md))
+registran cuál se usó en cada transacción — nunca se guarda dato de tarjeta propio, solo la
+referencia que devuelve el proveedor.
+
+## 4.4 Integraciones externas
 
 | Proveedor | Uso | Notas de arquitectura |
 |---|---|---|
 | **Google Maps + Places API** | Distancia/ruta, autocompletado de direcciones, sincronización de reseñas/rating público, "botón de navegar" | Se cachea agresivamente (Redis) porque tiene costo por llamada; los datos de reseñas de Google se guardan en `reviews (source='google_sync')`, no se pisan las reseñas propias |
 | **Weather API** (ej. OpenWeather o Tomorrow.io) | Contexto para el concierge ("va a llover, mejor un plan indoor") y para filtrar recomendaciones outdoor | Cache de 30-60 min por ciudad, no por request |
 | **Google Translate API** | Fallback de traducción de UI estática; la conversación con el concierge se traduce nativamente por el LLM, no por esta API | Evita depender de traducción externa para lo que ya hace mejor el modelo de lenguaje |
-| **Stripe (+ Stripe Connect)** | Suscripciones de negocio, comisión de reservas, pagos directos a negocios reteniendo % | Connect permite que el dinero del turista llegue al negocio con nuestra comisión retenida automáticamente, sin que nosotros custodiemos fondos de terceros |
+| **Yappy / PagueloFacil** | Ver [4.3](#43-pagos-yappy--paguelofacil) | — |
 | **WhatsApp Business API** | Confirmación de reservas, notificación a negocios sin dashboard activo | Relevante en Panamá donde WhatsApp es el canal de facto para reservas informales |
 | **Claude API / OpenAI API** | Ver [`06-sistema-ia.md`](./06-sistema-ia.md) | — |
 
