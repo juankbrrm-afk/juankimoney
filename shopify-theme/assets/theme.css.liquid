@@ -402,10 +402,53 @@ h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -0.01em; text-wrap: ba
 
 .product-page { display: grid; grid-template-columns: 1fr; padding-top: 80px; }
 @media (min-width: 768px) { .product-page { grid-template-columns: 1fr 1fr; padding-top: 96px; } }
-.product-gallery { display: grid; grid-template-columns: 1fr; gap: 1px; }
-@media (min-width: 640px) { .product-gallery { grid-template-columns: 1fr 1fr; } }
-@media (min-width: 768px) { .product-gallery { grid-template-columns: 1fr; position: sticky; top: 0; height: 100vh; overflow-y: auto; } }
-.product-gallery img { width: 100%; }
+.product-gallery { position: relative; background: var(--color-cream); }
+@media (min-width: 768px) { .product-gallery { position: sticky; top: 0; height: 100vh; } }
+.product-gallery__track {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  height: 100%;
+}
+.product-gallery__track::-webkit-scrollbar { display: none; }
+.product-gallery__slide {
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.product-gallery__slide img { width: 100%; height: auto; display: block; }
+@media (min-width: 768px) {
+  .product-gallery__slide img { max-height: 100vh; width: auto; max-width: 100%; object-fit: contain; }
+}
+.product-gallery__arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(247, 243, 236, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+.product-gallery__arrow--prev { left: 16px; }
+.product-gallery__arrow--next { right: 16px; }
+.product-gallery__counter {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  background: rgba(247, 243, 236, 0.9);
+  padding: 4px 10px;
+  border-radius: 999px;
+}
 .product-info { padding: 56px 24px; }
 @media (min-width: 768px) { .product-info { padding: 96px 64px; } }
 .product-info__inner { max-width: 420px; margin: 0 auto; }

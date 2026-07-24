@@ -3,14 +3,23 @@
   assign current_variant = product.selected_or_first_available_variant
 %}
 <div class="product-page">
-  <div class="product-gallery">
-    {% for image in product.images limit: 2 %}
-      <div class="editorial-image">
-        {{ image | image_url: width: 1200 | image_tag: loading: 'eager', alt: product.title }}
-      </div>
-    {% endfor %}
-    {% if product.images.size == 0 %}
-      <div class="editorial-image" style="aspect-ratio:4/5"></div>
+  <div class="product-gallery" data-product-gallery>
+    <div class="product-gallery__track" data-gallery-track>
+      {% for image in product.images %}
+        {% assign loading_attr = 'lazy' %}
+        {% if forloop.first %}{% assign loading_attr = 'eager' %}{% endif %}
+        <div class="product-gallery__slide editorial-image">
+          {{ image | image_url: width: 1200 | image_tag: loading: loading_attr, alt: product.title }}
+        </div>
+      {% endfor %}
+      {% if product.images.size == 0 %}
+        <div class="product-gallery__slide editorial-image" style="aspect-ratio:4/5"></div>
+      {% endif %}
+    </div>
+    {% if product.images.size > 1 %}
+      <button type="button" class="product-gallery__arrow product-gallery__arrow--prev" data-gallery-prev data-cursor-hover aria-label="Previous">←</button>
+      <button type="button" class="product-gallery__arrow product-gallery__arrow--next" data-gallery-next data-cursor-hover aria-label="Next">→</button>
+      <div class="product-gallery__counter" data-gallery-counter>1 / {{ product.images.size }}</div>
     {% endif %}
   </div>
 

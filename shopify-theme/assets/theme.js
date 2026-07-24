@@ -425,6 +425,34 @@
     updateFromVariant();
   });
 
+  /* ---------------- Product gallery (swipe/arrow carousel) ---------------- */
+  document.querySelectorAll("[data-product-gallery]").forEach(function (gallery) {
+    var track = gallery.querySelector("[data-gallery-track]");
+    var slides = gallery.querySelectorAll(".product-gallery__slide");
+    var prevBtn = gallery.querySelector("[data-gallery-prev]");
+    var nextBtn = gallery.querySelector("[data-gallery-next]");
+    var counter = gallery.querySelector("[data-gallery-counter]");
+    if (!track || slides.length < 2) return;
+
+    function currentIndex() {
+      return Math.round(track.scrollLeft / track.clientWidth);
+    }
+    function goTo(index) {
+      var clamped = Math.max(0, Math.min(slides.length - 1, index));
+      track.scrollTo({ left: clamped * track.clientWidth, behavior: "smooth" });
+    }
+    function updateCounter() {
+      if (counter) counter.textContent = (currentIndex() + 1) + " / " + slides.length;
+    }
+    if (prevBtn) prevBtn.addEventListener("click", function () { goTo(currentIndex() - 1); });
+    if (nextBtn) nextBtn.addEventListener("click", function () { goTo(currentIndex() + 1); });
+    track.addEventListener("scroll", function () {
+      clearTimeout(track._scrollTimer);
+      track._scrollTimer = setTimeout(updateCounter, 100);
+    });
+    updateCounter();
+  });
+
   /* ---------------- Predictive search ---------------- */
   var searchInput = document.querySelector("[data-search-input]");
   var searchResults = document.querySelector("[data-search-results]");
