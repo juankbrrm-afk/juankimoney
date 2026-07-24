@@ -79,6 +79,24 @@
 
       <div class="accordion">
         <div class="accordion-item">
+          <button type="button" class="accordion-item__btn">{{ 'product.size_chart' | t }}<span class="accordion-item__plus">+</span></button>
+          <div class="accordion-item__panel">
+            <div>
+              <table class="size-chart-table">
+                <thead><tr><th>{{ 'product.size_th' | t }}</th><th>{{ 'product.bust_th' | t }}</th><th>{{ 'product.waist_th' | t }}</th><th>{{ 'product.hip_th' | t }}</th></tr></thead>
+                <tbody>
+                  <tr><td>XS</td><td>32</td><td>24</td><td>34</td></tr>
+                  <tr><td>S</td><td>34</td><td>26</td><td>36</td></tr>
+                  <tr><td>M</td><td>36</td><td>28</td><td>38</td></tr>
+                  <tr><td>L</td><td>38</td><td>30</td><td>40</td></tr>
+                  <tr><td>XL</td><td>40</td><td>32</td><td>42</td></tr>
+                </tbody>
+              </table>
+              <p style="margin-top:12px">{{ 'product.size_guide_note' | t }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="accordion-item">
           <button type="button" class="accordion-item__btn">{{ 'product.shipping' | t }}<span class="accordion-item__plus">+</span></button>
           <div class="accordion-item__panel"><div><p>{{ 'product.shipping_text' | t }}</p></div></div>
         </div>
