@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { findPlaceBySlug, loadPublishedPlaces } from "@/lib/data/places";
+import { MapEmbed } from "@/components/MapEmbed";
 
 export async function generateStaticParams() {
   const places = await loadPublishedPlaces();
@@ -63,6 +64,10 @@ export default async function PlacePage({ params }: { params: Promise<{ slug: st
         <a href={mapsLink} target="_blank" rel="noreferrer" className="rounded-full border border-stone-200 px-5 py-2.5 text-sm font-medium text-ink">
           Navegar
         </a>
+      </div>
+
+      <div className="mt-8">
+        <MapEmbed query={`${place.name} ${place.zone} Panama`} />
       </div>
     </main>
   );

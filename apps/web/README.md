@@ -36,10 +36,17 @@ Abre `http://localhost:3000`.
   siguiente mensaje del chat, sin reiniciar el servidor (verificado, no solo diseñado — ver el
   commit que unificó `/data/places.json`).
 - Capa de pagos (`lib/payments/`) con la interfaz común y el enrutamiento Yappy/PagueloFacil
-  definidos (no Stripe — decisión del negocio). **La llamada HTTP real a cada proveedor está
-  bloqueada** hasta confirmar el endpoint exacto con acceso autenticado a su panel de
-  desarrolladores — ver el comentario al inicio de `lib/payments/yappy.ts` y
-  `lib/payments/paguelofacil.ts` para el detalle de qué está confirmado y qué falta.
+  definidos (no Stripe — decisión del negocio). **PagueloFacil ya hace una llamada HTTP real**
+  al endpoint confirmado `LinkDeamon.cfm` (corroborado por múltiples integraciones públicas
+  independientes, con validación estricta de la respuesta); **Yappy sigue bloqueado** — su
+  portal de desarrolladores y varios blogs con ejemplos de código devolvieron 403 al intentar
+  investigarlos de forma automática, así que solo confirmamos nombres de credenciales y estados
+  de resultado, no el endpoint. Ver el comentario al inicio de cada archivo para el detalle
+  exacto de qué está confirmado y qué falta (incluye el contacto directo del equipo de Yappy).
+- Mapa embebido de Google en el perfil de lugar (`components/MapEmbed.tsx`), a diferencia de
+  los pagos esta sí es una API pública sin muro de autenticación — implementada y probada de
+  verdad con y sin `GOOGLE_MAPS_API_KEY` (sin key muestra un aviso, con key genera el iframe
+  real apuntando a `maps/embed/v1/place`).
 
 ## Qué falta para llegar al MVP completo de `docs/panama-ai/09-mvp.md`
 
@@ -53,7 +60,10 @@ prioridad:
 2. **Cuentas de usuario** (Supabase Auth) y guardar/compartir itinerario por link
    (`share_token`).
 3. Fotografía real (Supabase Storage) reemplazando los bloques `bg-stone-100` placeholder.
-4. Integración de Google Maps embebido (`MapView`) sincronizado con los resultados.
+4. Confirmar el endpoint real de Yappy (contactar botondepagoyappy@bgeneral.com o acceder al
+   panel de comercio) para completar `lib/payments/yappy.ts`.
+5. Un `MapView` interactivo sincronizado con los resultados de búsqueda (hoy `MapEmbed` solo
+   se usa en el perfil de un lugar individual, no en la vista de exploración).
 
 ## Credenciales necesarias que no puedo generar por ustedes
 

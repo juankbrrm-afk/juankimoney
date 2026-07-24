@@ -3,19 +3,29 @@ import type { CreatePaymentInput, CreatePaymentResult, PaymentWebhookEvent } fro
 /**
  * Adaptador de Yappy Comercial (Banco General) para cargos de reserva puntuales.
  *
- * ESTADO: estructura verificada contra fuentes públicas, pero SIN endpoint exacto
- * confirmado — el portal de desarrolladores de Yappy (yappy.com.pa/comercial/desarrolladores)
- * requiere sesión de comercio autenticada y no se pudo inspeccionar en automático.
- * Antes de ir a producción, un humano con acceso al panel de Yappy Comercial debe:
- *   1. Confirmar la URL base real de sandbox/producción (aquí parametrizada por env var).
- *   2. Confirmar el path exacto del endpoint de creación de orden y el algoritmo de hash.
- *   3. Confirmar si el proveedor ya expone webhook/IPN o si la confirmación sigue
- *      dependiendo del redirect a `successUrl`/`failUrl` con el orderId como query param
- *      (así es como lo documentan integraciones comunitarias existentes, ej.
- *      github.com/joseabraham/eprezto-yappy-sdk).
+ * ESTADO: estructura verificada contra fuentes públicas (búsqueda + código fuente de
+ * integraciones de terceros), pero SIN endpoint exacto confirmado — el portal de
+ * desarrolladores de Yappy (yappy.com.pa/comercial/desarrolladores) requiere sesión de
+ * comercio autenticada y varias fuentes de terceros con más detalle (blogs con ejemplos
+ * de código) devolvieron 403 al intentar inspeccionarlas de forma automática.
  *
- * Los nombres de credenciales (merchantId + secretKey) sí están confirmados por la
- * documentación pública de Yappy Comercial y por integraciones de terceros (Fygaro, Factura Fácil).
+ * Lo que SÍ está confirmado por más de una fuente independiente:
+ *   - Credenciales: merchantId + secretToken, entregadas por Banco General solo a cuentas
+ *     comerciales activadas.
+ *   - Config típica de un cliente Yappy: merchantId, secretToken, domainUrl, successUrl,
+ *     failUrl, checkoutUrl, sandbox (ver github.com/joseabraham/eprezto-yappy-sdk).
+ *   - Estados de resultado de una orden: "E" (Ejecutada/pagada), "R" (Rechazada — el
+ *     cliente no confirmó en 5 minutos), "C" (Cancelada desde la app de Banco General).
+ *   - Contacto directo del equipo de Yappy para soporte de integración:
+ *     botondepagoyappy@bgeneral.com / yappy@bgeneral.com.
+ *
+ * Lo que NO está confirmado — antes de producción, un humano con acceso al panel de
+ * Yappy Comercial (o una respuesta del contacto de arriba) debe darnos:
+ *   1. La URL base real de sandbox/producción (aquí parametrizada por env var, sin confirmar).
+ *   2. El path exacto del endpoint de creación de orden y el algoritmo de hash de firma.
+ *   3. Si hoy exponen webhook/IPN o si la confirmación sigue dependiendo solo del redirect
+ *      a `successUrl`/`failUrl` con el orderId como query param (así lo documentan
+ *      integraciones comunitarias más antiguas, pero puede haber cambiado).
  */
 
 const YAPPY_BASE_URL = process.env.YAPPY_SANDBOX === "false"
