@@ -1,5 +1,4 @@
-import { NextResponse } from "next/server";
-import { runConciergeTurn, type ChatTurn } from "@/lib/ai/orchestrator";
+import { runConciergeTurnStream, type ChatTurn } from "@/lib/ai/orchestrator";
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
@@ -7,20 +6,39 @@ export async function POST(req: Request) {
   const history = Array.isArray(body?.history) ? (body.history as ChatTurn[]) : [];
 
   if (!message) {
-    return NextResponse.json({ error: "El mensaje no puede estar vacío." }, { status: 400 });
+    return Response.json({ error: "El mensaje no puede estar vacío." }, { status: 400 });
   }
   if (message.length > 2000) {
-    return NextResponse.json({ error: "Mensaje demasiado largo." }, { status: 400 });
+    return Response.json({ error: "Mensaje demasiado largo." }, { status: 400 });
   }
 
-  try {
-    const result = await runConciergeTurn(history.slice(-20), message);
-    return NextResponse.json(result);
-  } catch (err) {
-    console.error("concierge turn failed", err);
-    return NextResponse.json(
-      { error: "El concierge no pudo responder en este momento. Intenta de nuevo." },
-      { status: 502 },
-    );
-  }
+  const encoder = new TextEncoder();
+
+  const stream = new ReadableStream({
+    async start(controller) {
+      try {
+        for await (const event of runConciergeTurnStream(history.slice(-20), message)) {
+          controller.enqueue(encoder.encode(JSON.stringify(event) + "\n"));
+        }
+      } catch (err) {
+        console.error("concierge stream failed", err);
+        controller.enqueue(
+          encoder.encode(
+            JSON.stringify({ type: "error", message: "El concierge no pudo responder en este momento." }) + "\n",
+          ),
+        );
+        controller.enqueue(encoder.encode(JSON.stringify({ type: "done" }) + "\n"));
+      } finally {
+        controller.close();
+      }
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "application/x-ndjson; charset=utf-8",
+      "Cache-Control": "no-cache, no-transform",
+      "X-Content-Type-Options": "nosniff",
+    },
+  });
 }

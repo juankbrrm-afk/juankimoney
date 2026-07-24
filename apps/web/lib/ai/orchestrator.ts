@@ -9,12 +9,21 @@ export interface ChatTurn {
   content: string;
 }
 
-export interface OrchestratorResult {
-  reply: string;
-  places: Place[];
-  itinerary: ItineraryStop[] | null;
-  mode: "live" | "demo";
-}
+/**
+ * Protocolo de streaming propio (newline-delimited JSON) — ver app/api/chat/route.ts para
+ * cómo se serializa sobre HTTP y components/ChatCanvas.tsx para cómo se consume. Se eligió
+ * un protocolo propio en vez de adoptar el formato de data-stream del Vercel AI SDK para no
+ * apostar por una superficie de API de una librería externa de rápida evolución sin poder
+ * verificarla contra documentación en vivo; esto es más código pero cada línea está probada
+ * de punta a punta en este repo (incluido el modo demo, que ejercita el mismo protocolo).
+ */
+export type StreamEvent =
+  | { type: "mode"; mode: "live" | "demo" }
+  | { type: "text-delta"; text: string }
+  | { type: "places"; places: Place[] }
+  | { type: "itinerary"; stops: ItineraryStop[] }
+  | { type: "error"; message: string }
+  | { type: "done" };
 
 const TOOLS: Tool[] = [
   {
@@ -73,66 +82,95 @@ async function runTool(name: string, input: Record<string, unknown>) {
   return { result: { error: "unknown tool" } };
 }
 
+function dedupePlaces(places: Place[]): Place[] {
+  const seen = new Set<string>();
+  return places.filter((p) => (seen.has(p.id) ? false : (seen.add(p.id), true)));
+}
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 /**
  * Modo demo: sin ANTHROPIC_API_KEY configurada, no hay llamada a Claude — se corre
- * únicamente la búsqueda estructurada para poder probar el producto end-to-end sin
- * credenciales. Ver docs/panama-ai/09-mvp.md.
+ * únicamente la búsqueda estructurada, transmitida palabra por palabra para ejercer
+ * exactamente el mismo protocolo de streaming que el modo real (docs/panama-ai/09-mvp.md).
  */
-async function runDemoMode(userMessage: string): Promise<OrchestratorResult> {
+async function* runDemoModeStream(userMessage: string): AsyncGenerator<StreamEvent> {
+  yield { type: "mode", mode: "demo" };
+
   const places = await searchPlaces(userMessage);
   const budgetMatch = userMessage.match(/\$(\d+)/);
   const hoursMatch = userMessage.match(/(\d+)\s*hora/);
-  const itinerary = places.length
-    ? (await buildItinerary(places.map((p) => p.id), {
-        budgetUsd: budgetMatch?.[1] ? Number(budgetMatch[1]) : undefined,
-        hoursAvailable: hoursMatch?.[1] ? Number(hoursMatch[1]) : undefined,
-      })).stops
-    : null;
 
   const reply = places.length
     ? `Modo demo (sin ANTHROPIC_API_KEY): con lo que describiste, esto es lo más cercano en el dataset semilla. Te dejo ${places.length} opciones verificadas abajo.`
     : `Modo demo (sin ANTHROPIC_API_KEY): no encontré nada en el dataset semilla que encaje con "${userMessage}". Prueba con una categoría como comida, playa, tour o vida nocturna.`;
 
-  return { reply, places, itinerary, mode: "demo" };
-}
-
-export async function runConciergeTurn(
-  history: ChatTurn[],
-  userMessage: string,
-): Promise<OrchestratorResult> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
-    return runDemoMode(userMessage);
+  for (const word of reply.split(" ")) {
+    yield { type: "text-delta", text: word + " " };
+    await sleep(15);
   }
 
-  const anthropic = new Anthropic({ apiKey });
+  if (places.length) {
+    yield { type: "places", places };
+    const { stops } = await buildItinerary(places.map((p) => p.id), {
+      budgetUsd: budgetMatch?.[1] ? Number(budgetMatch[1]) : undefined,
+      hoursAvailable: hoursMatch?.[1] ? Number(hoursMatch[1]) : undefined,
+    });
+    if (stops.length) yield { type: "itinerary", stops };
+  }
+
+  yield { type: "done" };
+}
+
+const MODEL = "claude-sonnet-5";
+
+async function* runLiveStream(history: ChatTurn[], userMessage: string): AsyncGenerator<StreamEvent> {
+  yield { type: "mode", mode: "live" };
+
+  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   const messages: MessageParam[] = [
     ...history.map((h) => ({ role: h.role, content: h.content }) as MessageParam),
     { role: "user", content: userMessage },
   ];
 
-  // Datos estructurados devueltos por las herramientas en este turno — la UI solo
-  // renderiza PlaceCards a partir de esta lista, nunca parseando el texto libre del
-  // modelo. Es la aplicación práctica del guardrail "cero alucinaciones" descrito en
-  // docs/panama-ai/06-sistema-ia.md: aunque el modelo mencionara un lugar inventado en
-  // el texto, la interfaz jamás podría mostrarlo como tarjeta porque no vendría de aquí.
+  // Datos estructurados devueltos por las herramientas en este turno — la UI solo renderiza
+  // PlaceCards a partir de esta lista, nunca parseando el texto libre del modelo. Es la
+  // aplicación práctica del guardrail "cero alucinaciones" de docs/panama-ai/06-sistema-ia.md.
   const collectedPlaces: Place[] = [];
   let collectedItinerary: ItineraryStop[] | null = null;
 
-  const MODEL = "claude-sonnet-5";
-
-  let response = await anthropic.messages.create({
-    model: MODEL,
-    max_tokens: 1024,
-    system: SYSTEM_PROMPT,
-    tools: TOOLS,
-    messages,
-  });
-
   let loops = 0;
-  while (response.stop_reason === "tool_use" && loops < 4) {
+  while (loops < 5) {
     loops += 1;
-    const toolUses = response.content.filter((b): b is ToolUseBlock => b.type === "tool_use");
+
+    const stream = anthropic.messages.stream({
+      model: MODEL,
+      max_tokens: 1024,
+      system: SYSTEM_PROMPT,
+      tools: TOOLS,
+      messages,
+    });
+
+    for await (const event of stream) {
+      // Tipado laxo intencional: nos apoyamos en la forma documentada de los eventos SSE
+      // de la Messages API (content_block_delta / delta.type === 'text_delta') en vez de
+      // importar el tipo exacto exportado por esta versión del SDK, que puede cambiar.
+      const e = event as { type: string; delta?: { type: string; text?: string } };
+      if (e.type === "content_block_delta" && e.delta?.type === "text_delta" && e.delta.text) {
+        yield { type: "text-delta", text: e.delta.text };
+      }
+    }
+
+    const finalMessage = await stream.finalMessage();
+
+    if (finalMessage.stop_reason !== "tool_use") {
+      if (collectedPlaces.length) yield { type: "places", places: dedupePlaces(collectedPlaces) };
+      if (collectedItinerary) yield { type: "itinerary", stops: collectedItinerary };
+      yield { type: "done" };
+      return;
+    }
+
+    const toolUses = finalMessage.content.filter((b): b is ToolUseBlock => b.type === "tool_use");
     const toolResults = await Promise.all(
       toolUses.map(async (toolUse) => {
         const { result, places, stops } = (await runTool(toolUse.name, toolUse.input as Record<string, unknown>)) as {
@@ -150,30 +188,15 @@ export async function runConciergeTurn(
       }),
     );
 
-    messages.push({ role: "assistant", content: response.content });
+    messages.push({ role: "assistant", content: finalMessage.content });
     messages.push({ role: "user", content: toolResults });
-
-    response = await anthropic.messages.create({
-      model: MODEL,
-      max_tokens: 1024,
-      system: SYSTEM_PROMPT,
-      tools: TOOLS,
-      messages,
-    });
   }
 
-  const textBlock = response.content.find((b) => b.type === "text");
-  const reply = textBlock && textBlock.type === "text" ? textBlock.text : "";
-
-  return {
-    reply,
-    places: dedupePlaces(collectedPlaces),
-    itinerary: collectedItinerary,
-    mode: "live",
-  };
+  yield { type: "error", message: "El concierge no pudo completar la respuesta (demasiadas herramientas encadenadas)." };
+  yield { type: "done" };
 }
 
-function dedupePlaces(places: Place[]): Place[] {
-  const seen = new Set<string>();
-  return places.filter((p) => (seen.has(p.id) ? false : (seen.add(p.id), true)));
+export function runConciergeTurnStream(history: ChatTurn[], userMessage: string): AsyncGenerator<StreamEvent> {
+  if (!process.env.ANTHROPIC_API_KEY) return runDemoModeStream(userMessage);
+  return runLiveStream(history, userMessage);
 }

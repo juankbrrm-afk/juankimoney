@@ -17,11 +17,15 @@ Abre `http://localhost:3000`.
 
 ## Qué funciona ya
 
-- Chat conversacional (`/`) con streaming de UI (no de tokens todavía, ver "Pendiente" abajo),
-  tool-calling real contra Claude cuando hay `ANTHROPIC_API_KEY`.
-- **Modo demo sin API key**: si no configuras `ANTHROPIC_API_KEY`, `/api/chat` responde con
-  búsqueda estructurada sobre el dataset semilla sin llamar a ningún modelo — para poder probar
-  el flujo completo (UI, tarjetas de lugar, itinerario) sin credenciales.
+- Chat conversacional (`/`) con **streaming real de tokens**: `/api/chat` transmite un stream
+  NDJSON propio (`lib/ai/orchestrator.ts` → `StreamEvent`, ver el comentario ahí sobre por qué es
+  protocolo propio y no el data-stream del Vercel AI SDK) consumido con `fetch` +
+  `ReadableStream.getReader()` en `ChatCanvas.tsx` — verificado con timestamps reales por evento,
+  no solo revisado a ojo. Tool-calling real contra Claude cuando hay `ANTHROPIC_API_KEY`.
+- **Modo demo sin API key**: si no configuras `ANTHROPIC_API_KEY`, `/api/chat` corre búsqueda
+  estructurada sobre el dataset semilla y la transmite palabra por palabra por el mismo protocolo
+  de streaming — para poder probar el flujo completo (UI, tarjetas de lugar, itinerario,
+  streaming) sin credenciales.
 - Guardrail de cero-alucinación aplicado a nivel de arquitectura: la UI solo renderiza
   `PlaceCard` a partir de los resultados que devolvió la tool `search_places`, nunca parseando
   el texto libre del modelo — ver comentario en `lib/ai/orchestrator.ts`.
@@ -42,16 +46,14 @@ Abre `http://localhost:3000`.
 Esto es intencionalmente un corte vertical, no el MVP terminado. Pendiente, en orden de
 prioridad:
 
-1. **Streaming real de tokens** vía Vercel AI SDK (`ai` + `@ai-sdk/anthropic`) en vez de
-   respuesta JSON completa — mejora percepción de velocidad.
-2. **Supabase real**: migrar `lib/data/places.ts` de leer `/data/places.json` a consultar las
+1. **Supabase real**: migrar `lib/data/places.ts` de leer `/data/places.json` a consultar las
    tablas de `docs/panama-ai/03-base-de-datos.md` (mismas firmas de función, solo cambia la
    implementación), con RLS, y `place_embeddings` con pgvector reemplazando el scoring por
    palabras clave de `lib/ai/tools.ts`.
-3. **Cuentas de usuario** (Supabase Auth) y guardar/compartir itinerario por link
+2. **Cuentas de usuario** (Supabase Auth) y guardar/compartir itinerario por link
    (`share_token`).
-4. Fotografía real (Supabase Storage) reemplazando los bloques `bg-stone-100` placeholder.
-5. Integración de Google Maps embebido (`MapView`) sincronizado con los resultados.
+3. Fotografía real (Supabase Storage) reemplazando los bloques `bg-stone-100` placeholder.
+4. Integración de Google Maps embebido (`MapView`) sincronizado con los resultados.
 
 ## Credenciales necesarias que no puedo generar por ustedes
 

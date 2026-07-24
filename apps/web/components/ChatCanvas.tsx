@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { Place } from "@/lib/data/places";
 import type { ItineraryStop } from "@/lib/ai/tools";
+import type { StreamEvent as ChatStreamEvent } from "@/lib/ai/orchestrator";
 import { PlaceCard } from "@/components/PlaceCard";
 import { ItineraryTimeline } from "@/components/ItineraryTimeline";
 import { QuickIntentPrompts } from "@/components/QuickIntentPrompts";
@@ -27,9 +28,21 @@ export function ChatCanvas() {
 
     setError(null);
     const nextMessages: DisplayMessage[] = [...messages, { role: "user", content: trimmed }];
-    setMessages(nextMessages);
+    setMessages([...nextMessages, { role: "assistant", content: "" }]);
     setInput("");
     setLoading(true);
+
+    const assistantIndex = nextMessages.length;
+
+    function patchAssistant(patch: Partial<DisplayMessage>) {
+      setMessages((prev) => {
+        const copy = [...prev];
+        const current = copy[assistantIndex];
+        if (!current) return prev;
+        copy[assistantIndex] = { ...current, ...patch };
+        return copy;
+      });
+    }
 
     try {
       const res = await fetch("/api/chat", {
@@ -41,22 +54,37 @@ export function ChatCanvas() {
         }),
       });
 
-      if (!res.ok) {
+      if (!res.ok || !res.body) {
         const body = await res.json().catch(() => null);
         throw new Error(body?.error ?? "Error de red");
       }
 
-      const data = (await res.json()) as {
-        reply: string;
-        places: Place[];
-        itinerary: ItineraryStop[] | null;
-        mode: "live" | "demo";
-      };
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let text = "";
 
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: data.reply, places: data.places, itinerary: data.itinerary, mode: data.mode },
-      ]);
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          const event = JSON.parse(line) as ChatStreamEvent;
+
+          if (event.type === "mode") patchAssistant({ mode: event.mode });
+          else if (event.type === "text-delta") {
+            text += event.text;
+            patchAssistant({ content: text });
+          } else if (event.type === "places") patchAssistant({ places: event.places });
+          else if (event.type === "itinerary") patchAssistant({ itinerary: event.stops });
+          else if (event.type === "error") setError(event.message);
+        }
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Algo salió mal");
     } finally {
@@ -85,7 +113,10 @@ export function ChatCanvas() {
                     Modo demo — sin ANTHROPIC_API_KEY configurada
                   </p>
                 )}
-                <p className="max-w-2xl text-sm leading-relaxed text-ink">{m.content}</p>
+                <p className="max-w-2xl whitespace-pre-wrap text-sm leading-relaxed text-ink">
+                  {m.content}
+                  {loading && i === messages.length - 1 && <span className="animate-pulse">▍</span>}
+                </p>
                 {m.places && m.places.length > 0 && (
                   <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {m.places.map((p) => (
@@ -102,7 +133,6 @@ export function ChatCanvas() {
             )}
           </div>
         ))}
-        {loading && <p className="text-sm text-stone-400">El concierge está pensando…</p>}
         {error && <p className="text-sm text-red-600">{error}</p>}
       </div>
 
