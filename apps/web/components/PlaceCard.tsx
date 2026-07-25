@@ -1,16 +1,6 @@
 import Link from "next/link";
 import type { Place } from "@/lib/data/places";
-
-const CATEGORY_LABEL: Record<Place["category"], string> = {
-  restaurant: "Restaurante",
-  rooftop: "Rooftop",
-  beach: "Playa",
-  hotel: "Hotel",
-  tour: "Tour",
-  nightlife: "Vida nocturna",
-  museum: "Museo",
-  family: "Familiar",
-};
+import { CATEGORY_LABEL } from "@/lib/categories";
 
 export function PlaceCard({ place }: { place: Place }) {
   const priceTag = "$".repeat(place.priceLevel);

@@ -47,6 +47,10 @@ Abre `http://localhost:3000`.
   los pagos esta sí es una API pública sin muro de autenticación — implementada y probada de
   verdad con y sin `GOOGLE_MAPS_API_KEY` (sin key muestra un aviso, con key genera el iframe
   real apuntando a `maps/embed/v1/place`).
+- `/explorar` — navegación por categoría/zona sin pasar por el chat, con filtros vía query
+  params (`?categoria=beach&zona=...`) enlazables/indexables, sin JS del lado del cliente para
+  filtrar. Probado en vivo con los tres casos (sin filtro, por categoría, por zona) contra el
+  dataset real — cada uno devuelve exactamente los lugares esperados.
 - **PWA instalable de verdad** (docs/panama-ai/05-componentes-ui.md): `public/manifest.json` +
   `public/sw.js` + `components/ServiceWorkerRegister.tsx`, con íconos PNG reales generados a
   mano (sin librería externa, ver `public/icon-192.png`/`icon-512.png` — un placeholder honesto
