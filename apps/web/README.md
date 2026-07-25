@@ -47,6 +47,13 @@ Abre `http://localhost:3000`.
   los pagos esta sí es una API pública sin muro de autenticación — implementada y probada de
   verdad con y sin `GOOGLE_MAPS_API_KEY` (sin key muestra un aviso, con key genera el iframe
   real apuntando a `maps/embed/v1/place`).
+- **Guardar y compartir itinerario por link, sin cuenta**: botón "Guardar y compartir" bajo
+  cualquier itinerario del chat → `POST /api/itineraries` → `/itinerarios/[id]`. Se guarda solo
+  la referencia a cada `placeId` (`lib/itineraries/store.ts`), no una copia de los datos del
+  lugar, así que si el negocio edita su horario en `apps/admin` después de que alguien comparta
+  el link, quien lo abra ve el dato fresco, no uno congelado. Probado en vivo: crear vía API,
+  abrir el link generado y confirmar que trae exactamente los lugares guardados con el título
+  correcto; un id inexistente da 404.
 - `/explorar` — navegación por categoría/zona sin pasar por el chat, con filtros vía query
   params (`?categoria=beach&zona=...`) enlazables/indexables, sin JS del lado del cliente para
   filtrar. Probado en vivo con los tres casos (sin filtro, por categoría, por zona) contra el
@@ -68,8 +75,8 @@ prioridad:
    tablas de `docs/panama-ai/03-base-de-datos.md` (mismas firmas de función, solo cambia la
    implementación), con RLS, y `place_embeddings` con pgvector reemplazando el scoring por
    palabras clave de `lib/ai/tools.ts`.
-2. **Cuentas de usuario** (Supabase Auth) y guardar/compartir itinerario por link
-   (`share_token`).
+2. **Cuentas de usuario** (Supabase Auth) — hoy los itinerarios se guardan y comparten sin
+   cuenta (ver arriba), pero no hay forma de "reclamarlos" ni ver "mis itinerarios" al loguearse.
 3. Fotografía real (Supabase Storage) reemplazando los bloques `bg-stone-100` placeholder.
 4. Confirmar el endpoint real de Yappy (contactar botondepagoyappy@bgeneral.com o acceder al
    panel de comercio) para completar `lib/payments/yappy.ts`.

@@ -7,6 +7,7 @@ import type { StreamEvent as ChatStreamEvent } from "@/lib/ai/orchestrator";
 import { PlaceCard } from "@/components/PlaceCard";
 import { ItineraryTimeline } from "@/components/ItineraryTimeline";
 import { QuickIntentPrompts } from "@/components/QuickIntentPrompts";
+import { SaveItineraryButton } from "@/components/SaveItineraryButton";
 
 interface DisplayMessage {
   role: "user" | "assistant";
@@ -127,6 +128,7 @@ export function ChatCanvas() {
                 {m.itinerary && m.itinerary.length > 0 && (
                   <div className="mt-4 max-w-md">
                     <ItineraryTimeline stops={m.itinerary} />
+                    <SaveItineraryButton stops={m.itinerary} />
                   </div>
                 )}
               </div>

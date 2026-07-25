@@ -23,6 +23,9 @@ next-env.d.ts
 .env.local
 .env.*.local
 
+# Contenido generado por usuarios en dev (no dataset semilla) — ver data/README.md
+data/itineraries.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
