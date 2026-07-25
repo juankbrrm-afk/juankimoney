@@ -1,0 +1,57 @@
+name: Panama AI CI
+
+# Verifica apps/web y apps/admin en cada push/PR — los mismos tres pasos
+# (typecheck, build) corridos manualmente durante el desarrollo inicial de este
+# módulo, ver docs/panama-ai/01-arquitectura.md ("CI/CD: lint + typecheck + tests
+# en cada PR"). Vercel (deploy real) requiere una cuenta que el equipo debe conectar
+# por separado; esto cubre la parte que no depende de credenciales externas.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/web/**"
+      - "apps/admin/**"
+      - "data/**"
+      - ".github/workflows/panama-ai-ci.yml"
+  pull_request:
+    paths:
+      - "apps/web/**"
+      - "apps/admin/**"
+      - "data/**"
+      - ".github/workflows/panama-ai-ci.yml"
+
+jobs:
+  web:
+    name: apps/web — typecheck & build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: apps/web/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run build
+
+  admin:
+    name: apps/admin — typecheck & build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/admin
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: apps/admin/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run build
