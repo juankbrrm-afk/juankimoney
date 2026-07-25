@@ -47,6 +47,13 @@ Abre `http://localhost:3000`.
   los pagos esta sí es una API pública sin muro de autenticación — implementada y probada de
   verdad con y sin `GOOGLE_MAPS_API_KEY` (sin key muestra un aviso, con key genera el iframe
   real apuntando a `maps/embed/v1/place`).
+- **PWA instalable de verdad** (docs/panama-ai/05-componentes-ui.md): `public/manifest.json` +
+  `public/sw.js` + `components/ServiceWorkerRegister.tsx`, con íconos PNG reales generados a
+  mano (sin librería externa, ver `public/icon-192.png`/`icon-512.png` — un placeholder honesto
+  hasta que exista un logo de marca definitivo). Probado con navegador real, no solo
+  configurado: el manifest carga, el service worker se activa y toma control de la página, y
+  **recargar la app estando offline sigue funcionando** (cachea el app shell; deliberadamente
+  nunca cachea `/api/chat` ni datos de negocios, que deben ser siempre frescos).
 
 ## Qué falta para llegar al MVP completo de `docs/panama-ai/09-mvp.md`
 
