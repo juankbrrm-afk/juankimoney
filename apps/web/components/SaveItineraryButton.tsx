@@ -6,6 +6,7 @@ import type { ItineraryStop } from "@/lib/ai/tools";
 export function SaveItineraryButton({ stops }: { stops: ItineraryStop[] }) {
   const [state, setState] = useState<"idle" | "saving" | "done" | "error">("idle");
   const [url, setUrl] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   async function save() {
     setState("saving");
@@ -15,11 +16,16 @@ export function SaveItineraryButton({ stops }: { stops: ItineraryStop[] }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ placeIds: stops.map((s) => s.place.id) }),
       });
-      if (!res.ok) throw new Error("save failed");
-      const { id } = (await res.json()) as { id: string };
-      setUrl(`${window.location.origin}/itinerarios/${id}`);
+      const body = await res.json().catch(() => null);
+      if (!res.ok) {
+        setErrorMessage(body?.error ?? "No se pudo guardar.");
+        setState("error");
+        return;
+      }
+      setUrl(`${window.location.origin}/itinerarios/${body.id}`);
       setState("done");
     } catch {
+      setErrorMessage("Error de red.");
       setState("error");
     }
   }
@@ -40,13 +46,16 @@ export function SaveItineraryButton({ stops }: { stops: ItineraryStop[] }) {
   }
 
   return (
-    <button
-      type="button"
-      onClick={save}
-      disabled={state === "saving"}
-      className="mt-2 rounded-full border border-stone-200 px-3 py-1.5 text-xs font-medium text-ink hover:border-accent hover:text-accent disabled:opacity-50"
-    >
-      {state === "saving" ? "Guardando…" : state === "error" ? "Intentar de nuevo" : "Guardar y compartir"}
-    </button>
+    <div className="mt-2">
+      <button
+        type="button"
+        onClick={save}
+        disabled={state === "saving"}
+        className="rounded-full border border-stone-200 px-3 py-1.5 text-xs font-medium text-ink hover:border-accent hover:text-accent disabled:opacity-50"
+      >
+        {state === "saving" ? "Guardando…" : state === "error" ? "Intentar de nuevo" : "Guardar y compartir"}
+      </button>
+      {state === "error" && errorMessage && <p className="mt-1 text-xs text-stone-400">{errorMessage}</p>}
+    </div>
   );
 }
