@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Place } from "@/lib/data/places";
 import { CATEGORY_LABEL } from "@/lib/categories";
+import { PlacePhoto } from "@/components/PlacePhoto";
 
 export function PlaceCard({ place }: { place: Place }) {
   const priceTag = "$".repeat(place.priceLevel);
@@ -13,9 +14,9 @@ export function PlaceCard({ place }: { place: Place }) {
   )}`;
 
   return (
-    <div className="flex flex-col overflow-hidden rounded-2xl border border-stone-200 bg-white">
+    <div className="group flex flex-col overflow-hidden rounded-2xl border border-stone-200 bg-white transition-shadow hover:shadow-[0_8px_28px_-14px_rgba(23,24,26,0.25)]">
       <Link href={`/lugares/${place.slug}`} className="block">
-        <div className="aspect-[4/3] w-full bg-stone-100" aria-hidden />
+        <PlacePhoto className="aspect-[4/3] w-full transition-transform duration-300 group-hover:scale-[1.02]" />
         <div className="p-4 pb-2">
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs font-medium uppercase tracking-wide text-accent">

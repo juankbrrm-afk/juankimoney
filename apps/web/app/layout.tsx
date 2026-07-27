@@ -1,6 +1,16 @@
 import type { Metadata, Viewport } from "next";
+import { Inter, Fraunces } from "next/font/google";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
+import { SiteHeader } from "@/components/SiteHeader";
 import "./globals.css";
+
+// Inter para UI (misma elección que Linear, una de las referencias del brief — no es un
+// default perezoso). Fraunces para titulares: serif cálida con carácter editorial, la
+// intención original de docs/panama-ai/05-componentes-ui.md que nunca se había cargado de
+// verdad (antes caía en el fallback Georgia del sistema). next/font/google la descarga en
+// build time y la sirve desde el propio dominio — cero requests externas en producción.
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
+const fraunces = Fraunces({ subsets: ["latin"], variable: "--font-fraunces", display: "swap" });
 
 export const metadata: Metadata = {
   title: "Panama AI — tu concierge turístico con inteligencia artificial",
@@ -22,8 +32,9 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es">
+    <html lang="es" className={`${inter.variable} ${fraunces.variable}`}>
       <body>
+        <SiteHeader />
         {children}
         <ServiceWorkerRegister />
       </body>

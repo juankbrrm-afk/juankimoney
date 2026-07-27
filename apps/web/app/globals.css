@@ -15,8 +15,10 @@
   --color-accent-soft: #e4f0ee;
   --color-accent-strong: #0a4f47;
 
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  /* var(--font-inter) / var(--font-fraunces) las define next/font/google en layout.tsx —
+     incluyen un fallback ajustado por métricas para evitar salto de layout mientras cargan. */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-fraunces), ui-serif, Georgia, serif;
 }
 
 html,
@@ -24,8 +26,14 @@ body {
   background: var(--color-paper);
   color: var(--color-ink);
   font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 * {
   -webkit-tap-highlight-color: transparent;
+}
+
+h1, h2, h3, h4 {
+  text-wrap: balance;
 }

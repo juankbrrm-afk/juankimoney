@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { findPlaceBySlug } from "@/lib/data/places";
 import { MapEmbed } from "@/components/MapEmbed";
+import { PlacePhoto } from "@/components/PlacePhoto";
 import { ReviewForm } from "@/components/ReviewForm";
 import { listReviewsForPlace } from "@/lib/reviews/store";
 
@@ -31,7 +32,7 @@ export default async function PlacePage({ params }: { params: Promise<{ slug: st
         ← Volver al concierge
       </Link>
 
-      <div className="mt-4 aspect-[16/9] w-full rounded-2xl bg-stone-100" aria-hidden />
+      <PlacePhoto className="mt-4 aspect-[16/9] w-full rounded-2xl" />
 
       <div className="mt-6 flex items-center justify-between">
         <h1 className="font-display text-3xl text-ink">{place.name}</h1>
