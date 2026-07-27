@@ -84,6 +84,14 @@ Abre `http://localhost:3000`.
   nivel de red a "Full" o agrega unsplash.com/commons.wikimedia.org al allowlist, o (b) nos pasan
   las fotos directamente. Verificado con capturas reales (desktop y mobile) y sin errores de
   consola.
+- **Ilustraciones propias por categoría** (`components/illustrations/CategoryIllustration.tsx`)
+  reemplazando el placeholder gris de `PlacePhoto` — mientras no hay fotografía real, cada
+  categoría tiene su propia escena vectorial de un lugar/paisaje real de Panamá (balcones de
+  Casco Antiguo de noche, un barco cruzando las esclusas de Miraflores, Isla Taboga, el techo
+  multicolor del Biomuseo, un perezoso en el dosel del Parque Natural Metropolitano...), 100%
+  autocontenidas — cero requests externos, cero riesgo de imagen rota. Iteradas con capturas
+  reales: la primera versión del barco del Canal se veía como un cuadrado flotando a tamaño
+  grande, así que se rehizo con casco, puente de mando y contenedores reconocibles.
 
 ## Qué falta para llegar al MVP completo de `docs/panama-ai/09-mvp.md`
 
