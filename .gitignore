@@ -25,6 +25,7 @@ next-env.d.ts
 
 # Contenido generado por usuarios en dev (no dataset semilla) — ver data/README.md
 data/itineraries.json
+data/reviews.json
 
 # Editor directories and files
 .vscode/*

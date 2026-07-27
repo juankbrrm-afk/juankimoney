@@ -1,17 +1,21 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { findPlaceBySlug, loadPublishedPlaces } from "@/lib/data/places";
+import { findPlaceBySlug } from "@/lib/data/places";
 import { MapEmbed } from "@/components/MapEmbed";
+import { ReviewForm } from "@/components/ReviewForm";
+import { listReviewsForPlace } from "@/lib/reviews/store";
 
-export async function generateStaticParams() {
-  const places = await loadPublishedPlaces();
-  return places.map((p) => ({ slug: p.slug }));
-}
+// Dinámico en vez de estático: la sección de reseñas cambia con cada envío y debe
+// reflejarse de inmediato, igual que el dataset compartido con apps/admin — por eso ya
+// no hay generateStaticParams, no tendría efecto junto a force-dynamic.
+export const dynamic = "force-dynamic";
 
 export default async function PlacePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const place = await findPlaceBySlug(slug);
   if (!place) notFound();
+
+  const reviews = await listReviewsForPlace(place.id);
 
   const waLink = place.contacts.whatsapp
     ? `https://wa.me/${place.contacts.whatsapp.replace(/[^\d]/g, "")}`
@@ -68,6 +72,32 @@ export default async function PlacePage({ params }: { params: Promise<{ slug: st
 
       <div className="mt-8">
         <MapEmbed query={`${place.name} ${place.zone} Panama`} />
+      </div>
+
+      <div className="mt-10">
+        <h2 className="font-display text-xl text-ink">
+          Reseñas {reviews.length > 0 ? `(${reviews.length})` : ""}
+        </h2>
+
+        {reviews.length > 0 ? (
+          <ul className="mt-4 flex flex-col gap-4">
+            {reviews.map((r) => (
+              <li key={r.id} className="rounded-2xl border border-stone-200 bg-white p-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium text-ink">{r.authorName}</p>
+                  <span className="text-xs text-accent">{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</span>
+                </div>
+                <p className="mt-2 text-sm text-stone-600">{r.body}</p>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-2 text-sm text-stone-400">Todavía no hay reseñas — sé el primero.</p>
+        )}
+
+        <div className="mt-5">
+          <ReviewForm placeSlug={place.slug} />
+        </div>
       </div>
     </main>
   );

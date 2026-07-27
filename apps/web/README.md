@@ -47,6 +47,12 @@ Abre `http://localhost:3000`.
   los pagos esta sí es una API pública sin muro de autenticación — implementada y probada de
   verdad con y sin `GOOGLE_MAPS_API_KEY` (sin key muestra un aviso, con key genera el iframe
   real apuntando a `maps/embed/v1/place`).
+- **Reseñas sin cuenta** en cada perfil de lugar (`lib/reviews/store.ts`, mismo patrón de
+  archivo JSON que itinerarios) — no recalcula el `avgRating` curado del lugar, solo lo
+  complementa; eso evita que una reseña suelta distorsione el rating editorial mientras el
+  volumen real es bajo. La página de lugar pasó de estática a `force-dynamic` para que una
+  reseña nueva se vea de inmediato. Probado end-to-end: reseña enviada por API, aparece en la
+  página con autor, texto y estrellas correctas.
 - **Guardar y compartir itinerario por link, sin cuenta**: botón "Guardar y compartir" bajo
   cualquier itinerario del chat → `POST /api/itineraries` → `/itinerarios/[id]`. Se guarda solo
   la referencia a cada `placeId` (`lib/itineraries/store.ts`), no una copia de los datos del
