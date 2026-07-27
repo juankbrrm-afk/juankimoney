@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import type { Place } from "@/lib/data/places";
 import type { ItineraryStop } from "@/lib/ai/tools";
 import type { StreamEvent as ChatStreamEvent } from "@/lib/ai/orchestrator";
@@ -8,6 +9,7 @@ import { PlaceCard } from "@/components/PlaceCard";
 import { ItineraryTimeline } from "@/components/ItineraryTimeline";
 import { QuickIntentPrompts } from "@/components/QuickIntentPrompts";
 import { SaveItineraryButton } from "@/components/SaveItineraryButton";
+import { HERO_PHOTO } from "@/lib/data/category-photos";
 
 interface DisplayMessage {
   role: "user" | "assistant";
@@ -22,6 +24,7 @@ export function ChatCanvas() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [heroPhotoFailed, setHeroPhotoFailed] = useState(false);
   const empty = messages.length === 0;
 
   async function send(text: string) {
@@ -134,8 +137,30 @@ export function ChatCanvas() {
     <div className="flex flex-col gap-6">
       {empty && (
         <div className="relative left-1/2 right-1/2 -mx-[50vw] -mt-10 w-screen sm:-mt-16">
-          <div className="hero-gradient px-4 pb-12 pt-16 sm:px-6 sm:pb-16 sm:pt-20">
-            <div className="mx-auto max-w-3xl">
+          <div
+            className={`relative overflow-hidden px-4 pb-12 pt-16 sm:px-6 sm:pb-16 sm:pt-20 ${
+              heroPhotoFailed ? "hero-gradient" : "bg-[#0d1210]"
+            }`}
+          >
+            {!heroPhotoFailed && (
+              <>
+                <Image
+                  src={HERO_PHOTO.url}
+                  alt=""
+                  fill
+                  priority
+                  sizes="100vw"
+                  className="object-cover"
+                  onError={() => setHeroPhotoFailed(true)}
+                  unoptimized
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0d1210]/95 via-[#0d1210]/55 to-[#0d1210]/25" />
+                <p className="absolute bottom-2 right-3 z-10 text-[10px] text-white/50">
+                  {HERO_PHOTO.credit}
+                </p>
+              </>
+            )}
+            <div className="relative mx-auto max-w-3xl">
               <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.14em] text-white/70">
                 <span aria-hidden>📍</span> Panamá · Concierge de IA
               </p>

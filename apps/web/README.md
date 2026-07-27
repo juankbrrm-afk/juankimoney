@@ -75,23 +75,33 @@ Abre `http://localhost:3000`.
 - **Rediseño visual** inspirado en una referencia real que pasó el usuario (un sitio de turismo
   con hero de foto grande a pantalla completa): tipografía enorme en mayúsculas para el momento
   de bienvenida del chat, navbar persistente, tarjetas de lugar con tinte de color por categoría.
-  **No usa fotografía real** — este sandbox de desarrollo solo tiene salida a internet permitida
-  hacia una lista específica de dominios (npm, GitHub, etc.), así que no pude buscar ni verificar
-  fotos reales de Panamá (Unsplash, Wikimedia, hasta la propia API de Wikipedia devuelven 403 al
-  intentarlo). En su lugar, la pantalla de bienvenida usa un gradiente con intención (`.hero-gradient`
-  en `globals.css`) — cálido arriba a la izquierda, teal arriba a la derecha — en vez de una foto
-  falsa. Para tener fotos reales: (a) alguien con acceso a la configuración del entorno cambia el
-  nivel de red a "Full" o agrega unsplash.com/commons.wikimedia.org al allowlist, o (b) nos pasan
-  las fotos directamente. Verificado con capturas reales (desktop y mobile) y sin errores de
-  consola.
+- **Fotografía real de Panamá** (`lib/data/category-photos.ts`) en el hero y en `PlacePhoto` —
+  una foto de Wikimedia Commons por categoría (Isla Taboga, esclusas de Miraflores, Biomuseo,
+  skyline de Ciudad de Panamá de día y de noche, Casco Viejo, un perezoso del Parque Natural
+  Metropolitano), servida vía `Special:FilePath` (resuelve al archivo original sin necesitar el
+  hash de carpeta de `upload.wikimedia.org`). Este sandbox de desarrollo no tiene salida directa
+  a `commons.wikimedia.org` (curl y WebFetch devuelven 403/timeout contra ese dominio incluso
+  después de pedir acceso de red "Full" — solo `WebSearch` funciona, que corre por infraestructura
+  aparte), así que las URLs no se pudieron cargar ni verificar visualmente *desde aquí*; en
+  Vercel, con salida a internet normal, deberían resolver sin problema. Por eso `PlacePhoto` y el
+  hero de `ChatCanvas` tienen `onError` que cae a la ilustración vectorial / al gradiente si una
+  imagen no carga — verificado de verdad simulando el fallo (capturas con la red del sandbox
+  bloqueada, sin imagen rota visible). **Antes de un lanzamiento público**, verificar cada URL
+  carga en un navegador real y confirmar el nombre exacto del autor en la file page de cada
+  imagen (linkeada en `category-photos.ts`) para el crédito CC BY / CC BY-SA — el crédito que
+  aparece hoy es el mejor esfuerzo a partir de los resultados de búsqueda, no una verificación
+  campo por campo. La categoría "restaurant" se quedó con la ilustración: no encontré una foto de
+  Panamá específica y confiable (solo resultados genéricos o de otros países) y preferí no usar
+  una imagen mal etiquetada.
 - **Ilustraciones propias por categoría** (`components/illustrations/CategoryIllustration.tsx`)
-  reemplazando el placeholder gris de `PlacePhoto` — mientras no hay fotografía real, cada
-  categoría tiene su propia escena vectorial de un lugar/paisaje real de Panamá (balcones de
-  Casco Antiguo de noche, un barco cruzando las esclusas de Miraflores, Isla Taboga, el techo
-  multicolor del Biomuseo, un perezoso en el dosel del Parque Natural Metropolitano...), 100%
-  autocontenidas — cero requests externos, cero riesgo de imagen rota. Iteradas con capturas
-  reales: la primera versión del barco del Canal se veía como un cuadrado flotando a tamaño
-  grande, así que se rehizo con casco, puente de mando y contenedores reconocibles.
+  como red de seguridad de `PlacePhoto` cuando no hay foto real asignada a la categoría o la foto
+  falla al cargar — cada categoría tiene su propia escena vectorial de un lugar/paisaje real de
+  Panamá (balcones de Casco Antiguo de noche, un barco cruzando las esclusas de Miraflores, Isla
+  Taboga, el techo multicolor del Biomuseo, un perezoso en el dosel del Parque Natural
+  Metropolitano...), 100% autocontenidas — cero requests externos, cero riesgo de imagen rota.
+  Iteradas con capturas reales: la primera versión del barco del Canal se veía como un cuadrado
+  flotando a tamaño grande, así que se rehizo con casco, puente de mando y contenedores
+  reconocibles.
 
 ## Qué falta para llegar al MVP completo de `docs/panama-ai/09-mvp.md`
 
