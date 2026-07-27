@@ -20,7 +20,8 @@
       "whatsapp": "+507 6000 0001",
       "instagram": "@dondejosepanama"
     },
-    "photo": "/placeholder/restaurant-1.jpg"
+    "photo": "/placeholder/restaurant-1.jpg",
+    "coordinates": { "lat": 8.9528, "lng": -79.5364 }
   },
   {
     "id": "p2",
@@ -42,7 +43,8 @@
     "contacts": {
       "phone": "+507 212 0000"
     },
-    "photo": "/placeholder/restaurant-2.jpg"
+    "photo": "/placeholder/restaurant-2.jpg",
+    "coordinates": { "lat": 8.949, "lng": -79.5333 }
   },
   {
     "id": "p3",
@@ -65,7 +67,8 @@
       "instagram": "@tantalopanama",
       "website": "https://tantalohotel.com"
     },
-    "photo": "/placeholder/rooftop-1.jpg"
+    "photo": "/placeholder/rooftop-1.jpg",
+    "coordinates": { "lat": 8.9515, "lng": -79.5372 }
   },
   {
     "id": "p4",
@@ -87,7 +90,8 @@
     "contacts": {
       "website": "https://tabogaexpress.com"
     },
-    "photo": "/placeholder/beach-1.jpg"
+    "photo": "/placeholder/beach-1.jpg",
+    "coordinates": { "lat": 8.7925, "lng": -79.5578 }
   },
   {
     "id": "p5",
@@ -109,7 +113,8 @@
     "contacts": {
       "website": "https://biomuseopanama.org"
     },
-    "photo": "/placeholder/museum-1.jpg"
+    "photo": "/placeholder/museum-1.jpg",
+    "coordinates": { "lat": 8.9157, "lng": -79.5445 }
   },
   {
     "id": "p6",
@@ -129,7 +134,8 @@
     "avgRating": 4.7,
     "status": "published",
     "contacts": {},
-    "photo": "/placeholder/tour-1.jpg"
+    "photo": "/placeholder/tour-1.jpg",
+    "coordinates": { "lat": 8.9527, "lng": -79.535 }
   },
   {
     "id": "p7",
@@ -151,7 +157,8 @@
     "contacts": {
       "website": "https://pancanal.com"
     },
-    "photo": "/placeholder/tour-2.jpg"
+    "photo": "/placeholder/tour-2.jpg",
+    "coordinates": { "lat": 9.0122, "lng": -79.5967 }
   },
   {
     "id": "p8",
@@ -174,7 +181,8 @@
       "website": "https://selina.com",
       "whatsapp": "+507 6000 0008"
     },
-    "photo": "/placeholder/hotel-1.jpg"
+    "photo": "/placeholder/hotel-1.jpg",
+    "coordinates": { "lat": 8.9533, "lng": -79.5359 }
   },
   {
     "id": "p9",
@@ -196,7 +204,8 @@
     "contacts": {
       "website": "https://casacasco.com"
     },
-    "photo": "/placeholder/hotel-2.jpg"
+    "photo": "/placeholder/hotel-2.jpg",
+    "coordinates": { "lat": 8.952, "lng": -79.5368 }
   },
   {
     "id": "p10",
@@ -218,7 +227,8 @@
     "contacts": {
       "instagram": "@relicbarpanama"
     },
-    "photo": "/placeholder/nightlife-1.jpg"
+    "photo": "/placeholder/nightlife-1.jpg",
+    "coordinates": { "lat": 8.9541, "lng": -79.5346 }
   },
   {
     "id": "p11",
@@ -241,7 +251,8 @@
     "contacts": {
       "website": "https://parquemetropolitano.org"
     },
-    "photo": "/placeholder/family-1.jpg"
+    "photo": "/placeholder/family-1.jpg",
+    "coordinates": { "lat": 8.9975, "lng": -79.545 }
   },
   {
     "id": "p12",
@@ -263,6 +274,7 @@
     "contacts": {
       "phone": "+507 314 0000"
     },
-    "photo": "/placeholder/restaurant-3.jpg"
+    "photo": "/placeholder/restaurant-3.jpg",
+    "coordinates": { "lat": 8.913, "lng": -79.539 }
   }
 ]

@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { loadPublishedPlaces, type Category } from "@/lib/data/places";
 import { CATEGORIES, CATEGORY_LABEL } from "@/lib/categories";
 import { PlaceCard } from "@/components/PlaceCard";
+import { MapView } from "@/components/MapView";
 
 export const metadata: Metadata = {
   title: "Explorar Panamá — Panama AI",
@@ -101,11 +102,16 @@ export default async function ExplorarPage({
       </p>
 
       {filtered.length > 0 ? (
-        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((p) => (
-            <PlaceCard key={p.id} place={p} />
-          ))}
-        </div>
+        <>
+          <div className="mt-4">
+            <MapView places={filtered} apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY} />
+          </div>
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {filtered.map((p) => (
+              <PlaceCard key={p.id} place={p} />
+            ))}
+          </div>
+        </>
       ) : (
         <p className="mt-8 text-sm text-stone-400">Nada por aquí todavía con esos filtros.</p>
       )}

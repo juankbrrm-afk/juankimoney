@@ -42,6 +42,8 @@ export interface Place {
     website?: string;
   };
   photo: string;
+  /** Aproximadas (conocimiento general de la ubicación, no geocodificadas) — ver MapView.tsx. */
+  coordinates?: { lat: number; lng: number };
 }
 
 const DATA_PATH = path.join(process.cwd(), "..", "..", "data", "places.json");

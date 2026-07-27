@@ -103,6 +103,17 @@ Abre `http://localhost:3000`.
   flotando a tamaño grande, así que se rehizo con casco, puente de mando y contenedores
   reconocibles.
 
+- **Mapa interactivo en `/explorar`** (`components/MapView.tsx`), sincronizado con los mismos
+  filtros de categoría/zona que la grilla de tarjetas — a diferencia de `MapEmbed.tsx` (un solo
+  lugar, Embed API, server component), este pone un marcador por resultado usando la Maps
+  JavaScript API en el navegador (`NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`), con `InfoWindow` que
+  linkea a la página del lugar, y ajusta el zoom a los resultados filtrados. Las coordenadas de
+  cada lugar (`coordinates` en `/data/places.json`) son aproximadas — conocimiento general de
+  dónde queda cada sitio, no geocodificadas contra ninguna API (este sandbox no tiene salida a
+  las APIs de Google para verificarlas) — confirmarlas antes de producción. Sin
+  `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` configurada cae a un aviso, igual que `MapEmbed`; probado en
+  vivo con capturas reales sin esa key (aviso correcto) y sincronizando bien con cada filtro.
+
 ## Qué falta para llegar al MVP completo de `docs/panama-ai/09-mvp.md`
 
 Esto es intencionalmente un corte vertical, no el MVP terminado. Pendiente, en orden de
@@ -114,11 +125,12 @@ prioridad:
    palabras clave de `lib/ai/tools.ts`.
 2. **Cuentas de usuario** (Supabase Auth) — hoy los itinerarios se guardan y comparten sin
    cuenta (ver arriba), pero no hay forma de "reclamarlos" ni ver "mis itinerarios" al loguearse.
-3. Fotografía real (Supabase Storage) reemplazando los bloques `bg-stone-100` placeholder.
+3. Fotografía real de cada negocio (Supabase Storage) — hoy hay una foto real por categoría
+   (Wikimedia Commons, ver arriba), no una por lugar/negocio individual.
 4. Confirmar el endpoint real de Yappy (contactar botondepagoyappy@bgeneral.com o acceder al
    panel de comercio) para completar `lib/payments/yappy.ts`.
-5. Un `MapView` interactivo sincronizado con los resultados de búsqueda (hoy `MapEmbed` solo
-   se usa en el perfil de un lugar individual, no en la vista de exploración).
+5. Coordenadas verificadas: las de `/data/places.json` son aproximadas (ver `MapView.tsx`),
+   confirmarlas con la Geocoding API o ajuste manual antes de un lanzamiento real.
 
 ## Credenciales necesarias que no puedo generar por ustedes
 
