@@ -37,3 +37,19 @@ body {
 h1, h2, h3, h4 {
   text-wrap: balance;
 }
+
+/*
+ * Hero de la pantalla vacía del chat (ChatCanvas.tsx). No hay fotografía real de Panamá
+ * todavía (ver docs/panama-ai — el dataset usa placeholders honestos, no fotos falsas),
+ * así que en vez de fingir una foto esto es un gradiente con intención: un glow cálido
+ * (atardecer) arriba a la izquierda y uno teal (agua del Canal) arriba a la derecha,
+ * cayendo a un fondo casi negro — la misma energía "foto grande, texto enorme encima" del
+ * dirección visual pedida, sin inventar contenido que no existe.
+ */
+.hero-gradient {
+  background:
+    radial-gradient(1100px 560px at 12% -15%, rgba(240, 201, 135, 0.35), transparent 60%),
+    radial-gradient(950px 650px at 92% 5%, rgba(47, 174, 156, 0.55), transparent 55%),
+    linear-gradient(180deg, #0d2a26 0%, #0e1a19 55%, #14191a 100%);
+}
+

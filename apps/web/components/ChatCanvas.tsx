@@ -22,6 +22,7 @@ export function ChatCanvas() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const empty = messages.length === 0;
 
   async function send(text: string) {
     const trimmed = text.trim();
@@ -93,12 +94,71 @@ export function ChatCanvas() {
     }
   }
 
+  const composer = (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        send(input);
+      }}
+      className={
+        empty
+          ? "flex items-center gap-2 rounded-full bg-white/10 p-2 backdrop-blur-md ring-1 ring-white/25"
+          : "sticky bottom-4 flex items-center gap-2 rounded-full border border-stone-200 bg-white p-2 shadow-[0_12px_32px_-16px_rgba(23,24,26,0.35)]"
+      }
+    >
+      <input
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        placeholder="Cuéntame de tu viaje… ej: tengo hambre y voy con niños"
+        className={
+          empty
+            ? "flex-1 rounded-full bg-transparent px-3 py-2.5 text-sm text-white outline-none placeholder:text-white/60"
+            : "flex-1 rounded-full bg-transparent px-3 py-2 text-sm outline-none"
+        }
+      />
+      <button
+        type="submit"
+        disabled={loading || !input.trim()}
+        className={
+          empty
+            ? "rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-ink disabled:opacity-40"
+            : "rounded-full bg-accent px-5 py-2 text-sm font-medium text-white disabled:opacity-40"
+        }
+      >
+        Enviar
+      </button>
+    </form>
+  );
+
   return (
     <div className="flex flex-col gap-6">
-      {messages.length === 0 && (
-        <div>
-          <p className="mb-3 text-sm text-stone-600">Prueba con algo como:</p>
-          <QuickIntentPrompts onPick={send} />
+      {empty && (
+        <div className="relative left-1/2 right-1/2 -mx-[50vw] -mt-10 w-screen sm:-mt-16">
+          <div className="hero-gradient px-4 pb-12 pt-16 sm:px-6 sm:pb-16 sm:pt-20">
+            <div className="mx-auto max-w-3xl">
+              <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.14em] text-white/70">
+                <span aria-hidden>📍</span> Panamá · Concierge de IA
+              </p>
+              <h1 className="mt-3 font-sans text-4xl font-black uppercase leading-[0.98] tracking-tight text-white sm:text-6xl">
+                Cuéntame tu viaje.
+                <br />
+                <span className="text-[#f0c987]">Te armo el plan.</span>
+              </h1>
+              <p className="mt-4 max-w-md text-[15px] leading-relaxed text-white/75">
+                Restaurantes, playas, tours y vida nocturna verificados en Panamá — en el idioma
+                que hables, en segundos.
+              </p>
+
+              <div className="mt-8">{composer}</div>
+
+              <div className="mt-6">
+                <p className="mb-3 text-xs font-medium uppercase tracking-wide text-white/50">
+                  Prueba con algo como
+                </p>
+                <QuickIntentPrompts onPick={send} variant="dark" />
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -138,27 +198,7 @@ export function ChatCanvas() {
         {error && <p className="text-sm text-red-600">{error}</p>}
       </div>
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          send(input);
-        }}
-        className="sticky bottom-4 flex items-center gap-2 rounded-full border border-stone-200 bg-white p-2 shadow-sm"
-      >
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Cuéntame de tu viaje… ej: tengo hambre y voy con niños"
-          className="flex-1 rounded-full bg-transparent px-3 py-2 text-sm outline-none"
-        />
-        <button
-          type="submit"
-          disabled={loading || !input.trim()}
-          className="rounded-full bg-accent px-5 py-2 text-sm font-medium text-white disabled:opacity-40"
-        >
-          Enviar
-        </button>
-      </form>
+      {!empty && composer}
     </div>
   );
 }

@@ -72,6 +72,19 @@ Abre `http://localhost:3000`.
   **recargar la app estando offline sigue funcionando** (cachea el app shell; deliberadamente
   nunca cachea `/api/chat` ni datos de negocios, que deben ser siempre frescos).
 
+- **Rediseño visual** inspirado en una referencia real que pasó el usuario (un sitio de turismo
+  con hero de foto grande a pantalla completa): tipografía enorme en mayúsculas para el momento
+  de bienvenida del chat, navbar persistente, tarjetas de lugar con tinte de color por categoría.
+  **No usa fotografía real** — este sandbox de desarrollo solo tiene salida a internet permitida
+  hacia una lista específica de dominios (npm, GitHub, etc.), así que no pude buscar ni verificar
+  fotos reales de Panamá (Unsplash, Wikimedia, hasta la propia API de Wikipedia devuelven 403 al
+  intentarlo). En su lugar, la pantalla de bienvenida usa un gradiente con intención (`.hero-gradient`
+  en `globals.css`) — cálido arriba a la izquierda, teal arriba a la derecha — en vez de una foto
+  falsa. Para tener fotos reales: (a) alguien con acceso a la configuración del entorno cambia el
+  nivel de red a "Full" o agrega unsplash.com/commons.wikimedia.org al allowlist, o (b) nos pasan
+  las fotos directamente. Verificado con capturas reales (desktop y mobile) y sin errores de
+  consola.
+
 ## Qué falta para llegar al MVP completo de `docs/panama-ai/09-mvp.md`
 
 Esto es intencionalmente un corte vertical, no el MVP terminado. Pendiente, en orden de

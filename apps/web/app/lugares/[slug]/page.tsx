@@ -32,7 +32,7 @@ export default async function PlacePage({ params }: { params: Promise<{ slug: st
         ← Volver al concierge
       </Link>
 
-      <PlacePhoto className="mt-4 aspect-[16/9] w-full rounded-2xl" />
+      <PlacePhoto category={place.category} className="mt-4 aspect-[16/9] w-full rounded-2xl" />
 
       <div className="mt-6 flex items-center justify-between">
         <h1 className="font-display text-3xl text-ink">{place.name}</h1>
