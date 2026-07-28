@@ -23,7 +23,7 @@ const fs = require('fs');
   for (const id of ids) {
     const el = page.locator('#' + id);
     await el.scrollIntoViewIfNeeded();
-    await page.waitForTimeout(200);
+    await page.waitForTimeout(1700);
     const box = await el.boundingBox();
     await el.screenshot({ path: path.join(outDir, id + '.png') });
     console.log(id, JSON.stringify(box));

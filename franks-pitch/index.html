@@ -258,6 +258,7 @@
   /* stats */
   .stat-card{ background:var(--black); padding:44px 30px; text-align:left; }
   .stat-num{ font-family:var(--serif); font-weight:700; font-size:clamp(38px,4.6vw,60px); color:var(--champagne-light); line-height:1; }
+  .stat-num .plus{ font-size:.5em; color:var(--champagne); vertical-align:top; margin-left:2px; }
   .stat-label{ margin-top:14px; font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--ivory-dim); }
   .stat-sub{ margin-top:4px; font-size:11px; color:var(--champagne); font-style:italic; font-family:var(--serif-italic); }
 
@@ -450,10 +451,10 @@
   <h2 class="section-title reveal d1">Más de <span class="tag-champagne">20 eventos</span> producidos.</h2>
   <p class="body-copy reveal d2" style="margin-top:18px;">Hemos desarrollado experiencias en algunos de los venues más relevantes de Panamá — cada una producida para llenar el aforo, no solo ocuparlo.</p>
   <div class="venue-row reveal d3">
-    <div class="venue"><h5>Buenaventura</h5><span>Aforo máximo</span></div>
-    <div class="venue"><h5>Dunas</h5><span>Sold out</span></div>
-    <div class="venue"><h5>Soho Mall</h5><span>Venue premium</span></div>
-    <div class="venue"><h5>Furia</h5><span>Venue premium</span></div>
+    <div class="venue"><h5>Buenaventura</h5><span>500+ asistentes</span></div>
+    <div class="venue"><h5>Dunas</h5><span>500+ asistentes</span></div>
+    <div class="venue"><h5>Soho Mall</h5><span>Aforo máximo</span></div>
+    <div class="venue"><h5>The Venue</h5><span>Aforo máximo</span></div>
     <div class="venue"><h5>Restaurantes premium</h5><span>Alianzas</span></div>
     <div class="venue"><h5>Venues privados</h5><span>Curados</span></div>
   </div>
@@ -464,12 +465,12 @@
   <div class="kicker reveal">08 — Casos de Éxito</div>
   <h2 class="section-title reveal d1">Experiencias completamente <span class="tag-champagne">llenas</span>.</h2>
   <div class="grid grid-4stat reveal d2" style="margin-top:30px;">
-    <div class="cell stat-card"><div class="stat-num" data-count="500">0</div><div class="stat-label">Buenaventura</div><div class="stat-sub">Capacidad máxima vendida</div></div>
-    <div class="cell stat-card"><div class="stat-num" data-count="300">0</div><div class="stat-label">Venue premium</div><div class="stat-sub">Aforo completo</div></div>
-    <div class="cell stat-card"><div class="stat-num" data-count="250">0</div><div class="stat-label">Venue boutique</div><div class="stat-sub">Aforo completo</div></div>
-    <div class="cell stat-card"><div class="stat-num" data-count="200">0</div><div class="stat-label">Venue exclusivo</div><div class="stat-sub">Aforo completo</div></div>
+    <div class="cell stat-card"><div class="stat-num"><span class="count" data-count="500">0</span><span class="plus">+</span></div><div class="stat-label">Buenaventura</div><div class="stat-sub">Capacidad máxima del venue</div></div>
+    <div class="cell stat-card"><div class="stat-num"><span class="count" data-count="500">0</span><span class="plus">+</span></div><div class="stat-label">Dunas</div><div class="stat-sub">Capacidad máxima del venue</div></div>
+    <div class="cell stat-card"><div class="stat-num"><span class="count" data-count="200">0</span><span class="plus">+</span></div><div class="stat-label">Soho Mall</div><div class="stat-sub">Capacidad máxima del venue</div></div>
+    <div class="cell stat-card"><div class="stat-num"><span class="count" data-count="200">0</span><span class="plus">+</span></div><div class="stat-label">The Venue</div><div class="stat-sub">Capacidad máxima del venue</div></div>
   </div>
-  <p class="body-copy reveal d3" style="margin-top:30px;">Nuestro objetivo siempre es el mismo: crear experiencias completamente llenas y cuidadosamente producidas — sin importar el tamaño del venue.</p>
+  <p class="body-copy reveal d3" style="margin-top:30px;">Nuestro objetivo siempre es el mismo: llenar cada venue a su capacidad máxima — más de 200 asistentes garantizados en cada evento, sin importar el tamaño del espacio.</p>
 </section>
 
 <!-- 9. CONCEPTO -->
@@ -657,7 +658,7 @@
   sections.forEach(s=> secObserver.observe(document.getElementById(s.id)));
 
   // stat count-up
-  const statEls = document.querySelectorAll('.stat-num[data-count]');
+  const statEls = document.querySelectorAll('.stat-num .count[data-count]');
   const statObserver = new IntersectionObserver((entries)=>{
     entries.forEach(e=>{
       if(!e.isIntersecting) return;
