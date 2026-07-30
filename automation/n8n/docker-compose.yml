@@ -18,6 +18,18 @@ services:
     volumes:
       - n8n_data:/home/node/.n8n
 
+  # Self-hosted headless browser (free, open source) — renders JS-heavy
+  # pages like AliExpress search results so n8n can scrape them. Used by
+  # flow0-discovery.json.
+  browserless:
+    image: ghcr.io/browserless/chromium:latest
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      - TOKEN=${BROWSERLESS_TOKEN}
+      - CONCURRENT=2
+
   # Free HTTPS tunnel so Shopify webhooks can reach n8n without buying a
   # domain or opening ports on the server. Requires a (free) Cloudflare
   # account and a tunnel token — see ../README.md.

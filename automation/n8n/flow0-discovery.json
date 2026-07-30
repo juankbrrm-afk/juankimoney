@@ -1,0 +1,146 @@
+{
+  "name": "MONÉA — Flujo 0: Descubrimiento Automático (AliExpress)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": { "interval": [{ "field": "days", "daysInterval": 1, "triggerAtHour": 8 }] }
+      },
+      "id": "trigger-daily",
+      "name": "Todos los días 8am",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Ajusta aquí las búsquedas, sin tocar nada más del workflow.\nconst SEARCHES = [\n  { keyword: 'women boutique dress', category: 'Dresses', minPrice: 5, maxPrice: 10 },\n  { keyword: 'women blazer set', category: 'Sets', minPrice: 6, maxPrice: 12 },\n  { keyword: 'women midi skirt elegant', category: 'Skirts', minPrice: 4, maxPrice: 9 },\n  { keyword: 'women knit sweater premium', category: 'Knitwear', minPrice: 5, maxPrice: 10 }\n];\nreturn SEARCHES.map(s => ({ json: s }));"
+      },
+      "id": "keywords",
+      "name": "Palabras Clave a Buscar",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [220, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://browserless:3000/content",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [{ "name": "token", "value": "={{ $vars.BROWSERLESS_TOKEN }}" }]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ url: 'https://www.aliexpress.com/wholesale?SearchText=' + encodeURIComponent($json.keyword) + '&minPrice=' + $json.minPrice + '&maxPrice=' + $json.maxPrice, gotoOptions: { waitUntil: 'networkidle2' } }) }}",
+        "options": { "response": { "response": { "responseFormat": "text" } } }
+      },
+      "id": "render-search",
+      "name": "Browserless: Renderizar Búsqueda",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [440, 0]
+    },
+    {
+      "parameters": {
+        "sourceData": "json",
+        "dataPropertyName": "data",
+        "extractionValues": {
+          "values": [
+            { "key": "title", "cssSelector": "a.multi--titleText--nXeOvyr, .search-card-item .title", "returnArray": true },
+            { "key": "url", "cssSelector": "a.multi--container--1UZxxHY, .search-card-item a", "returnValue": "attribute", "returnAttribute": "href", "returnArray": true },
+            { "key": "image", "cssSelector": ".multi--imgWrap--S6yaX1I img, .search-card-item img", "returnValue": "attribute", "returnAttribute": "src", "returnArray": true },
+            { "key": "price", "cssSelector": ".multi--price-sale--U-S0jtj, .search-card-item .price", "returnArray": true }
+          ]
+        },
+        "options": {}
+      },
+      "id": "extract-cards",
+      "name": "Extraer Tarjetas de Producto",
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [660, 0],
+      "notesInFlow": true,
+      "notes": "IMPORTANTE: los selectores CSS de AliExpress cambian con frecuencia y no pude verificarlos en vivo (mi entorno no tiene acceso a internet general). Antes de confiar en este nodo, ábrelo en n8n, ejecútalo una vez, y si viene vacío, inspecciona el HTML real que devuelve el nodo anterior y ajusta los selectores aquí."
+    },
+    {
+      "parameters": {
+        "jsCode": "const t = $json.title || [];\nconst u = $json.url || [];\nconst img = $json.image || [];\nconst p = $json.price || [];\nconst category = $('Palabras Clave a Buscar').item.json.category;\nconst rows = [];\nfor (let i = 0; i < Math.min(t.length, u.length, 10); i++) {\n  const priceNum = parseFloat((p[i] || '0').replace(/[^0-9.]/g, ''));\n  if (!priceNum) continue;\n  let url = u[i];\n  if (url && url.startsWith('//')) url = 'https:' + url;\n  rows.push({\n    product_url: url,\n    title: (t[i] || '').trim(),\n    category,\n    cost: priceNum,\n    image_url: img[i] || '',\n    description: '',\n    status: 'pending'\n  });\n}\nreturn rows.map(r => ({ json: r }));"
+      },
+      "id": "normalize",
+      "name": "Normalizar Filas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [880, 0]
+    },
+    {
+      "parameters": {
+        "documentId": { "__rl": true, "value": "PLACEHOLDER_SHEET_ID", "mode": "id" },
+        "sheetName": { "__rl": true, "mode": "name", "value": "candidatos" },
+        "filtersUI": {
+          "values": [{ "lookupColumn": "product_url", "lookupValue": "={{ $json.product_url }}" }]
+        }
+      },
+      "id": "check-exists",
+      "name": "Google Sheets: Ya existe?",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [1100, 0],
+      "credentials": {
+        "googleSheetsOAuth2Api": { "id": "PLACEHOLDER", "name": "Google Sheets account" }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            { "leftValue": "={{ $json.length }}", "rightValue": 0, "operator": { "type": "number", "operation": "equals" } }
+          ]
+        }
+      },
+      "id": "if-new",
+      "name": "IF: Es producto nuevo",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [1320, 0]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": { "__rl": true, "value": "PLACEHOLDER_SHEET_ID", "mode": "id" },
+        "sheetName": { "__rl": true, "mode": "name", "value": "candidatos" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "product_url": "={{ $('Normalizar Filas').item.json.product_url }}",
+            "title": "={{ $('Normalizar Filas').item.json.title }}",
+            "category": "={{ $('Normalizar Filas').item.json.category }}",
+            "cost": "={{ $('Normalizar Filas').item.json.cost }}",
+            "image_url": "={{ $('Normalizar Filas').item.json.image_url }}",
+            "description": "",
+            "status": "pending"
+          }
+        },
+        "options": {}
+      },
+      "id": "append-candidate",
+      "name": "Google Sheets: Agregar Candidato",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [1540, -80],
+      "credentials": {
+        "googleSheetsOAuth2Api": { "id": "PLACEHOLDER", "name": "Google Sheets account" }
+      }
+    }
+  ],
+  "connections": {
+    "Todos los días 8am": { "main": [[{ "node": "Palabras Clave a Buscar", "type": "main", "index": 0 }]] },
+    "Palabras Clave a Buscar": { "main": [[{ "node": "Browserless: Renderizar Búsqueda", "type": "main", "index": 0 }]] },
+    "Browserless: Renderizar Búsqueda": { "main": [[{ "node": "Extraer Tarjetas de Producto", "type": "main", "index": 0 }]] },
+    "Extraer Tarjetas de Producto": { "main": [[{ "node": "Normalizar Filas", "type": "main", "index": 0 }]] },
+    "Normalizar Filas": { "main": [[{ "node": "Google Sheets: Ya existe?", "type": "main", "index": 0 }]] },
+    "Google Sheets: Ya existe?": { "main": [[{ "node": "IF: Es producto nuevo", "type": "main", "index": 0 }]] },
+    "IF: Es producto nuevo": { "main": [[{ "node": "Google Sheets: Agregar Candidato", "type": "main", "index": 0 }], []] }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" }
+}
