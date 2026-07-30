@@ -1,0 +1,89 @@
+{
+  "name": "MONÉA — Flujo 1: Fulfillment Watchdog",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": { "interval": [{ "field": "hours", "hoursInterval": 1 }] }
+      },
+      "id": "trigger-hourly",
+      "name": "Every hour",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "resource": "order",
+        "operation": "getAll",
+        "returnAll": true,
+        "additionalFields": {
+          "status": "open",
+          "fulfillment_status": "unfulfilled"
+        }
+      },
+      "id": "shopify-get-orders",
+      "name": "Shopify: Get Unfulfilled Orders",
+      "type": "n8n-nodes-base.shopify",
+      "typeVersion": 1,
+      "position": [220, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "const STALE_HOURS = 24; // ajusta este umbral a gusto\nconst now = Date.now();\nconst stale = $input.all()\n  .map(i => i.json)\n  .filter(o => {\n    const created = new Date(o.created_at).getTime();\n    const hours = (now - created) / 1000 / 60 / 60;\n    return hours >= STALE_HOURS;\n  })\n  .map(o => ({\n    name: o.name,\n    hours_pending: Math.round((now - new Date(o.created_at).getTime()) / 1000 / 60 / 60),\n    admin_url: `https://${$vars.SHOPIFY_STORE_DOMAIN}/admin/orders/${o.id}`\n  }));\nreturn [{ json: { count: stale.length, orders: stale } }];"
+      },
+      "id": "filter-stale",
+      "name": "Filter Orders Pending > 24h",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 0]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            { "leftValue": "={{ $json.count }}", "rightValue": 0, "operator": { "type": "number", "operation": "gt" } }
+          ]
+        }
+      },
+      "id": "if-has-stale",
+      "name": "IF: Hay pedidos atascados",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [660, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "const orders = $json.orders;\nconst lines = orders.map(o => `• ${o.name} — ${o.hours_pending}h pendiente\\n${o.admin_url}`).join('\\n\\n');\nreturn [{ json: { text: `⚠️ MONÉA: ${orders.length} pedido(s) sin fulfillment hace más de 24h:\\n\\n${lines}` } }];"
+      },
+      "id": "format-message",
+      "name": "Format Telegram Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [880, -80]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $vars.TELEGRAM_CHAT_ID }}",
+        "text": "={{ $json.text }}",
+        "additionalFields": {}
+      },
+      "id": "telegram-alert",
+      "name": "Telegram: Alertar",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1100, -80],
+      "credentials": {
+        "telegramApi": { "id": null, "name": "MONEA Telegram Bot" }
+      }
+    }
+  ],
+  "connections": {
+    "Every hour": { "main": [[{ "node": "Shopify: Get Unfulfilled Orders", "type": "main", "index": 0 }]] },
+    "Shopify: Get Unfulfilled Orders": { "main": [[{ "node": "Filter Orders Pending > 24h", "type": "main", "index": 0 }]] },
+    "Filter Orders Pending > 24h": { "main": [[{ "node": "IF: Hay pedidos atascados", "type": "main", "index": 0 }]] },
+    "IF: Hay pedidos atascados": { "main": [[{ "node": "Format Telegram Message", "type": "main", "index": 0 }], []] },
+    "Format Telegram Message": { "main": [[{ "node": "Telegram: Alertar", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" }
+}

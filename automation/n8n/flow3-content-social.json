@@ -1,0 +1,185 @@
+{
+  "name": "MONÉA — Flujo 3: Video IA + Publicación IG/TikTok",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "monea-product-created",
+        "options": {}
+      },
+      "id": "webhook-product-created",
+      "name": "Webhook: Shopify producto creado",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "documentId": { "__rl": true, "value": "PLACEHOLDER_SHEET_ID", "mode": "id" },
+        "sheetName": { "__rl": true, "mode": "name", "value": "posted_products" },
+        "filtersUI": {
+          "values": [{ "lookupColumn": "product_id", "lookupValue": "={{ $json.body.id }}" }]
+        }
+      },
+      "id": "check-already-posted",
+      "name": "Google Sheets: Ya se publicó?",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [220, 0],
+      "credentials": {
+        "googleSheetsOAuth2Api": { "id": "PLACEHOLDER", "name": "Google Sheets account" }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            { "leftValue": "={{ $json.length }}", "rightValue": 0, "operator": { "type": "number", "operation": "equals" } }
+          ]
+        }
+      },
+      "id": "if-not-posted",
+      "name": "IF: No se ha publicado",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [440, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "const p = $('Webhook: Shopify producto creado').item.json.body;\nconst imageUrl = (p.images && p.images[0] && p.images[0].src) || \"\";\nconst price = (p.variants && p.variants[0] && p.variants[0].price) || \"\";\nreturn [{ json: { product_id: String(p.id), title: p.title || \"\", image_url: imageUrl, price: price } }];"
+      },
+      "id": "extract-product",
+      "name": "Extraer Datos del Producto",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [660, -80]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [{ "name": "anthropic-version", "value": "2023-06-01" }] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  model: \"claude-sonnet-5\",\n  max_tokens: 1024,\n  messages: [{\n    role: \"user\",\n    content: `Eres el equipo de marketing de MONÉA, marca de moda femenina boutique/lujo accesible. Para el producto \"${$json.title}\" (precio $${$json.price}) escribe contenido para un reel corto. Devuelve SOLO un JSON válido, sin texto extra: {\"hook\": \"gancho 8-12 palabras\", \"script\": \"guion hablado de 12-15s, tono confiado editorial\", \"caption_es\": \"caption en español con hashtags\", \"caption_en\": \"caption en inglés con hashtags\"}`\n  }]\n}) }}"
+      },
+      "id": "claude-copy",
+      "name": "Claude: Generar Copy",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [880, -80],
+      "credentials": {
+        "anthropicApi": { "id": null, "name": "n8n credits", "__aiGatewayManaged": true }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const raw = ($json.content && $json.content[0] && $json.content[0].text) || \"{}\";\nlet parsed = {};\ntry {\n  const start = raw.indexOf(\"{\");\n  const end = raw.lastIndexOf(\"}\");\n  parsed = JSON.parse(raw.slice(start, end + 1));\n} catch (e) { parsed = { hook: \"\", script: \"\", caption_es: raw, caption_en: raw }; }\nconst p = $(\"Extraer Datos del Producto\").item.json;\nreturn { json: { ...p, ...parsed } };"
+      },
+      "id": "parse-copy",
+      "name": "Parse Copy",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1100, -80]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.piapi.ai/api/v1/task",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: \"kling\", task_type: \"video_generation\", input: { prompt: \"Modelo real usando la prenda: \" + $json.title + \". \" + $json.script, image_url: $json.image_url, duration: 5 } }) }}"
+      },
+      "id": "kling-create",
+      "name": "PiAPI: Crear Video Kling",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [1320, -80]
+    },
+    {
+      "parameters": { "unit": "minutes", "amount": 2 },
+      "id": "wait-video",
+      "name": "Esperar Render",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [1540, -80]
+    },
+    {
+      "parameters": {
+        "url": "=https://api.piapi.ai/api/v1/task/{{ $json.data.task_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth"
+      },
+      "id": "kling-poll",
+      "name": "PiAPI: Consultar Estado",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [1760, -80]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.ayrshare.com/api/post",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ post: $(\"Parse Copy\").item.json.caption_es, platforms: [\"instagram\", \"tiktok\"], mediaUrls: [$json.data.output.video_url] }) }}"
+      },
+      "id": "ayrshare-post",
+      "name": "Ayrshare: Publicar IG + TikTok",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [1980, -80],
+      "credentials": {
+        "httpBearerAuth": { "id": "PLACEHOLDER", "name": "Ayrshare API Key" }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": { "__rl": true, "value": "PLACEHOLDER_SHEET_ID", "mode": "id" },
+        "sheetName": { "__rl": true, "mode": "name", "value": "posted_products" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "matchingColumns": ["product_id"],
+          "value": {
+            "product_id": "={{ $('Parse Copy').item.json.product_id }}",
+            "title": "={{ $('Parse Copy').item.json.title }}",
+            "posted_at": "={{ $now.toISO() }}",
+            "caption": "={{ $('Parse Copy').item.json.caption_es }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "log-posted",
+      "name": "Google Sheets: Registrar Publicado",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [2200, -80],
+      "credentials": {
+        "googleSheetsOAuth2Api": { "id": "PLACEHOLDER", "name": "Google Sheets account" }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook: Shopify producto creado": { "main": [[{ "node": "Google Sheets: Ya se publicó?", "type": "main", "index": 0 }]] },
+    "Google Sheets: Ya se publicó?": { "main": [[{ "node": "IF: No se ha publicado", "type": "main", "index": 0 }]] },
+    "IF: No se ha publicado": { "main": [[{ "node": "Extraer Datos del Producto", "type": "main", "index": 0 }], []] },
+    "Extraer Datos del Producto": { "main": [[{ "node": "Claude: Generar Copy", "type": "main", "index": 0 }]] },
+    "Claude: Generar Copy": { "main": [[{ "node": "Parse Copy", "type": "main", "index": 0 }]] },
+    "Parse Copy": { "main": [[{ "node": "PiAPI: Crear Video Kling", "type": "main", "index": 0 }]] },
+    "PiAPI: Crear Video Kling": { "main": [[{ "node": "Esperar Render", "type": "main", "index": 0 }]] },
+    "Esperar Render": { "main": [[{ "node": "PiAPI: Consultar Estado", "type": "main", "index": 0 }]] },
+    "PiAPI: Consultar Estado": { "main": [[{ "node": "Ayrshare: Publicar IG + TikTok", "type": "main", "index": 0 }]] },
+    "Ayrshare: Publicar IG + TikTok": { "main": [[{ "node": "Google Sheets: Registrar Publicado", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" }
+}
