@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Dune Events × Porsche Panamá — Sunset Edition</title>
-<meta name="description" content="Propuesta de colaboración de marca de Dune Events (Innovation Xperience) para Porsche Panamá — Sunset Edition, Noviembre 2026, Dunas, Buenaventura." />
+<title>Dune Events × Porsche Panamá — Isla Bonita</title>
+<meta name="description" content="Propuesta de colaboración de marca de Dune Events (Innovation Xperience) para Porsche Panamá — Isla Bonita, Noviembre 2026, Dunas, Buenaventura." />
 <meta name="robots" content="noindex, nofollow" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -52,7 +52,8 @@
   }
 
   .wordmark{
-    position:fixed; top:28px; left:32px; z-index:150;
+    position:fixed; top:24px; left:32px; z-index:150;
+    display:flex; align-items:center; gap:12px;
     font-family:var(--sans); letter-spacing:.24em; font-size:11px;
     text-transform:uppercase; color:var(--white-dim);
     opacity:0; transform:translateY(-8px);
@@ -61,6 +62,7 @@
   }
   .wordmark.show{ opacity:1; transform:translateY(0); pointer-events:auto; cursor:pointer;}
   .wordmark span{ color:var(--sun-orange); }
+  .ix-mark{ width:16px; height:16px; flex-shrink:0; }
 
   .dotnav{
     position:fixed; right:34px; top:50%; transform:translateY(-50%);
@@ -155,6 +157,11 @@
     position:absolute; left:0; right:0; bottom:0; height:26%;
     background:linear-gradient(180deg, transparent, var(--black) 85%);
   }
+  .car-silhouette{
+    position:absolute; left:50%; bottom:21%; transform:translateX(-50%);
+    width:min(34vw,400px); z-index:2; opacity:.92;
+    filter:drop-shadow(0 18px 30px rgba(0,0,0,0.55));
+  }
   .cover-kicker{ position:relative; z-index:1; font-size:11px; letter-spacing:.36em; text-transform:uppercase; color:var(--white-dim); margin-bottom:26px; }
   .cover-kicker b{ color:var(--sun-orange); font-weight:600; }
   .cover-title{
@@ -201,6 +208,17 @@
   .pill{ border:1px solid var(--hair); padding:10px 18px; font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--white-dim); }
   .traits{ display:flex; flex-wrap:wrap; gap:12px; margin-top:30px; }
 
+  /* reciprocity */
+  .reciprocity{ display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--hair); border:1px solid var(--hair); margin-top:36px; max-width:900px; }
+  .reciprocity .side{ background:var(--black); padding:28px 30px; }
+  .reciprocity .side h5{ font-family:var(--display); font-weight:700; font-size:15px; letter-spacing:.04em; margin-bottom:16px; }
+  .reciprocity .side.us h5{ color:var(--white); }
+  .reciprocity .side.them h5{ color:var(--sun-orange); }
+  .reciprocity ul{ list-style:none; }
+  .reciprocity li{ font-size:12.5px; color:var(--white-dim); line-height:1.9; padding-left:16px; position:relative; }
+  .reciprocity li::before{ content:''; position:absolute; left:0; top:9px; width:6px; height:1px; background:var(--sun-orange); }
+  @media (max-width:800px){ .reciprocity{ grid-template-columns:1fr; } }
+
   /* callout */
   .callout{ margin-top:26px; border:1px solid var(--hair-accent); padding:28px 30px; max-width:760px; position:relative; }
   .callout::before{ content:'OPCIONAL'; position:absolute; top:-11px; left:26px; background:var(--black); padding:0 10px; font-size:10px; letter-spacing:.2em; color:var(--sun-orange); font-weight:600; }
@@ -233,18 +251,33 @@
 
 <div class="grain"></div>
 <div class="progress" id="progress"></div>
-<div class="wordmark" id="wordmark" onclick="document.getElementById('sec-0').scrollIntoView({behavior:'smooth'})">Dune Events <span>×</span> Porsche Panamá</div>
+<div class="wordmark" id="wordmark" onclick="document.getElementById('sec-0').scrollIntoView({behavior:'smooth'})">
+  <svg class="ix-mark" viewBox="0 0 120 120" fill="none"><line x1="30" y1="30" x2="90" y2="90" stroke="currentColor" stroke-width="14" stroke-linecap="round"/><line x1="90" y1="30" x2="30" y2="90" stroke="var(--sun-orange)" stroke-width="6" stroke-linecap="round"/></svg>
+  Dune Events <span>×</span> Porsche Panamá
+</div>
 
 <nav class="dotnav" id="dotnav"></nav>
 
 <!-- 1. PORTADA -->
 <section id="sec-0">
-  <div class="horizon"><div class="sun"></div><div class="line"></div><div class="dune"></div></div>
+  <div class="horizon">
+    <div class="sun"></div>
+    <div class="line"></div>
+    <svg class="car-silhouette" viewBox="0 0 420 130" fill="none" preserveAspectRatio="xMidYMax meet">
+      <path d="M30,102 C30,90 40,82 55,80 L75,62 C90,48 106,42 130,40 L258,40 C284,42 304,52 317,66 C331,80 345,86 366,88 C379,90 389,96 389,105 L389,107 C389,113 383,118 376,118 L361,118 C361,104 350,94 337,94 C324,94 313,104 313,118 L121,118 C121,104 110,94 97,94 C84,94 73,104 73,118 L46,118 C37,118 30,111 30,104 Z" fill="#0a0a0a"/>
+      <circle cx="97" cy="118" r="15" fill="#0a0a0a"/>
+      <circle cx="337" cy="118" r="15" fill="#0a0a0a"/>
+    </svg>
+    <div class="dune"></div>
+  </div>
   <div class="cover-kicker reveal is-visible">DUNE EVENTS <b>×</b> PORSCHE PANAMÁ</div>
-  <h1 class="cover-title reveal is-visible d1"><span class="l1">Sunset</span><span class="l2">Edition</span></h1>
+  <h1 class="cover-title reveal is-visible d1"><span class="l1">Isla</span><span class="l2">Bonita</span></h1>
   <p class="cover-sub reveal is-visible d2">Una propuesta de colaboración de marca, en las dunas de Buenaventura.</p>
   <div class="cover-date reveal is-visible d3">Noviembre 2026 · Dunas, Buenaventura</div>
-  <div class="cover-meta reveal is-visible d4">Presentado por Dune Events — Innovation Xperience</div>
+  <div class="cover-meta reveal is-visible d4" style="display:flex; align-items:center; justify-content:center; gap:10px;">
+    <svg style="width:13px; height:13px;" viewBox="0 0 120 120" fill="none"><line x1="30" y1="30" x2="90" y2="90" stroke="#b3b0a9" stroke-width="14" stroke-linecap="round"/><line x1="90" y1="30" x2="30" y2="90" stroke="var(--sun-orange)" stroke-width="6" stroke-linecap="round"/></svg>
+    Presentado por Dune Events — Innovation Xperience
+  </div>
   <div class="scrollcue"><span>Ver propuesta</span><div class="line"></div></div>
 </section>
 
@@ -299,6 +332,26 @@
   <div class="kicker reveal">06 / Por Qué Porsche</div>
   <h2 class="section-title reveal d1">Diseño y precisión, frente a<br/>una audiencia que <span class="tag-sun">crecerá</span> con esos valores.</h2>
   <p class="body-copy reveal d2" style="margin-top:18px;">Porsche representa un estándar de diseño y precisión que dialoga naturalmente con la estética curada de Dune Events. Más que una activación de producto, esta es una oportunidad de construir afinidad de marca temprana con una generación que, en cinco a diez años, será el comprador natural del segmento premium — muchos de ellos ya conviven con el producto a través de su entorno familiar.</p>
+  <div class="reciprocity reveal d3">
+    <div class="side us">
+      <h5>DUNE EVENTS APORTA</h5>
+      <ul>
+        <li>Una audiencia premium emergente, cuidadosamente convocada</li>
+        <li>Un escenario icónico: dunas y atardecer en Buenaventura</li>
+        <li>Producción, dirección de arte y contenido de nivel editorial</li>
+        <li>Una plataforma para construir relación de marca a largo plazo</li>
+      </ul>
+    </div>
+    <div class="side them">
+      <h5>PORSCHE APORTA</h5>
+      <ul>
+        <li>Producto y presencia de marca para la experiencia</li>
+        <li>Respaldo que eleva el estándar de producción de la velada</li>
+        <li>Diseño y herencia que enriquecen la narrativa visual del evento</li>
+        <li>Una asociación que consolida a Isla Bonita como el siguiente nivel</li>
+      </ul>
+    </div>
+  </div>
 </section>
 
 <!-- 7. BENEFICIOS ESTRATÉGICOS -->
@@ -352,7 +405,7 @@
   <div class="contact-row reveal d2">
     <div class="contact-item"><div class="lbl">Marca</div><div class="val">Dune Events</div></div>
     <div class="contact-item"><div class="lbl">Empresa</div><div class="val">Innovation Xperience</div></div>
-    <div class="contact-item"><div class="lbl">Campaña</div><div class="val">Sunset Edition</div></div>
+    <div class="contact-item"><div class="lbl">Campaña</div><div class="val">Isla Bonita</div></div>
     <div class="contact-item"><div class="lbl">Email</div><div class="val">juankbrrm@gmail.com</div></div>
   </div>
   <div class="closing-line reveal d3">
@@ -363,7 +416,7 @@
   </div>
 </section>
 
-<footer>Dune Events — Innovation Xperience — Sunset Edition, Noviembre 2026</footer>
+<footer>Dune Events — Innovation Xperience — Isla Bonita, Noviembre 2026</footer>
 
 <script>
   const sections = [
