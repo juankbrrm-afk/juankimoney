@@ -162,6 +162,30 @@
     width:min(34vw,400px); z-index:2; opacity:.92;
     filter:drop-shadow(0 18px 30px rgba(0,0,0,0.55));
   }
+
+  /* entrance scene */
+  .scene{ position:relative; width:100%; max-width:960px; height:320px; margin-top:28px; overflow:hidden; border:1px solid var(--hair); }
+  .scene .sky{ position:absolute; inset:0; background:linear-gradient(180deg, #0a0a0a 0%, #341811 52%, #ff7a2e 80%, #c81d3f 100%); }
+  .scene .sun2{
+    position:absolute; left:50%; bottom:32%; transform:translateX(-50%);
+    width:170px; height:170px; border-radius:50%;
+    background:radial-gradient(circle at 50% 35%, #ffd9a8, #ff7a2e 50%, #c81d3f 85%);
+    opacity:.85; filter:blur(1px);
+  }
+  .scene .dune-far{ position:absolute; left:0; right:0; bottom:0; width:100%; height:44%; opacity:.6; }
+  .scene .dune-near{ position:absolute; left:0; right:0; bottom:0; width:100%; height:32%; }
+  .scene .pillar{ position:absolute; bottom:13%; width:16px; height:42%; background:#080706; }
+  .scene .pillar::before{ content:''; position:absolute; top:-8px; left:-12px; width:40px; height:8px; background:#080706; }
+  .scene .pillar.left{ left:14%; }
+  .scene .pillar.right{ right:14%; }
+  .scene .car2{
+    position:absolute; left:50%; bottom:13.5%; transform:translateX(-50%);
+    width:min(24vw,240px); filter:drop-shadow(0 12px 18px rgba(0,0,0,0.5));
+  }
+  .scene .caption{
+    position:absolute; left:18px; bottom:14px; z-index:3;
+    font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:rgba(245,244,240,0.6);
+  }
   .cover-kicker{ position:relative; z-index:1; font-size:11px; letter-spacing:.36em; text-transform:uppercase; color:var(--white-dim); margin-bottom:26px; }
   .cover-kicker b{ color:var(--sun-orange); font-weight:600; }
   .cover-title{
@@ -287,7 +311,12 @@
   <h2 class="section-title reveal d1">Creamos experiencias curadas<br/>para una audiencia <span class="tag-sun">premium en formación</span>.</h2>
   <div class="rule-sm reveal d2"></div>
   <p class="lead reveal d2">Innovation Xperience es la empresa matriz detrás de un ecosistema de marcas de experiencias premium en Panamá. Dune Events es su marca especializada en encuentros nocturnos de diseño, en entornos costeros de excepción.</p>
-  <p class="body-copy reveal d3" style="margin-top:26px;">Cada producción combina diseño de espacio, dirección de arte y una audiencia cuidadosamente convocada — construida sobre un criterio de curaduría, no de volumen.</p>
+  <p class="body-copy reveal d3" style="margin-top:26px; margin-bottom:26px;">Desde 2022, hemos construido cada producción sobre el mismo principio: diseño de espacio, dirección de arte y una audiencia cuidadosamente convocada — un criterio de curaduría, no de volumen.</p>
+  <div class="traits reveal d4" style="margin-top:0;">
+    <span class="pill">Fundada en 2022</span>
+    <span class="pill">+20 experiencias producidas</span>
+    <span class="pill">Ecosistema de marcas premium</span>
+  </div>
 </section>
 
 <!-- 3. SOBRE DUNE EVENTS -->
@@ -324,6 +353,20 @@
     <span class="pill">Buenaventura, Panamá</span>
     <span class="pill">Paisaje de dunas y atardecer</span>
     <span class="pill">Locación curada, no masiva</span>
+  </div>
+  <div class="scene reveal d4">
+    <div class="sky"></div>
+    <div class="sun2"></div>
+    <svg class="dune-far" viewBox="0 0 960 200" preserveAspectRatio="none"><path d="M0,120 C160,60 300,140 480,90 C660,40 820,110 960,70 L960,200 L0,200 Z" fill="#160e0a"/></svg>
+    <svg class="dune-near" viewBox="0 0 960 200" preserveAspectRatio="none"><path d="M0,150 C200,110 340,170 520,130 C700,95 840,150 960,120 L960,200 L0,200 Z" fill="#0a0a0a"/></svg>
+    <div class="pillar left"></div>
+    <div class="pillar right"></div>
+    <svg class="car2" viewBox="0 0 420 130" fill="none">
+      <path d="M30,102 C30,90 40,82 55,80 L75,62 C90,48 106,42 130,40 L258,40 C284,42 304,52 317,66 C331,80 345,86 366,88 C379,90 389,96 389,105 L389,107 C389,113 383,118 376,118 L361,118 C361,104 350,94 337,94 C324,94 313,104 313,118 L121,118 C121,104 110,94 97,94 C84,94 73,104 73,118 L46,118 C37,118 30,111 30,104 Z" fill="#0a0a0a"/>
+      <circle cx="97" cy="118" r="15" fill="#0a0a0a"/>
+      <circle cx="337" cy="118" r="15" fill="#0a0a0a"/>
+    </svg>
+    <div class="caption">Visualización conceptual — locación: Dunas, Buenaventura</div>
   </div>
 </section>
 
