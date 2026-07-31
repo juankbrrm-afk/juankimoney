@@ -162,29 +162,11 @@
     filter:drop-shadow(0 18px 30px rgba(0,0,0,0.55));
   }
 
-  /* entrance scene */
-  .scene{ position:relative; width:100%; max-width:960px; height:320px; margin-top:28px; overflow:hidden; border:1px solid var(--hair); }
-  .scene .sky{ position:absolute; inset:0; background:linear-gradient(180deg, #0a0a0a 0%, #341811 52%, #ff7a2e 80%, #c81d3f 100%); }
-  .scene .sun2{
-    position:absolute; left:50%; bottom:32%; transform:translateX(-50%);
-    width:170px; height:170px; border-radius:50%;
-    background:radial-gradient(circle at 50% 35%, #ffd9a8, #ff7a2e 50%, #c81d3f 85%);
-    opacity:.85; filter:blur(1px);
-  }
-  .scene .dune-far{ position:absolute; left:0; right:0; bottom:0; width:100%; height:44%; opacity:.6; }
-  .scene .dune-near{ position:absolute; left:0; right:0; bottom:0; width:100%; height:32%; }
-  .scene .pillar{ position:absolute; bottom:13%; width:16px; height:42%; background:#080706; }
-  .scene .pillar::before{ content:''; position:absolute; top:-8px; left:-12px; width:40px; height:8px; background:#080706; }
-  .scene .pillar.left{ left:14%; }
-  .scene .pillar.right{ right:14%; }
-  .scene .car2{
-    position:absolute; left:50%; bottom:13.5%; transform:translateX(-50%);
-    width:min(24vw,240px); filter:drop-shadow(0 12px 18px rgba(0,0,0,0.5));
-  }
-  .scene .caption{
-    position:absolute; left:18px; bottom:14px; z-index:3;
-    font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:rgba(245,244,240,0.6);
-  }
+  .brand-row{ position:relative; z-index:1; display:flex; align-items:center; justify-content:center; gap:18px; margin-bottom:30px; }
+  .brand-ix{ display:flex; align-items:center; gap:10px; font-family:var(--display); font-weight:700; font-size:12px; letter-spacing:.2em; color:var(--white); }
+  .ix-mark-sm{ width:17px; height:17px; flex-shrink:0; }
+  .brand-x{ color:var(--white-dim); font-size:14px; opacity:.55; }
+  .brand-porsche{ font-family:Arial, Helvetica, sans-serif; font-weight:600; font-size:19px; letter-spacing:.24em; color:var(--white); }
   .cover-kicker{ position:relative; z-index:1; font-size:11px; letter-spacing:.36em; text-transform:uppercase; color:var(--white-dim); margin-bottom:26px; }
   .cover-kicker b{ color:var(--sun-orange); font-weight:600; }
   .cover-title{
@@ -274,7 +256,10 @@
 
 <div class="grain"></div>
 <div class="progress" id="progress"></div>
-<div class="wordmark" id="wordmark" onclick="document.getElementById('sec-0').scrollIntoView({behavior:'smooth'})">Dune Events <span>×</span> Porsche Panamá</div>
+<div class="wordmark" id="wordmark" onclick="document.getElementById('sec-0').scrollIntoView({behavior:'smooth'})">
+  <svg style="width:14px; height:14px; flex-shrink:0;" viewBox="0 0 120 120" fill="none"><line x1="30" y1="30" x2="90" y2="90" stroke="currentColor" stroke-width="14" stroke-linecap="round"/><line x1="90" y1="30" x2="30" y2="90" stroke="var(--sun-orange)" stroke-width="6" stroke-linecap="round"/></svg>
+  Dune Events <span>×</span> Porsche Panamá
+</div>
 
 <nav class="dotnav" id="dotnav"></nav>
 
@@ -285,7 +270,15 @@
     <div class="line"></div>
     <div class="dune"></div>
   </div>
-  <div class="cover-kicker reveal is-visible">DUNE EVENTS <b>×</b> PORSCHE PANAMÁ</div>
+  <div class="brand-row reveal is-visible">
+    <span class="brand-ix">
+      <svg class="ix-mark-sm" viewBox="0 0 120 120" fill="none"><line x1="30" y1="30" x2="90" y2="90" stroke="#f5f4f0" stroke-width="14" stroke-linecap="round"/><line x1="90" y1="30" x2="30" y2="90" stroke="var(--sun-orange)" stroke-width="6" stroke-linecap="round"/></svg>
+      INNOVATION XPERIENCE
+    </span>
+    <span class="brand-x">×</span>
+    <span class="brand-porsche">PORSCHE</span>
+  </div>
+  <div class="cover-kicker reveal is-visible d1">Patrocinio de Marca</div>
   <h1 class="cover-title reveal is-visible d1"><span class="l1">Isla</span><span class="l2">Bonita</span></h1>
   <p class="cover-sub reveal is-visible d2">Una propuesta de colaboración de marca, en las dunas de Buenaventura.</p>
   <div class="cover-date reveal is-visible d3">Noviembre 2026 · Dunas, Buenaventura</div>
@@ -341,15 +334,6 @@
     <span class="pill">Buenaventura, Panamá</span>
     <span class="pill">Paisaje de dunas y atardecer</span>
     <span class="pill">Locación curada, no masiva</span>
-  </div>
-  <div class="scene reveal d4">
-    <div class="sky"></div>
-    <div class="sun2"></div>
-    <svg class="dune-far" viewBox="0 0 960 200" preserveAspectRatio="none"><path d="M0,120 C160,60 300,140 480,90 C660,40 820,110 960,70 L960,200 L0,200 Z" fill="#160e0a"/></svg>
-    <svg class="dune-near" viewBox="0 0 960 200" preserveAspectRatio="none"><path d="M0,150 C200,110 340,170 520,130 C700,95 840,150 960,120 L960,200 L0,200 Z" fill="#0a0a0a"/></svg>
-    <div class="pillar left"></div>
-    <div class="pillar right"></div>
-    <div class="caption">Visualización conceptual — locación: Dunas, Buenaventura</div>
   </div>
 </section>
 
@@ -427,6 +411,14 @@
 <!-- 10. PRÓXIMOS PASOS -->
 <section id="sec-9">
   <div class="kicker reveal" style="justify-content:center;">10 / Próximos Pasos</div>
+  <div class="brand-row reveal d1">
+    <span class="brand-ix">
+      <svg class="ix-mark-sm" viewBox="0 0 120 120" fill="none"><line x1="30" y1="30" x2="90" y2="90" stroke="#f5f4f0" stroke-width="14" stroke-linecap="round"/><line x1="90" y1="30" x2="30" y2="90" stroke="var(--sun-orange)" stroke-width="6" stroke-linecap="round"/></svg>
+      INNOVATION XPERIENCE
+    </span>
+    <span class="brand-x">×</span>
+    <span class="brand-porsche">PORSCHE</span>
+  </div>
   <h2 class="contact-title reveal d1">Construyamos esta<br/><span class="tag-sun">alianza</span> juntos.</h2>
   <div class="contact-row reveal d2">
     <div class="contact-item"><div class="lbl">Marca</div><div class="val">Dune Events</div></div>
@@ -435,7 +427,7 @@
     <div class="contact-item"><div class="lbl">Email</div><div class="val">juankbrrm@gmail.com</div></div>
   </div>
   <div class="closing-line reveal d3">
-    <p>Buscamos un aliado que respalde la producción de Isla Bonita — mediante patrocinio económico, apoyo directo a la producción del evento, o una combinación de ambos. Con gusto definimos juntos el esquema que mejor se ajuste a esta alianza en una siguiente conversación.</p>
+    <p>Isla Bonita está en fase de producción, y creemos que Porsche puede ser parte activa de cómo esta experiencia toma forma — desde presencia de marca hasta un rol más integral en su desarrollo. Esa cercanía temprana con la próxima generación del segmento premium es, en sí misma, el valor de esta alianza. Con gusto conversamos sobre qué forma tiene sentido para ambos.</p>
   </div>
   <div class="reveal d4" style="margin-top:36px;">
     <a class="btn" href="mailto:juankbrrm@gmail.com?subject=Propuesta%20Dune%20Events%20%C3%97%20Porsche%20Panam%C3%A1">Agendar Conversación</a>
