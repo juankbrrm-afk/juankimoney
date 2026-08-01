@@ -1,0 +1,172 @@
+{
+  "name": "MedGrowth — lead.created",
+  "nodes": [
+    {
+      "id": "webhook_trigger",
+      "name": "Webhook: lead.created",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "parameters": {
+        "path": "medgrowth/lead-created",
+        "httpMethod": "POST",
+        "responseMode": "onReceived",
+        "options": {}
+      }
+    },
+    {
+      "id": "send_whatsapp",
+      "name": "Enviar WhatsApp de bienvenida",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [260, -200],
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v20.0/{{$env.WHATSAPP_PHONE_NUMBER_ID}}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "messaging_product", "value": "whatsapp" },
+            { "name": "to", "value": "={{$json.lead.phone}}" },
+            { "name": "type", "value": "template" },
+            { "name": "template.name", "value": "bienvenida_medgrowth" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "send_email",
+      "name": "Enviar email de bienvenida (Resend)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [260, -66],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.resend.com/emails",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "to", "value": "={{$json.lead.email}}" },
+            { "name": "subject", "value": "Gracias por tu interés — {{$json.organization.name}}" },
+            { "name": "template", "value": "welcome_lead" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "assign_sales_rep",
+      "name": "Asignar vendedor (round-robin)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [260, 66],
+      "parameters": {
+        "method": "GET",
+        "url": "={{$env.APP_BASE_URL}}/api/settings/users?role=SALES",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth"
+      }
+    },
+    {
+      "id": "create_task",
+      "name": "Crear tarea de primer contacto",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [520, 66],
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.APP_BASE_URL}}/api/leads/{{$json.lead.id}}/notes",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [{ "name": "body", "value": "Tarea: primer contacto dentro de 1 hora" }]
+        }
+      }
+    },
+    {
+      "id": "notify_slack",
+      "name": "Notificar Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [260, 200],
+      "parameters": {
+        "select": "channel",
+        "channelId": "leads-panama",
+        "text": "=Nuevo lead: {{$json.lead.name}} ({{$json.lead.source}}) — score {{$json.lead.score}}"
+      }
+    },
+    {
+      "id": "sync_hubspot",
+      "name": "Sincronizar con HubSpot (si conectado)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [260, 330],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.hubapi.com/crm/v3/objects/contacts",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "properties.firstname", "value": "={{$json.lead.name}}" },
+            { "name": "properties.phone", "value": "={{$json.lead.phone}}" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "report_back",
+      "name": "Reportar resultado a la app",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [780, 0],
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.APP_BASE_URL}}/api/webhooks/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "x-n8n-secret", "value": "={{$env.N8N_WEBHOOK_SECRET}}" }]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "leadId", "value": "={{$json.lead.id}}" },
+            { "name": "step", "value": "lead.created" },
+            { "name": "status", "value": "completed" }
+          ]
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook: lead.created": {
+      "main": [
+        [
+          { "node": "Enviar WhatsApp de bienvenida", "type": "main", "index": 0 },
+          { "node": "Enviar email de bienvenida (Resend)", "type": "main", "index": 0 },
+          { "node": "Asignar vendedor (round-robin)", "type": "main", "index": 0 },
+          { "node": "Notificar Slack", "type": "main", "index": 0 },
+          { "node": "Sincronizar con HubSpot (si conectado)", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Asignar vendedor (round-robin)": {
+      "main": [[{ "node": "Crear tarea de primer contacto", "type": "main", "index": 0 }]]
+    },
+    "Crear tarea de primer contacto": {
+      "main": [[{ "node": "Reportar resultado a la app", "type": "main", "index": 0 }]]
+    },
+    "Enviar WhatsApp de bienvenida": {
+      "main": [[{ "node": "Reportar resultado a la app", "type": "main", "index": 0 }]]
+    },
+    "Enviar email de bienvenida (Resend)": {
+      "main": [[{ "node": "Reportar resultado a la app", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" }
+}

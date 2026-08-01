@@ -1,0 +1,654 @@
+// MedGrowth Panama — schema principal (multi-tenant).
+// Ver /medgrowth-panama/docs/DATABASE.md para el razonamiento de cada modelo.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Enums
+// ─────────────────────────────────────────────────────────────────────────
+
+enum Role {
+  SUPER_ADMIN // Staff de la agencia MedGrowth, opera entre organizaciones
+  ADMIN
+  MANAGER
+  RECEPTION
+  DOCTOR
+  MARKETING
+  SALES
+  CLIENT
+}
+
+enum ClinicSpecialty {
+  PLASTIC_SURGERY
+  DENTISTRY
+  DERMATOLOGY
+  AESTHETIC_MEDICINE
+  GYNECOLOGY
+  ORTHOPEDICS
+  OTHER
+}
+
+enum SubscriptionPlan {
+  STARTER
+  GROWTH
+  SCALE
+  AGENCY_MANAGED
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+}
+
+enum LeadSource {
+  ORGANIC
+  GOOGLE_ADS
+  META_ADS
+  TIKTOK_ADS
+  REFERRAL
+  WHATSAPP_DIRECT
+  LANDING_PAGE
+  MANUAL
+}
+
+enum CRMStage {
+  LEAD
+  CONTACTED
+  QUALIFIED
+  QUOTED
+  APPOINTMENT_SCHEDULED
+  PATIENT
+  NOT_INTERESTED
+  LOST
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  CONFIRMED
+  COMPLETED
+  CANCELED
+  NO_SHOW
+}
+
+enum AdChannel {
+  GOOGLE_ADS
+  META_ADS
+  TIKTOK_ADS
+  SEO
+  ORGANIC_SOCIAL
+  OTHER
+}
+
+enum ConversationChannel {
+  WHATSAPP
+  INSTAGRAM
+  FACEBOOK
+  EMAIL
+  WEB_CHAT
+}
+
+enum MessageSender {
+  LEAD
+  AI_ASSISTANT
+  HUMAN_AGENT
+}
+
+enum IntegrationProvider {
+  HUBSPOT
+  META_ADS
+  GOOGLE_ADS
+  TIKTOK_ADS
+  WHATSAPP_BUSINESS
+  SLACK
+  GOOGLE_BUSINESS_PROFILE
+}
+
+enum ActivityType {
+  LEAD_CREATED
+  STAGE_CHANGED
+  NOTE_ADDED
+  FILE_UPLOADED
+  MESSAGE_SENT
+  MESSAGE_RECEIVED
+  CALL_LOGGED
+  TASK_CREATED
+  TASK_COMPLETED
+  AUTOMATION_RUN
+  CONVERTED_TO_PATIENT
+}
+
+enum AIUseCase {
+  QUALIFY_LEAD
+  WHATSAPP_ASSISTANT
+  REPORT_INSIGHTS
+  AUDIT_SUMMARY
+}
+
+enum AIProviderName {
+  OPENAI
+  ANTHROPIC
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Tenancy, usuarios, permisos
+// ─────────────────────────────────────────────────────────────────────────
+
+model Organization {
+  id         String          @id @default(cuid())
+  name       String
+  slug       String          @unique
+  specialty  ClinicSpecialty @default(OTHER)
+  city       String          @default("Ciudad de Panamá")
+  country    String          @default("PA")
+  timezone   String          @default("America/Panama")
+  faqConfig  Json? // knowledge base para el asistente de IA (precios rango, políticas, horarios)
+  brandTone  String? // tono de marca para prompts de IA
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users             User[]
+  leads             Lead[]
+  patients          Patient[]
+  appointments      Appointment[]
+  campaigns         Campaign[]
+  conversations     Conversation[]
+  landingPages      LandingPage[]
+  reports           Report[]
+  siteAudits        SiteAudit[]
+  integrations      Integration[]
+  auditLogs         AuditLog[]
+  aiAssistantConfig AIAssistantConfig?
+  aiUsageLogs       AIUsageLog[]
+  subscription      Subscription?
+  invoices          Invoice[]
+  consentRecords    ConsentRecord[]
+
+  @@index([slug])
+}
+
+model User {
+  id             String   @id @default(cuid())
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(SALES)
+  active       Boolean  @default(true)
+  avatarUrl    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  assignedLeads    Lead[]           @relation("AssignedSalesRep")
+  leadNotes        LeadNote[]
+  leadFiles        LeadFile[]
+  leadCalls        LeadCall[]
+  auditLogs        AuditLog[]
+  messagesSent     Message[]        @relation("HumanAgentMessages")
+
+  @@index([organizationId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// CRM: leads, actividad, pacientes
+// ─────────────────────────────────────────────────────────────────────────
+
+model Lead {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  name           String
+  email          String?
+  phone          String
+  source         LeadSource   @default(MANUAL)
+  stage          CRMStage     @default(LEAD)
+  score          Int? // 0-100, calificación de IA
+  scoreReasoning String?
+  estimatedValue Decimal?     @db.Decimal(10, 2)
+  interestNote   String? // qué procedimiento/servicio le interesa (texto libre, no clínico)
+
+  campaignId     String?
+  campaign       Campaign?    @relation(fields: [campaignId], references: [id])
+  landingPageId  String?
+  landingPage    LandingPage? @relation(fields: [landingPageId], references: [id])
+
+  assignedToId String?
+  assignedTo   User?   @relation("AssignedSalesRep", fields: [assignedToId], references: [id])
+
+  stageChangedAt DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  activities    LeadActivity[]
+  notes         LeadNote[]
+  files         LeadFile[]
+  calls         LeadCall[]
+  followUps     LeadFollowUp[]
+  appointments  Appointment[]
+  conversations Conversation[]
+  patient       Patient?
+  consent       ConsentRecord?
+
+  @@index([organizationId, stage])
+  @@index([organizationId, createdAt])
+  @@index([organizationId, assignedToId])
+  @@index([campaignId])
+}
+
+model LeadActivity {
+  id     String       @id @default(cuid())
+  leadId String
+  lead   Lead         @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  type       ActivityType
+  fromStage  CRMStage?
+  toStage    CRMStage?
+  actorType  String // "user" | "ai" | "automation"
+  actorLabel String? // nombre del usuario o "Asistente IA" / "n8n: lead.created"
+  metadata   Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([leadId, createdAt])
+}
+
+model LeadNote {
+  id     String @id @default(cuid())
+  leadId String
+  lead   Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id])
+  body     String
+
+  createdAt DateTime @default(now())
+
+  @@index([leadId])
+}
+
+model LeadFile {
+  id     String @id @default(cuid())
+  leadId String
+  lead   Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  uploadedById String
+  uploadedBy   User   @relation(fields: [uploadedById], references: [id])
+
+  fileName  String
+  r2Key     String
+  mimeType  String
+  sizeBytes Int
+
+  createdAt DateTime @default(now())
+
+  @@index([leadId])
+}
+
+model LeadCall {
+  id     String @id @default(cuid())
+  leadId String
+  lead   Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  loggedById   String
+  loggedBy     User    @relation(fields: [loggedById], references: [id])
+  durationSecs Int?
+  outcome      String? // "no answer" | "interested" | "not interested" | ...
+  notes        String?
+  recordingUrl String? // reservado para integración de telefonía (fase 2)
+
+  createdAt DateTime @default(now())
+
+  @@index([leadId])
+}
+
+model LeadFollowUp {
+  id     String @id @default(cuid())
+  leadId String
+  lead   Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  dueAt     DateTime
+  type      String // "call" | "whatsapp" | "email"
+  completed Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([leadId, dueAt])
+}
+
+model Patient {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  leadId String? @unique
+  lead   Lead?   @relation(fields: [leadId], references: [id])
+
+  name           String
+  email          String?
+  phone          String
+  procedure      String? // texto libre, no diagnóstico clínico
+  lifetimeValue  Decimal  @default(0) @db.Decimal(10, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  appointments Appointment[]
+
+  @@index([organizationId, createdAt])
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Citas
+// ─────────────────────────────────────────────────────────────────────────
+
+model Appointment {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  leadId    String?
+  lead      Lead?    @relation(fields: [leadId], references: [id])
+  patientId String?
+  patient   Patient? @relation(fields: [patientId], references: [id])
+
+  scheduledAt   DateTime
+  status        AppointmentStatus @default(SCHEDULED)
+  bookedVia     String            @default("manual") // "ai_whatsapp" | "manual" | "landing"
+  remindersSent Int               @default(0)
+  notes         String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([organizationId, scheduledAt])
+  @@index([organizationId, status])
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Campañas / marketing
+// ─────────────────────────────────────────────────────────────────────────
+
+model Campaign {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  name       String
+  channel    AdChannel
+  costTotal  Decimal  @default(0) @db.Decimal(10, 2)
+  startDate  DateTime?
+  endDate    DateTime?
+  active     Boolean   @default(true)
+  utmCampaign String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  leads Lead[]
+
+  @@index([organizationId, channel])
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Conversaciones (bandeja unificada)
+// ─────────────────────────────────────────────────────────────────────────
+
+model Conversation {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  leadId  String
+  lead    Lead                @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  channel ConversationChannel
+
+  needsHumanAttention Boolean @default(false)
+  lastMessageAt       DateTime @default(now())
+
+  createdAt DateTime @default(now())
+
+  messages Message[]
+
+  @@index([organizationId, channel])
+  @@index([leadId])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  sender        MessageSender
+  humanAgentId  String?
+  humanAgent    User?         @relation("HumanAgentMessages", fields: [humanAgentId], references: [id])
+  body          String
+  aiUseCase     AIUseCase?
+
+  createdAt DateTime @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// IA
+// ─────────────────────────────────────────────────────────────────────────
+
+model AIAssistantConfig {
+  id             String       @id @default(cuid())
+  organizationId String       @unique
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  provider AIProviderName @default(ANTHROPIC)
+  model    String         @default("claude-sonnet-5")
+
+  autoReplyWhatsapp   Boolean @default(true)
+  autoReplyInstagram  Boolean @default(false)
+  autoReplyFacebook   Boolean @default(false)
+  autoReplyEmail      Boolean @default(false)
+  autoQualifyLeads    Boolean @default(true)
+  autoBookAppointments Boolean @default(false)
+
+  maxAiMessagesPerConversationPerHour Int @default(6)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AIUsageLog {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  useCase       AIUseCase
+  provider      AIProviderName
+  model         String
+  inputTokens   Int
+  outputTokens  Int
+  costEstimate  Decimal        @db.Decimal(10, 4)
+  latencyMs     Int
+
+  createdAt DateTime @default(now())
+
+  @@index([organizationId, createdAt])
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Landing builder
+// ─────────────────────────────────────────────────────────────────────────
+
+model LandingTemplate {
+  id         String          @id @default(cuid())
+  name       String
+  specialty  ClinicSpecialty
+  thumbnail  String?
+  schema     Json // secciones editables y sus campos (hero, beneficios, testimonios, CTA, FAQ)
+  active     Boolean         @default(true)
+
+  createdAt DateTime @default(now())
+
+  landingPages LandingPage[]
+}
+
+model LandingPage {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  templateId String
+  template   LandingTemplate @relation(fields: [templateId], references: [id])
+
+  slug      String  @unique
+  title     String
+  content   Json // valores para los campos definidos en LandingTemplate.schema
+  published Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  leads Lead[]
+
+  @@index([organizationId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Reportes y auditoría de presencia digital
+// ─────────────────────────────────────────────────────────────────────────
+
+model Report {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  periodStart DateTime
+  periodEnd   DateTime
+  metrics     Json // snapshot de KPIs del período
+  insights    String? // recomendaciones generadas por IA
+  pdfR2Key    String?
+
+  createdAt DateTime @default(now())
+
+  @@index([organizationId, periodStart])
+}
+
+model SiteAudit {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  websiteScore   Int?
+  seoScore       Int?
+  gbpScore       Int?
+  socialScore    Int?
+  rawResults     Json
+  summary        String? // generado por IA
+  pdfR2Key       String?
+
+  createdAt DateTime @default(now())
+
+  @@index([organizationId, createdAt])
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Facturación (Stripe)
+// ─────────────────────────────────────────────────────────────────────────
+
+model Subscription {
+  id             String       @id @default(cuid())
+  organizationId String       @unique
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  stripeCustomerId     String
+  stripeSubscriptionId String              @unique
+  plan                 SubscriptionPlan
+  status               SubscriptionStatus
+  currentPeriodEnd     DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Invoice {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  stripeInvoiceId String   @unique
+  amount          Decimal  @db.Decimal(10, 2)
+  currency        String   @default("usd")
+  status          String
+  pdfUrl          String?
+  issuedAt        DateTime
+
+  @@index([organizationId, issuedAt])
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Integraciones externas
+// ─────────────────────────────────────────────────────────────────────────
+
+model Integration {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  provider    IntegrationProvider
+  credentials Json // cifrado a nivel de aplicación antes de persistir
+  status      String              @default("connected") // "connected" | "error" | "disconnected"
+  lastSyncAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([organizationId, provider])
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Seguridad / cumplimiento
+// ─────────────────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id             String        @id @default(cuid())
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  actorId     String?
+  actor       User?   @relation(fields: [actorId], references: [id])
+  action      String // "lead.stage_changed" | "user.invited" | "integration.connected" | ...
+  resourceType String
+  resourceId   String?
+  metadata     Json?
+  ipAddress    String?
+
+  createdAt DateTime @default(now())
+
+  @@index([organizationId, createdAt])
+}
+
+model ConsentRecord {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  leadId    String  @unique
+  lead      Lead    @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  channel   String // "landing_form" | "whatsapp_first_message"
+  ipAddress String?
+  textShown String // el texto exacto de consentimiento mostrado (auditable)
+
+  createdAt DateTime @default(now())
+
+  @@index([organizationId])
+}

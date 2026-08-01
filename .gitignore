@@ -15,6 +15,15 @@ dist-ssr
 # Automation secrets
 automation/n8n/.env
 
+# MedGrowth Panama (Next.js / Prisma)
+medgrowth-panama/apps/web/.next
+medgrowth-panama/apps/web/.env
+medgrowth-panama/apps/web/next-env.d.ts
+medgrowth-panama/**/.env
+!medgrowth-panama/**/.env.example
+medgrowth-panama/packages/db/generated
+medgrowth-panama/**/*.tsbuildinfo
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
