@@ -127,7 +127,7 @@ export async function generateSong(
     onProgress: (fraction, note) => deps.onStage(stage, Math.min(fraction, 0.99), note),
   });
 
-  return wrapProviderErrors(async () => {
+  return wrapProviderErrors(artifacts, async () => {
     // ── 1. Letra ──────────────────────────────────────────────
     await deps.onStage('lyrics', 0);
 
@@ -326,29 +326,52 @@ export function buildPlan(request: SongRequest, lyrics: Lyrics): CompositionPlan
   };
 }
 
+/** Error del pipeline que arrastra los artefactos ya producidos. */
+export interface ResumableError extends Error {
+  artifacts?: Artifacts;
+}
+
 /**
  * Traduce fallos de proveedor en errores de dominio.
  *
  * Sin esto, la interfaz mostraría «elevenlabs respondió 503», que no le dice
  * nada al usuario ni sugiere qué hacer. `JobError` distingue además lo
  * transitorio —se reintenta— de lo permanente.
+ *
+ * Adjunta también los artefactos acumulados hasta el fallo. Sin ese dato, un
+ * reintento tras caerse en masterización volvería a componer la canción
+ * entera: lo caro del pipeline, ya hecho y ya pagado.
  */
-async function wrapProviderErrors<T>(operation: () => Promise<T>): Promise<T> {
+async function wrapProviderErrors<T>(
+  artifacts: Artifacts,
+  operation: () => Promise<T>,
+): Promise<T> {
   try {
     return await operation();
   } catch (error) {
-    if (error instanceof JobError) throw error;
+    const attach = (target: Error): never => {
+      (target as ResumableError).artifacts = { ...artifacts };
+      throw target;
+    };
+
+    if (error instanceof JobError) attach(error);
 
     if (error instanceof ProviderHttpError) {
-      throw new JobError(
-        error.retryable ? 'provider_unavailable' : 'provider_rejected',
-        error.message,
-        error.retryable,
+      attach(
+        new JobError(
+          error.retryable ? 'provider_unavailable' : 'provider_rejected',
+          error.message,
+          error.retryable,
+        ),
       );
     }
 
+    // La cancelación del usuario se propaga tal cual: no es un fallo del
+    // sistema y no debe convertirse en un JobError reintentable.
     if (error instanceof Error && error.name === 'AbortError') throw error;
 
-    throw new JobError('internal', error instanceof Error ? error.message : String(error), true);
+    return attach(
+      new JobError('internal', error instanceof Error ? error.message : String(error), true),
+    );
   }
 }
