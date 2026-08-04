@@ -1,0 +1,120 @@
+{
+  "$comment": "Fuente única de verdad del producto. Si un dato cambia (tarifa, política, amenidad), se cambia ACÁ y se propaga a cotizador, plantillas y fichas de OTA. Nunca hardcodear estos valores en otro archivo.",
+
+  "identity": {
+    "commercialName": "Vicina Maris Beach Lodge",
+    "legalName": "Promotora Turística del Caribe, S.A.",
+    "ruc": "155778870-2-2026 DV 69",
+    "website": "https://www.vicinamarisbeachlodge.com/",
+    "email": "a-connect@vicinamarisbeachlodge.com",
+    "currency": "USD",
+    "$comment_currency": "Panamá usa USD (balboa a la par). Ventaja de venta real para el mercado US: cero riesgo cambiario, decilo en los listados."
+  },
+
+  "location": {
+    "beach": "Playa La Angosta",
+    "district": "María Chiquita",
+    "nearestTown": "Portobelo",
+    "province": "Colón",
+    "country": "Panamá",
+    "$comment_naming": "CONFLICTO DE INDEXACIÓN DETECTADO. El brief dice 'Playa La Angosta, Portobelo'. Las OTAs indexan la propiedad bajo 'María Chiquita'. Los dos son correctos geográficamente (La Angosta está en María Chiquita, ~11 km de Portobelo) pero partir el nombre entre canales parte también el tráfico de búsqueda. Ver channels/audit-2026-08.md, hallazgo #3."
+  },
+
+  "inventory": {
+    "totalRooms": 9,
+    "roomType": {
+      "code": "STD-QUEEN",
+      "name": "Habitación Queen frente al mar",
+      "maxOccupancy": 4,
+      "beds": ["1 cama Queen", "2 sofá camas"],
+      "amenities": [
+        "Smart TV",
+        "Aire acondicionado",
+        "Nevera",
+        "Cafetera",
+        "Caja fuerte"
+      ]
+    },
+    "$comment_singleType": "Las 9 habitaciones son idénticas. Esto tiene una consecuencia comercial fuerte: NO existe un upgrade de categoría real. Ver playbook — el 'upgrade' que sí se puede vender es por atributo (vista, planta, cercanía a la playa), no por categoría inventada. Prometer una categoría superior que no existe genera cancelación y review negativa."
+  },
+
+  "rates": {
+    "floor": 69.0,
+    "$comment_floor": "Piso duro. El cotizador nunca devuelve menos que esto. Sin techo por arriba.",
+    "includedGuests": 2,
+    "extraAdult": 20.0,
+    "maxGuests": 4,
+    "childFreeUnderAge": 11,
+    "petPerStay": 15.0,
+    "$comment_pet": "Por estadía, NO por noche. Error común al cotizar a mano."
+  },
+
+  "includedInBaseRate": [
+    "Desayuno",
+    "Agua",
+    "Estacionamiento",
+    "Kiosco",
+    "Cambio de sábanas",
+    "Kayaks",
+    "Snorkel",
+    "20% de descuento en Mamaniva"
+  ],
+
+  "schedule": {
+    "checkIn": "15:00",
+    "checkOut": "13:00",
+    "$comment": "Early check-in y late check-out son inventario vendible sujeto a disponibilidad, no cortesías por defecto. Regalarlos solo para cerrar una venta que si no se cae."
+  },
+
+  "upsells": [
+    {
+      "code": "LATE_CHECKOUT",
+      "name": "Late check-out hasta las 4 PM",
+      "price": 25.0,
+      "unit": "estadía",
+      "cost": "casi cero si la habitación no se revende ese día",
+      "pitch": "No corrés el último día: te vas después del almuerzo, con la playa aprovechada completa."
+    },
+    {
+      "code": "EARLY_CHECKIN",
+      "name": "Early check-in desde las 11 AM",
+      "price": 25.0,
+      "unit": "estadía",
+      "cost": "requiere que la habitación esté limpia; confirmar con housekeeping",
+      "pitch": "Llegás y ya estás en la playa, no esperando en el lobby con las maletas."
+    },
+    {
+      "code": "EXTRA_NIGHT",
+      "name": "Noche adicional",
+      "price": null,
+      "unit": "noche",
+      "$comment_price": "Se cotiza con el motor, no es precio fijo. Es el upsell de mayor margen: cero costo de adquisición.",
+      "pitch": "Una noche más sale bastante menos que la primera, y el segundo día es el que de verdad descansás."
+    },
+    {
+      "code": "SNORKEL_GUIDED",
+      "name": "Snorkel guiado",
+      "price": null,
+      "unit": "persona",
+      "$comment_price": "PENDIENTE: falta precio y costo del guía. Sin costo real no se puede fijar precio sin arriesgar margen negativo. Ver README, sección 'Datos que faltan'.",
+      "pitch": "El equipo de snorkel ya viene incluido; lo que cambia con guía es que te lleva a los puntos donde de verdad hay algo que ver."
+    },
+    {
+      "code": "MAMANIVA_DINNER",
+      "name": "Cena en Mamaniva",
+      "price": null,
+      "unit": "persona",
+      "$comment_price": "PENDIENTE: falta ticket promedio y si Vicina Maris recibe comisión o es solo el 20% de descuento al huésped.",
+      "pitch": "Ya tenés 20% de descuento incluido: la cena te sale a precio de almuerzo."
+    },
+    {
+      "code": "PET",
+      "name": "Mascota",
+      "price": 15.0,
+      "unit": "estadía",
+      "pitch": "No tenés que dejarlo con nadie ni pagar guardería: se viene con vos."
+    }
+  ],
+
+  "$comment_upsellPricing": "Los upsells con price:null NO se cotizan automáticamente — el motor los omite en vez de inventar un número. Un precio inventado que después no se puede cumplir es exactamente el tipo de promesa que genera cancelaciones."
+}

@@ -1,0 +1,106 @@
+{
+  "$comment": "Reglas de precio dinámico. Los multiplicadores se aplican sobre la tarifa base y se COMPONEN (se multiplican entre sí), luego se aplica el descuento por estadía larga, luego se fuerza el piso.",
+
+  "baseRate": 69.0,
+
+  "dayOfWeek": {
+    "$comment": "0=domingo … 6=sábado. Playa de escapada de fin de semana desde Ciudad de Panamá (~1h45 de manejo): viernes y sábado es cuando hay demanda real y cuando se cobra.",
+    "0": 1.0,
+    "1": 0.95,
+    "2": 0.95,
+    "3": 0.95,
+    "4": 1.05,
+    "5": 1.35,
+    "6": 1.4
+  },
+
+  "seasons": [
+    {
+      "code": "SECA_ALTA",
+      "name": "Temporada seca (alta)",
+      "from": "12-15",
+      "to": "04-15",
+      "multiplier": 1.25,
+      "$comment": "Estación seca en el Caribe panameño. Mejor mar, mejor visibilidad para snorkel. Es la temporada donde se puede empujar precio sin resistencia."
+    },
+    {
+      "code": "VERANILLO",
+      "name": "Veranillo de San Juan / vacaciones escolares",
+      "from": "07-01",
+      "to": "08-31",
+      "multiplier": 1.1,
+      "$comment": "Vacaciones escolares en Panamá. Demanda familiar — acá es donde más pega el 'menores de 11 gratis'."
+    },
+    {
+      "code": "BAJA",
+      "name": "Temporada baja / lluvias",
+      "from": "09-01",
+      "to": "11-15",
+      "multiplier": 0.9,
+      "$comment": "Octubre-noviembre es lo más lluvioso del Caribe panameño. Acá NO se defiende precio, se defiende ocupación: es la ventana de last-minute y de promos agresivas."
+    }
+  ],
+  "$comment_seasonDefault": "Cualquier fecha fuera de los rangos anteriores usa multiplicador 1.0.",
+
+  "holidays": {
+    "$comment": "Feriados de Panamá. Los MOVIBLES (Carnaval, Viernes Santo) cambian cada año — hay que actualizarlos anualmente o el motor cobra tarifa normal en el fin de semana más caro del año. Fechas de 2027 ya calculadas: Pascua 2027 = 28-mar (Viernes Santo 26-mar; Miércoles de Ceniza 10-feb → Carnaval 6-9 feb).",
+    "multiplier": 1.6,
+    "minimumNights": 2,
+    "dates": [
+      { "date": "2026-11-03", "name": "Separación de Colombia" },
+      { "date": "2026-11-04", "name": "Día de la Bandera" },
+      { "date": "2026-11-05", "name": "Día de Colón", "multiplier": 1.75, "$comment": "El hotel ESTÁ en la provincia de Colón. Es el feriado local del año: la provincia entera se llena. Es el día de mayor poder de precio del calendario." },
+      { "date": "2026-11-10", "name": "Primer Grito de Independencia" },
+      { "date": "2026-11-28", "name": "Independencia de España" },
+      { "date": "2026-12-08", "name": "Día de la Madre" },
+      { "date": "2026-12-25", "name": "Navidad" },
+      { "date": "2026-12-31", "name": "Fin de Año", "multiplier": 1.8 },
+      { "date": "2027-01-01", "name": "Año Nuevo" },
+      { "date": "2027-01-09", "name": "Día de los Mártires" },
+      { "date": "2027-02-06", "name": "Carnaval (sábado)", "multiplier": 1.8 },
+      { "date": "2027-02-07", "name": "Carnaval (domingo)", "multiplier": 1.8 },
+      { "date": "2027-02-08", "name": "Carnaval (lunes)", "multiplier": 1.8 },
+      { "date": "2027-02-09", "name": "Carnaval (martes)", "multiplier": 1.8 },
+      { "date": "2027-03-26", "name": "Viernes Santo" },
+      { "date": "2027-05-01", "name": "Día del Trabajo" }
+    ]
+  },
+
+  "scarcity": {
+    "$comment": "Sobre 9 habitaciones. Menos disponibilidad = más precio. Esto NO es un truco de copy: es el precio moviéndose de verdad, y por eso el mensaje de urgencia que lo acompaña es honesto y se puede sostener.",
+    "tiers": [
+      { "maxRoomsLeft": 1, "multiplier": 1.35 },
+      { "maxRoomsLeft": 2, "multiplier": 1.2 },
+      { "maxRoomsLeft": 4, "multiplier": 1.08 },
+      { "maxRoomsLeft": 9, "multiplier": 1.0 }
+    ]
+  },
+
+  "leadTime": {
+    "$comment": "Cuchillo de doble filo, y el orden importa. Con MUCHA disponibilidad cerca de la fecha, la habitación vacía vale cero: se descuenta para llenar. Con POCA disponibilidad cerca de la fecha, el huésped ya no tiene alternativa: se sube. Por eso el descuento last-minute solo aplica si quedan 4+ habitaciones.",
+    "lastMinute": {
+      "withinDays": 3,
+      "multiplier": 0.85,
+      "onlyIfRoomsLeftAtLeast": 4
+    },
+    "earlyBird": {
+      "beyondDays": 60,
+      "multiplier": 0.92,
+      "$comment": "Reserva anticipada: se cambia margen por certeza de ocupación y por flujo de caja temprano."
+    }
+  },
+
+  "lengthOfStay": {
+    "$comment": "Descuento sobre el total. La 2da y 3ra noche tienen costo marginal casi cero (el huésped ya está adentro, no hay costo de adquisición ni de check-in).",
+    "tiers": [
+      { "minNights": 7, "discount": 0.15 },
+      { "minNights": 4, "discount": 0.1 },
+      { "minNights": 3, "discount": 0.07 }
+    ]
+  },
+
+  "floor": {
+    "$comment": "Piso duro por noche. Ningún apilamiento de descuentos puede bajar de acá. Detectamos tarifa de $64 publicada en un canal (ver channels/audit-2026-08.md, hallazgo #2) — por debajo del piso declarado de $69.",
+    "perNight": 69.0
+  }
+}

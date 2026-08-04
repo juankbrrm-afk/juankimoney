@@ -1,0 +1,406 @@
+{
+  "name": "Vicina Maris — Flujo A: Respuesta instantánea a consultas",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "vicina-consulta",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-consulta",
+      "name": "Webhook: Consulta entrante",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -600,
+        300
+      ],
+      "webhookId": "vicina-consulta"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normaliza el payload de WhatsApp Cloud API a una forma única.\n// Meta anida el mensaje 4 niveles adentro y manda además eventos de\n// 'status' (entregado/leído) por el mismo webhook. Si no se filtran, el\n// flujo le contesta a sus propios acuses de recibo en bucle.\n\nconst body = $input.first().json.body ?? $input.first().json;\n\nconst value = body?.entry?.[0]?.changes?.[0]?.value;\nconst msg = value?.messages?.[0];\n\nif (!msg) {\n  // Evento de status, no un mensaje. Se corta acá.\n  return [{ json: { skip: true, reason: 'sin mensaje entrante' } }];\n}\n\nif (msg.type !== 'text') {\n  return [{\n    json: {\n      skip: false,\n      unparseable: true,\n      from: msg.from,\n      name: value?.contacts?.[0]?.profile?.name ?? '',\n      text: '',\n      reason: `tipo de mensaje no soportado: ${msg.type}`,\n    },\n  }];\n}\n\nreturn [{\n  json: {\n    skip: false,\n    unparseable: false,\n    from: msg.from,\n    name: value?.contacts?.[0]?.profile?.name ?? '',\n    text: msg.text?.body ?? '',\n    messageId: msg.id,\n    receivedAt: new Date().toISOString(),\n  },\n}];"
+      },
+      "id": "normalizar",
+      "name": "Normalizar mensaje",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -380,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "no-skip",
+              "leftValue": "={{ $json.skip }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-es-mensaje",
+      "name": "IF: Es un mensaje real",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -160,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extrae fechas y cantidad de personas de texto libre en español.\n//\n// Deliberadamente conservador: ante la duda NO inventa fechas. Cotizar\n// fechas equivocadas es peor que pedir que las repitan — el huésped se\n// entusiasma con un precio que no corresponde y después hay que corregirlo.\n\nconst text = ($json.text || '').toLowerCase();\n\nconst MESES = {\n  enero: 1, febrero: 2, marzo: 3, abril: 4, mayo: 5, junio: 6,\n  julio: 7, agosto: 8, septiembre: 9, setiembre: 9, octubre: 10,\n  noviembre: 11, diciembre: 12,\n};\n\nconst pad = (n) => String(n).padStart(2, '0');\nconst hoy = new Date();\n\n// Si el mes ya pasó, el huésped habla del año que viene.\nfunction resolverAnio(mes, dia) {\n  const esteAnio = hoy.getFullYear();\n  const candidata = new Date(esteAnio, mes - 1, dia);\n  return candidata < new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate())\n    ? esteAnio + 1\n    : esteAnio;\n}\n\nconst fechas = [];\n\n// \"15 de noviembre\", \"15 y 16 de diciembre\"\nconst reTexto = /(\\d{1,2})(?:\\s*(?:y|al|a|-)\\s*(\\d{1,2}))?\\s*de\\s*([a-záéíóú]+)/g;\nlet m;\nwhile ((m = reTexto.exec(text)) !== null) {\n  const mes = MESES[m[3]];\n  if (!mes) continue;\n  for (const d of [m[1], m[2]]) {\n    if (!d) continue;\n    const dia = Number(d);\n    if (dia < 1 || dia > 31) continue;\n    fechas.push(`${resolverAnio(mes, dia)}-${pad(mes)}-${pad(dia)}`);\n  }\n}\n\n// \"15/11\", \"15/11/2026\"\nconst reNum = /(\\d{1,2})\\/(\\d{1,2})(?:\\/(\\d{2,4}))?/g;\nwhile ((m = reNum.exec(text)) !== null) {\n  const dia = Number(m[1]);\n  const mes = Number(m[2]);\n  if (dia < 1 || dia > 31 || mes < 1 || mes > 12) continue;\n  let anio = m[3] ? Number(m[3]) : resolverAnio(mes, dia);\n  if (anio < 100) anio += 2000;\n  fechas.push(`${anio}-${pad(mes)}-${pad(dia)}`);\n}\n\nconst unicas = [...new Set(fechas)].sort();\n\n// Personas. Hay que distinguir dos formas de contar, porque se restan distinto:\n//   \"somos 4, 2 niños\"        → 4 es el TOTAL  → 2 adultos + 2 niños\n//   \"somos 2 adultos y 2 niños\" → 2 son ADULTOS → 2 adultos + 2 niños\n// Tratar el segundo caso como total deja 0 adultos y cotiza de menos.\nlet adultos = 2;\nlet adultosExplicitos = false;\n\nconst reAdultos = /(\\d{1,2})\\s*adultos?/;\nconst ma = reAdultos.exec(text);\nif (ma) {\n  const n = Number(ma[1]);\n  if (n >= 1 && n <= 10) {\n    adultos = n;\n    adultosExplicitos = true;\n  }\n} else {\n  const rePax = /(?:somos|para|seríamos|seriamos)\\s*(\\d{1,2})|(\\d{1,2})\\s*(?:personas|pax|huéspedes|huespedes)/;\n  const mp = rePax.exec(text);\n  if (mp) {\n    const n = Number(mp[1] ?? mp[2]);\n    if (n >= 1 && n <= 10) adultos = n;\n  }\n}\n\nlet ninos = 0;\nconst reNinos = /(\\d{1,2})\\s*(?:niños|ninos|chicos|menores)/;\nconst mn = reNinos.exec(text);\nif (mn) {\n  const n = Number(mn[1]);\n  if (n >= 0 && n <= 6) {\n    ninos = n;\n    // Solo se resta si el número era un total, no si ya venía separado.\n    if (!adultosExplicitos) adultos = Math.max(1, adultos - n);\n  }\n}\n\nconst mascota = /(perr|mascota|gat|cachorr)/.test(text);\n\n// Hacen falta 2 fechas para cotizar. Con una sola no se asume una noche:\n// se pregunta.\nconst completo = unicas.length >= 2;\n\nreturn [{\n  json: {\n    ...$json,\n    parsed: {\n      completo,\n      checkIn: completo ? unicas[0] : null,\n      checkOut: completo ? unicas[unicas.length - 1] : null,\n      adultos,\n      ninos,\n      mascota,\n      fechasDetectadas: unicas,\n    },\n  },\n}];"
+      },
+      "id": "parsear",
+      "name": "Parsear fechas y personas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        60,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "tiene-fechas",
+              "leftValue": "={{ $json.parsed.completo }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-tiene-fechas",
+      "name": "IF: Tiene fechas para cotizar",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        280,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ⚠️ DISPONIBILIDAD SIMULADA — LEER ANTES DE ACTIVAR\n//\n// Este nodo NO consulta disponibilidad real: devuelve un número fijo.\n// No hay PMS ni channel manager conectado en este repo, y no hay\n// credenciales para consultar el calendario de ninguna OTA.\n//\n// Con este nodo tal cual, el flujo puede confirmar disponibilidad de una\n// habitación que ya está vendida. Eso es sobreventa, y una sobreventa\n// cuesta la reserva, la reseña y — con 2 reseñas de base — buena parte de\n// la reputación.\n//\n// POR ESO EL FLUJO NO CONFIRMA: cotiza y pasa a un humano para cerrar.\n// Ver README de esta carpeta, sección \"Antes de activar\".\n//\n// Para conectarlo de verdad, reemplazar este nodo por una consulta al\n// channel manager / PMS y devolver `roomsLeft` real.\n\nconst DISPONIBILIDAD_SIMULADA = 9;\n\nreturn [{\n  json: {\n    ...$json,\n    roomsLeft: DISPONIBILIDAD_SIMULADA,\n    disponibilidadEsReal: false,\n  },\n}];"
+      },
+      "id": "disponibilidad",
+      "name": "Consultar disponibilidad (SIMULADO)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        500,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Cotizador. Es una copia literal de sales-engine/lib/quote.js — n8n no\n// puede importar módulos del repo, así que la lógica se pega acá.\n//\n// Si se toca el precio en un lado, hay que tocarlo en el otro. Las pruebas\n// (`node --test sales-engine/lib/quote.test.js`) cubren el archivo del repo:\n// correlas después de cualquier cambio y replicá acá.\n\nconst RULES = $vars.VICINA_PRICING_RULES\n  ? JSON.parse($vars.VICINA_PRICING_RULES)\n  : {\n      baseRate: 69.0,\n      dayOfWeek: { 0: 1.0, 1: 0.95, 2: 0.95, 3: 0.95, 4: 1.05, 5: 1.35, 6: 1.4 },\n      seasons: [\n        { code: 'SECA_ALTA', from: '12-15', to: '04-15', multiplier: 1.25 },\n        { code: 'VERANILLO', from: '07-01', to: '08-31', multiplier: 1.1 },\n        { code: 'BAJA', from: '09-01', to: '11-15', multiplier: 0.9 },\n      ],\n      holidays: {\n        multiplier: 1.6,\n        minimumNights: 2,\n        dates: [\n          { date: '2026-11-03', name: 'Separación de Colombia' },\n          { date: '2026-11-04', name: 'Día de la Bandera' },\n          { date: '2026-11-05', name: 'Día de Colón', multiplier: 1.75 },\n          { date: '2026-11-10', name: 'Primer Grito de Independencia' },\n          { date: '2026-11-28', name: 'Independencia de España' },\n          { date: '2026-12-08', name: 'Día de la Madre' },\n          { date: '2026-12-25', name: 'Navidad' },\n          { date: '2026-12-31', name: 'Fin de Año', multiplier: 1.8 },\n          { date: '2027-01-01', name: 'Año Nuevo' },\n          { date: '2027-01-09', name: 'Día de los Mártires' },\n          { date: '2027-02-06', name: 'Carnaval (sábado)', multiplier: 1.8 },\n          { date: '2027-02-07', name: 'Carnaval (domingo)', multiplier: 1.8 },\n          { date: '2027-02-08', name: 'Carnaval (lunes)', multiplier: 1.8 },\n          { date: '2027-02-09', name: 'Carnaval (martes)', multiplier: 1.8 },\n          { date: '2027-03-26', name: 'Viernes Santo' },\n          { date: '2027-05-01', name: 'Día del Trabajo' },\n        ],\n      },\n      scarcity: {\n        tiers: [\n          { maxRoomsLeft: 1, multiplier: 1.35 },\n          { maxRoomsLeft: 2, multiplier: 1.2 },\n          { maxRoomsLeft: 4, multiplier: 1.08 },\n          { maxRoomsLeft: 9, multiplier: 1.0 },\n        ],\n      },\n      leadTime: {\n        lastMinute: { withinDays: 3, multiplier: 0.85, onlyIfRoomsLeftAtLeast: 4 },\n        earlyBird: { beyondDays: 60, multiplier: 0.92 },\n      },\n      lengthOfStay: {\n        tiers: [\n          { minNights: 7, discount: 0.15 },\n          { minNights: 4, discount: 0.1 },\n          { minNights: 3, discount: 0.07 },\n        ],\n      },\n      floor: { perNight: 69.0 },\n    };\n\nconst RATES = { includedGuests: 2, extraAdult: 20.0, maxGuests: 4, petPerStay: 15.0 };\n\nfunction parseCivilDate(iso) {\n  const m = /^(\\d{4})-(\\d{2})-(\\d{2})$/.exec(iso);\n  if (!m) throw new Error(`Fecha inválida: ${iso}`);\n  return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));\n}\nconst toISO = (d) => {\n  const p = (n) => String(n).padStart(2, '0');\n  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;\n};\nfunction inSeasonRange(date, from, to) {\n  const p = (n) => String(n).padStart(2, '0');\n  const md = `${p(date.getMonth() + 1)}-${p(date.getDate())}`;\n  return from <= to ? md >= from && md <= to : md >= from || md <= to;\n}\nfunction scarcityMultiplier(roomsLeft, scarcity) {\n  const tiers = [...scarcity.tiers].sort((a, b) => a.maxRoomsLeft - b.maxRoomsLeft);\n  for (const t of tiers) if (roomsLeft <= t.maxRoomsLeft) return t.multiplier;\n  return 1.0;\n}\nconst money = (n) => Math.round((n + Number.EPSILON) * 100) / 100;\n\nconst p = $json.parsed;\nconst roomsLeft = $json.roomsLeft;\n\nconst inDate = parseCivilDate(p.checkIn);\nconst outDate = parseCivilDate(p.checkOut);\nconst nights = Math.round((outDate - inDate) / 86400000);\n\nif (nights < 1) {\n  return [{ json: { ...$json, error: 'rango de fechas inválido' } }];\n}\nif (p.adultos + p.ninos > RATES.maxGuests) {\n  return [{\n    json: {\n      ...$json,\n      error: 'excede capacidad',\n      needsMultipleRooms: true,\n      roomsNeeded: Math.ceil((p.adultos + p.ninos) / RATES.maxGuests),\n    },\n  }];\n}\n\nconst hoy = parseCivilDate(toISO(new Date()));\nconst leadDays = Math.round((inDate - hoy) / 86400000);\nconst holidayByDate = new Map(RULES.holidays.dates.map((h) => [h.date, h]));\n\nconst nightly = [];\nconst cursor = new Date(inDate);\nfor (let i = 0; i < nights; i++) {\n  const iso = toISO(cursor);\n  const mults = {};\n  const season = RULES.seasons.find((s) => inSeasonRange(cursor, s.from, s.to));\n  if (season) mults.season = season.multiplier;\n  mults.dow = RULES.dayOfWeek[String(cursor.getDay())] ?? 1.0;\n  const hol = holidayByDate.get(iso);\n  if (hol) mults.holiday = hol.multiplier ?? RULES.holidays.multiplier;\n  const sc = scarcityMultiplier(roomsLeft, RULES.scarcity);\n  if (sc !== 1.0) mults.scarcity = sc;\n  const { lastMinute, earlyBird } = RULES.leadTime;\n  if (leadDays >= 0 && leadDays <= lastMinute.withinDays && roomsLeft >= lastMinute.onlyIfRoomsLeftAtLeast) {\n    mults.lastMinute = lastMinute.multiplier;\n  } else if (leadDays > earlyBird.beyondDays) {\n    mults.earlyBird = earlyBird.multiplier;\n  }\n  let rate = RULES.baseRate;\n  for (const v of Object.values(mults)) rate *= v;\n  if (rate < RULES.floor.perNight) rate = RULES.floor.perNight;\n  nightly.push({ date: iso, roomRate: money(rate), holiday: hol ? hol.name : null });\n  cursor.setDate(cursor.getDate() + 1);\n}\n\nconst roomTotal = money(nightly.reduce((s, n) => s + n.roomRate, 0));\nconst extraAdults = Math.max(0, p.adultos - RATES.includedGuests);\nconst extraAdultTotal = money(extraAdults * RATES.extraAdult * nights);\nconst petTotal = p.mascota ? RATES.petPerStay : 0;\nconst subtotal = roomTotal + extraAdultTotal + petTotal;\nconst tier = [...RULES.lengthOfStay.tiers].sort((a, b) => b.minNights - a.minNights).find((t) => nights >= t.minNights);\nconst losDiscount = tier ? money(subtotal * tier.discount) : 0;\nconst total = money(subtotal - losDiscount);\n\nreturn [{\n  json: {\n    ...$json,\n    quote: {\n      nights,\n      total,\n      averageNightly: money(total / nights),\n      roomTotal,\n      extraAdultTotal,\n      petTotal,\n      losDiscount,\n      holidayNights: nightly.filter((n) => n.holiday).map((n) => n.holiday),\n    },\n  },\n}];"
+      },
+      "id": "cotizar",
+      "name": "Cotizar",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Arma el mensaje. Sigue la estructura del playbook:\n// disponibilidad → total → incluidos → UNA pregunta de cierre.\n\nconst q = $json.quote;\nconst p = $json.parsed;\nconst nombre = ($json.name || '').split(' ')[0];\nconst saludo = nombre ? `¡Hola ${nombre}!` : '¡Hola!';\n\nif ($json.error === 'excede capacidad') {\n  const texto = `${saludo} Cada habitación es para máximo 4 personas, así que ` +\n    `para ustedes les armo ${$json.roomsNeeded} habitaciones 🌊\\n\\n` +\n    `Decime y te paso el precio exacto por las ${$json.roomsNeeded}, con desayuno ` +\n    `incluido para todos.`;\n  return [{ json: { ...$json, reply: texto, needsHuman: true } }];\n}\n\nconst noches = q.nights === 1 ? '1 noche' : `${q.nights} noches`;\n\nlet texto = `${saludo} 🌊 Sí, tengo disponibilidad para esas fechas.\\n\\n`;\ntexto += `📅 ${noches} · *$${q.total.toFixed(2)} en total*\\n\\n`;\ntexto += `Ya viene incluido, sin costo extra:\\n`;\ntexto += `✓ Desayuno\\n✓ Estacionamiento\\n✓ Kayaks y equipo de snorkel\\n`;\ntexto += `✓ Agua y kiosco\\n✓ 20% de descuento en Mamaniva\\n\\n`;\n\nif (p.ninos > 0) {\n  texto += `Los menores de 11 no pagan, así que ya están incluidos 👨‍👩‍👧\\n\\n`;\n}\nif (p.mascota) {\n  texto += `La mascota son $15 por toda la estadía, ya va en el total 🐕\\n\\n`;\n}\nif (q.losDiscount > 0) {\n  texto += `Te apliqué $${q.losDiscount.toFixed(2)} de descuento por la estadía.\\n\\n`;\n}\n\ntexto += `Estamos frente a la playa en La Angosta, a 15 min de Portobelo.\\n\\n`;\ntexto += `¿Te la aparto? Con tu nombre completo te la confirmo.`;\n\n// Sin disponibilidad real verificada NO se afirma escasez. Escasez\n// inventada en un lugar de 9 habitaciones se descubre al llegar.\n\nreturn [{ json: { ...$json, reply: texto, needsHuman: true } }];"
+      },
+      "id": "redactar",
+      "name": "Redactar respuesta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        940,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// No se detectaron fechas: se pide el dato que falta, sin inventar nada.\n\nconst nombre = ($json.name || '').split(' ')[0];\nconst saludo = nombre ? `¡Hola ${nombre}!` : '¡Hola!';\n\nconst texto = `${saludo} 🌊 Te cuento: estamos frente a la playa en La Angosta, ` +\n  `a 15 min de Portobelo.\\n\\n` +\n  `Habitaciones para hasta 4 personas, desde $69 la noche con desayuno, ` +\n  `estacionamiento, kayaks y snorkel incluidos. Los menores de 11 no pagan.\\n\\n` +\n  `¿Para qué fechas estabas viendo? Así te paso el precio exacto y te confirmo ` +\n  `disponibilidad.`;\n\nreturn [{ json: { ...$json, reply: texto, needsHuman: true } }];"
+      },
+      "id": "pedir-fechas",
+      "name": "Pedir fechas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        500,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v21.0/{{ $vars.WHATSAPP_PHONE_NUMBER_ID }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: $json.from, type: 'text', text: { body: $json.reply } }) }}",
+        "options": {}
+      },
+      "id": "enviar-whatsapp",
+      "name": "WhatsApp: Enviar respuesta",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1160,
+        300
+      ],
+      "notes": "Requiere credencial Header Auth con Authorization: Bearer <token WhatsApp Cloud API>. No está cargada en este repo."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $vars.TELEGRAM_BOT_TOKEN }}/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ chat_id: $vars.TELEGRAM_CHAT_ID, text: `🔔 LEAD NUEVO\\n\\nDe: ${$json.name || 'sin nombre'} (${$json.from})\\nDijo: ${$json.text}\\n\\n${$json.quote ? `Cotizado: $${$json.quote.total} por ${$json.quote.nights} noche(s)` : 'Sin fechas — se le pidieron'}\\n\\n⚠️ Falta CONFIRMAR disponibilidad real y cerrar.` }) }}",
+        "options": {}
+      },
+      "id": "alerta-telegram",
+      "name": "Telegram: Avisar para cerrar",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1380,
+        300
+      ],
+      "notes": "El bot avisa; el cierre lo hace una persona. Sin disponibilidad real conectada, el flujo nunca confirma una reserva por su cuenta."
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": "={{ $vars.VICINA_LEADS_SHEET_ID }}",
+        "sheetName": "leads",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "fecha": "={{ $json.receivedAt }}",
+            "telefono": "={{ $json.from }}",
+            "nombre": "={{ $json.name }}",
+            "mensaje": "={{ $json.text }}",
+            "check_in": "={{ $json.parsed?.checkIn || '' }}",
+            "check_out": "={{ $json.parsed?.checkOut || '' }}",
+            "adultos": "={{ $json.parsed?.adultos || '' }}",
+            "total_cotizado": "={{ $json.quote?.total || '' }}",
+            "estado": "cotizado"
+          },
+          "matchingColumns": []
+        },
+        "options": {}
+      },
+      "id": "registrar-lead",
+      "name": "Sheets: Registrar lead",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1600,
+        300
+      ],
+      "notes": "Alimenta el Flujo B (seguimiento) y el reporte diario. Sin esta hoja no hay seguimiento posible."
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "responder-webhook",
+      "name": "Responder 200",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1820,
+        300
+      ],
+      "notes": "Meta reintenta el webhook si no recibe 200 rápido, y el reintento duplica la respuesta al huésped."
+    }
+  ],
+  "connections": {
+    "Webhook: Consulta entrante": {
+      "main": [
+        [
+          {
+            "node": "Normalizar mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalizar mensaje": {
+      "main": [
+        [
+          {
+            "node": "IF: Es un mensaje real",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: Es un mensaje real": {
+      "main": [
+        [
+          {
+            "node": "Parsear fechas y personas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder 200",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parsear fechas y personas": {
+      "main": [
+        [
+          {
+            "node": "IF: Tiene fechas para cotizar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: Tiene fechas para cotizar": {
+      "main": [
+        [
+          {
+            "node": "Consultar disponibilidad (SIMULADO)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Pedir fechas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consultar disponibilidad (SIMULADO)": {
+      "main": [
+        [
+          {
+            "node": "Cotizar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cotizar": {
+      "main": [
+        [
+          {
+            "node": "Redactar respuesta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redactar respuesta": {
+      "main": [
+        [
+          {
+            "node": "WhatsApp: Enviar respuesta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pedir fechas": {
+      "main": [
+        [
+          {
+            "node": "WhatsApp: Enviar respuesta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WhatsApp: Enviar respuesta": {
+      "main": [
+        [
+          {
+            "node": "Telegram: Avisar para cerrar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram: Avisar para cerrar": {
+      "main": [
+        [
+          {
+            "node": "Sheets: Registrar lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sheets: Registrar lead": {
+      "main": [
+        [
+          {
+            "node": "Responder 200",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

@@ -1,0 +1,126 @@
+{
+  "name": "Vicina Maris — Flujo B: Seguimiento de leads fríos",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "triggerAtHour": 10, "triggerAtMinute": 0 }]
+        }
+      },
+      "id": "cron-diario",
+      "name": "Cada día 10:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-600, 300],
+      "notes": "10 AM hora de Panamá. Mandar seguimientos de madrugada molesta y hace que te reporten."
+    },
+    {
+      "parameters": {
+        "documentId": "={{ $vars.VICINA_LEADS_SHEET_ID }}",
+        "sheetName": "leads",
+        "options": {}
+      },
+      "id": "leer-leads",
+      "name": "Sheets: Leer leads",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [-380, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Decide a quién le toca seguimiento hoy y cuál de los tres mensajes.\n//\n// Reglas del playbook que se codifican acá:\n//  · Máximo 3 seguimientos. Después se para. Insistir más no vende y sí\n//    hace que te reporten — y una cuenta de WhatsApp bloqueada es cero\n//    ventas por ese canal hasta resolverlo.\n//  · Un seguimiento por lead por día. Nunca dos el mismo día.\n//  · Nada a leads ya cerrados o marcados como perdidos.\n//  · Nada si la fecha de check-in ya pasó.\n\nconst DIAS = { 'FU-24': 1, 'FU-72': 3, 'FU-7D': 7 };\n\nconst hoy = new Date();\nconst hoyISO = hoy.toISOString().slice(0, 10);\nconst diasEntre = (a, b) => Math.floor((b - a) / 86400000);\n\nconst salida = [];\n\nfor (const lead of $input.all().map((i) => i.json)) {\n  const estado = (lead.estado || '').toLowerCase();\n\n  // Cerrado, perdido o sin teléfono: no se toca.\n  if (['reservado', 'cerrado', 'perdido', 'no_contactar'].includes(estado)) continue;\n  if (!lead.telefono) continue;\n\n  const enviados = Number(lead.seguimientos_enviados || 0);\n  if (enviados >= 3) continue;\n\n  // Uno por día como máximo.\n  if ((lead.ultimo_seguimiento || '').slice(0, 10) === hoyISO) continue;\n\n  const creado = new Date(lead.fecha);\n  if (isNaN(creado)) continue;\n  const antiguedad = diasEntre(creado, hoy);\n\n  // Si ya pasó el check-in que pidió, el seguimiento no tiene sentido.\n  if (lead.check_in && lead.check_in < hoyISO) continue;\n\n  let plantilla = null;\n  if (enviados === 0 && antiguedad >= DIAS['FU-24']) plantilla = 'FU-24';\n  else if (enviados === 1 && antiguedad >= DIAS['FU-72']) plantilla = 'FU-72';\n  else if (enviados === 2 && antiguedad >= DIAS['FU-7D']) plantilla = 'FU-7D';\n\n  if (!plantilla) continue;\n\n  salida.push({\n    json: {\n      rowNumber: lead.row_number ?? lead.__rowNum__,\n      telefono: lead.telefono,\n      nombre: (lead.nombre || '').split(' ')[0],\n      checkIn: lead.check_in || '',\n      checkOut: lead.check_out || '',\n      totalCotizado: lead.total_cotizado || '',\n      plantilla,\n      seguimientosEnviados: enviados + 1,\n      hoyISO,\n    },\n  });\n}\n\nreturn salida;"
+      },
+      "id": "seleccionar",
+      "name": "Seleccionar a quién seguir",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-160, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Redacta según la plantilla que tocó. Cada seguimiento trae algo nuevo:\n// un \"¿pudiste ver?\" no aporta nada y se ignora.\n\nconst d = $json;\nconst nombre = d.nombre || '';\nconst saludo = nombre ? `¡Hola ${nombre}!` : '¡Hola!';\nconst total = d.totalCotizado ? `$${d.totalCotizado}` : 'la tarifa que te pasé';\n\nlet texto;\n\nswitch (d.plantilla) {\n  case 'FU-24':\n    // Corto, sin descuento. Todavía no toca ceder precio.\n    texto = `${saludo} Te escribo por las fechas que me consultaste 🌊\\n\\n` +\n      `Todavía te puedo sostener ${total}. ¿La dejamos apartada?`;\n    break;\n\n  case 'FU-72':\n    // Ángulo nuevo, no repetir la misma oferta.\n    texto = `${nombre ? nombre + ', ' : ''}te cuento que entre semana está bastante ` +\n      `más tranquilo y sale mejor de precio 🌊\\n\\n` +\n      `Si tenés flexibilidad de fechas, decime y te paso opciones. ` +\n      `Kayaks, snorkel y desayuno van incluidos igual.`;\n    break;\n\n  case 'FU-7D':\n    // Última. Acá sí se cede, y en valor (costo casi cero) antes que en tarifa.\n    texto = `${nombre ? nombre + ', ' : ''}última que te escribo por esto 🙌\\n\\n` +\n      `Si te decidís esta semana, te dejo ${total} y te sumo el late check-out ` +\n      `sin cargo — así el último día aprovechás la playa completa.\\n\\n` +\n      `Cualquier cosa quedo por acá.`;\n    break;\n\n  default:\n    return [];\n}\n\nreturn [{ json: { ...d, texto } }];"
+      },
+      "id": "redactar-seguimiento",
+      "name": "Redactar seguimiento",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [60, 300]
+    },
+    {
+      "parameters": {
+        "amount": 45,
+        "unit": "seconds"
+      },
+      "id": "espaciar",
+      "name": "Espaciar envíos",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [280, 300],
+      "notes": "Ráfagas de mensajes idénticos disparan los filtros anti-spam de Meta. 45s entre envíos mantiene el volumen dentro de lo normal. Una cuenta bloqueada es cero ventas por este canal."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v21.0/{{ $vars.WHATSAPP_PHONE_NUMBER_ID }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: $json.telefono, type: 'text', text: { body: $json.texto } }) }}",
+        "options": {}
+      },
+      "id": "enviar",
+      "name": "WhatsApp: Enviar seguimiento",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [500, 300],
+      "notes": "OJO: fuera de la ventana de 24h de WhatsApp solo se pueden mandar plantillas pre-aprobadas por Meta. Hay que dar de alta FU-24, FU-72 y FU-7D como message templates antes de activar este flujo, o los envíos van a fallar."
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": "={{ $vars.VICINA_LEADS_SHEET_ID }}",
+        "sheetName": "leads",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": "={{ $json.rowNumber }}",
+            "seguimientos_enviados": "={{ $json.seguimientosEnviados }}",
+            "ultimo_seguimiento": "={{ $json.hoyISO }}",
+            "estado": "={{ $json.seguimientosEnviados >= 3 ? 'agotado' : 'en_seguimiento' }}"
+          },
+          "matchingColumns": ["row_number"]
+        },
+        "options": {}
+      },
+      "id": "actualizar",
+      "name": "Sheets: Marcar enviado",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [720, 300],
+      "notes": "Crítico: si esto falla, el lead recibe el mismo seguimiento todos los días."
+    }
+  ],
+  "connections": {
+    "Cada día 10:00": {
+      "main": [[{ "node": "Sheets: Leer leads", "type": "main", "index": 0 }]]
+    },
+    "Sheets: Leer leads": {
+      "main": [[{ "node": "Seleccionar a quién seguir", "type": "main", "index": 0 }]]
+    },
+    "Seleccionar a quién seguir": {
+      "main": [[{ "node": "Redactar seguimiento", "type": "main", "index": 0 }]]
+    },
+    "Redactar seguimiento": {
+      "main": [[{ "node": "Espaciar envíos", "type": "main", "index": 0 }]]
+    },
+    "Espaciar envíos": {
+      "main": [[{ "node": "WhatsApp: Enviar seguimiento", "type": "main", "index": 0 }]]
+    },
+    "WhatsApp: Enviar seguimiento": {
+      "main": [[{ "node": "Sheets: Marcar enviado", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" }
+}
