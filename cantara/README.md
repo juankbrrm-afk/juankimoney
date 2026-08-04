@@ -31,6 +31,20 @@ por el usuario* y no *leído por el usuario*.
 El razonamiento completo, con la comparativa de proveedores y sus costes, está
 en [`docs/01-ai-research.md`](docs/01-ai-research.md).
 
+## ¿Solo quieres tus canciones?
+
+Si es para uso personal y no necesitas web ni cuentas, hay un camino mucho más
+corto: una carpeta con tus grabaciones y un comando.
+
+```bash
+npm install
+mkdir mi-voz          # mete ahí 2–10 minutos de tu voz
+npm run cancion -- --prompt "reguetón de verano sobre volver al barrio"
+```
+
+Ver **[GUIA-PERSONAL.md](GUIA-PERSONAL.md)**. El resto de este README describe
+la plataforma completa.
+
 ## Arranque rápido
 
 **Funciona sin ninguna API key.** Todos los proveedores de IA caen a un

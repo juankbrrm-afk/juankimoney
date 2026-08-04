@@ -35,7 +35,9 @@ async function call(path, { method = 'GET', body } = {}) {
       ...(body ? { 'content-type': 'application/json' } : {}),
       ...(cookie ? { cookie } : {}),
     },
-    body: body ? JSON.stringify(body) : undefined,
+    // Se omite la clave entera en vez de pasarla como `undefined`: un GET con
+    // `body` presente es inválido aunque su valor sea vacío.
+    ...(body ? { body: JSON.stringify(body) } : {}),
   });
 
   const setCookie = response.headers.get('set-cookie');

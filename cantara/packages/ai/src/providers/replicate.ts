@@ -29,11 +29,11 @@ const REPLICATE_API = 'https://api.replicate.com/v1';
 
 export interface ReplicateConfig {
   readonly apiToken: string;
-  readonly rvcTrainVersion?: string;
-  readonly rvcInferVersion?: string;
-  readonly seedVcVersion?: string;
-  readonly demucsVersion?: string;
-  readonly matcheringVersion?: string;
+  readonly rvcTrainModel?: string;
+  readonly rvcInferModel?: string;
+  readonly seedVcModel?: string;
+  readonly demucsModel?: string;
+  readonly matcheringModel?: string;
 }
 
 interface Prediction {
@@ -44,6 +44,33 @@ interface Prediction {
   logs?: string;
 }
 
+/**
+ * Referencia a un modelo de Replicate. Se admiten tres formas:
+ *
+ *   owner/nombre            → usa la última versión publicada
+ *   owner/nombre:abc123…    → fija una versión concreta
+ *   abc123…                 → hash de versión suelto
+ *
+ * Aceptar `owner/nombre` importa más de lo que parece: es la diferencia entre
+ * copiar el nombre que se ve en la página del modelo y tener que rebuscar un
+ * hash de 64 caracteres en su pestaña de versiones. Fijar la versión es lo
+ * correcto en producción —los modelos cambian bajo tus pies— pero no debe ser
+ * el precio de entrada para probar.
+ */
+function endpointFor(ref: string): { url: string; body: Record<string, unknown> } {
+  const [path, version] = ref.split(':');
+
+  if (version) {
+    return { url: `${REPLICATE_API}/predictions`, body: { version } };
+  }
+
+  if (path!.includes('/')) {
+    return { url: `${REPLICATE_API}/models/${path}/predictions`, body: {} };
+  }
+
+  return { url: `${REPLICATE_API}/predictions`, body: { version: path } };
+}
+
 class ReplicateClient {
   constructor(private readonly token: string) {}
 
@@ -52,13 +79,15 @@ class ReplicateClient {
   }
 
   /** Crea una predicción y espera a que termine, informando del progreso. */
-  async run(version: string, input: Record<string, unknown>, ctx?: ProviderContext): Promise<unknown> {
+  async run(ref: string, input: Record<string, unknown>, ctx?: ProviderContext): Promise<unknown> {
+    const endpoint = endpointFor(ref);
+
     const created = await requestJson<Prediction>({
-      url: `${REPLICATE_API}/predictions`,
+      url: endpoint.url,
       provider: 'replicate',
       headers: this.headers,
       signal: ctx?.signal,
-      body: { version, input },
+      body: { ...endpoint.body, input },
     });
 
     return pollUntil(
@@ -142,8 +171,8 @@ export class RvcVoiceTrainer implements VoiceTrainer {
       throw new Error('RVC necesita las muestras accesibles por URL prefirmada');
     }
 
-    const version = this.config.rvcTrainVersion;
-    if (!version) throw new Error('Falta RVC_TRAIN_VERSION en la configuración');
+    const version = this.config.rvcTrainModel;
+    if (!version) throw new Error('Falta RVC_TRAIN_MODEL. Ponle el modelo de entrenamiento RVC en formato `owner/nombre` (o `owner/nombre:version`) desde replicate.com');
 
     const output = await this.client.run(
       version,
@@ -186,8 +215,8 @@ export class RvcVoiceConverter implements VoiceConverter {
     options: ConversionOptions & { vocalsUrl?: string },
     ctx?: ProviderContext,
   ): Promise<AudioBuffer> {
-    const version = this.config.rvcInferVersion;
-    if (!version) throw new Error('Falta RVC_INFER_VERSION en la configuración');
+    const version = this.config.rvcInferModel;
+    if (!version) throw new Error('Falta RVC_INFER_MODEL. Ponle el modelo de inferencia RVC en formato `owner/nombre` desde replicate.com');
     if (!options.vocalsUrl) {
       throw new Error('RVC necesita la voz guía accesible por URL prefirmada');
     }
@@ -250,8 +279,8 @@ export class SeedVcConverter implements VoiceConverter {
     options: ConversionOptions & { vocalsUrl?: string },
     ctx?: ProviderContext,
   ): Promise<AudioBuffer> {
-    const version = this.config.seedVcVersion;
-    if (!version) throw new Error('Falta SEEDVC_VERSION en la configuración');
+    const version = this.config.seedVcModel;
+    if (!version) throw new Error('Falta SEEDVC_MODEL. Ponle el modelo seed-vc en formato `owner/nombre` desde replicate.com');
     if (!options.vocalsUrl) throw new Error('seed-vc necesita la voz guía por URL prefirmada');
 
     const output = await this.client.run(
@@ -283,8 +312,8 @@ export class DemucsSeparator implements StemSeparator {
   }
 
   async separate(mix: AudioBuffer & { url?: string }, ctx?: ProviderContext): Promise<Stems> {
-    const version = this.config.demucsVersion;
-    if (!version) throw new Error('Falta DEMUCS_VERSION en la configuración');
+    const version = this.config.demucsModel;
+    if (!version) throw new Error('Falta DEMUCS_MODEL. Ponle el modelo Demucs en formato `owner/nombre` desde replicate.com');
     if (!mix.url) throw new Error('Demucs necesita la mezcla accesible por URL prefirmada');
 
     const output = (await this.client.run(
@@ -350,7 +379,7 @@ export class MatcheringProvider implements MasteringProvider {
     genre: Genre,
     ctx?: ProviderContext,
   ): Promise<AudioBuffer> {
-    const version = this.config.matcheringVersion;
+    const version = this.config.matcheringModel;
     const reference = this.references[genre];
 
     // Sin referencia para este género no hay nada que igualar. Devolver el

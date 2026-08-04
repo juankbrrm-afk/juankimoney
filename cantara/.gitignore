@@ -27,3 +27,7 @@ apps/web/next-env.d.ts
 
 # Snapshot de Redis (se crea si redis-server arranca desde aquí)
 dump.rdb
+
+# Grabaciones y canciones del CLI personal
+mi-voz/
+canciones/

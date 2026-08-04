@@ -25,7 +25,8 @@
     "db:seed": "npm run seed --workspace @cantara/db",
     "infra:up": "docker compose -f infra/docker-compose.yml up -d",
     "infra:down": "docker compose -f infra/docker-compose.yml down",
-    "setup": "npm install && npm run db:generate && npm run db:migrate && npm run db:seed"
+    "setup": "npm install && npm run db:generate && npm run db:migrate && npm run db:seed",
+    "cancion": "tsx scripts/cancion.ts"
   },
   "devDependencies": {
     "@types/node": "^24.13.2",

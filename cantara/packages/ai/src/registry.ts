@@ -54,11 +54,11 @@ export interface ProviderEnv {
   readonly ELEVENLABS_API_KEY?: string;
   readonly REPLICATE_API_TOKEN?: string;
 
-  readonly RVC_TRAIN_VERSION?: string;
-  readonly RVC_INFER_VERSION?: string;
-  readonly SEEDVC_VERSION?: string;
-  readonly DEMUCS_VERSION?: string;
-  readonly MATCHERING_VERSION?: string;
+  readonly RVC_TRAIN_MODEL?: string;
+  readonly RVC_INFER_MODEL?: string;
+  readonly SEEDVC_MODEL?: string;
+  readonly DEMUCS_MODEL?: string;
+  readonly MATCHERING_MODEL?: string;
 }
 
 export type Logger = { warn: (message: string) => void; info: (message: string) => void };
@@ -69,11 +69,11 @@ function replicateConfig(env: ProviderEnv): ReplicateConfig | null {
   if (!env.REPLICATE_API_TOKEN) return null;
   return {
     apiToken: env.REPLICATE_API_TOKEN,
-    rvcTrainVersion: env.RVC_TRAIN_VERSION,
-    rvcInferVersion: env.RVC_INFER_VERSION,
-    seedVcVersion: env.SEEDVC_VERSION,
-    demucsVersion: env.DEMUCS_VERSION,
-    matcheringVersion: env.MATCHERING_VERSION,
+    rvcTrainModel: env.RVC_TRAIN_MODEL,
+    rvcInferModel: env.RVC_INFER_MODEL,
+    seedVcModel: env.SEEDVC_MODEL,
+    demucsModel: env.DEMUCS_MODEL,
+    matcheringModel: env.MATCHERING_MODEL,
   };
 }
 
