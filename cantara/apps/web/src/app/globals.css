@@ -1,0 +1,185 @@
+@import 'tailwindcss';
+
+/*
+ * Sistema de diseño.
+ *
+ * Tema oscuro por defecto, no por moda: la app se usa con auriculares, a
+ * menudo de noche, y las herramientas de audio profesionales (DAWs) son
+ * oscuras porque la vista se cansa menos en sesiones largas y los medidores
+ * de nivel se leen mejor sobre fondo oscuro.
+ *
+ * El acento es un violeta que vira a coral en los degradados: distingue la
+ * marca de los verdes/naranjas de Suno y Udio sin caer en el azul genérico
+ * de producto SaaS.
+ */
+
+@theme {
+  --color-ink-950: oklch(0.14 0.02 285);
+  --color-ink-900: oklch(0.18 0.022 285);
+  --color-ink-850: oklch(0.22 0.024 285);
+  --color-ink-800: oklch(0.27 0.026 285);
+  --color-ink-700: oklch(0.36 0.028 285);
+  --color-ink-600: oklch(0.48 0.026 285);
+  --color-ink-400: oklch(0.66 0.02 285);
+  --color-ink-300: oklch(0.78 0.015 285);
+  --color-ink-100: oklch(0.93 0.008 285);
+
+  --color-accent-300: oklch(0.82 0.13 300);
+  --color-accent-400: oklch(0.73 0.18 300);
+  --color-accent-500: oklch(0.64 0.22 298);
+  --color-accent-600: oklch(0.55 0.23 296);
+  --color-accent-700: oklch(0.46 0.2 295);
+
+  --color-warm-400: oklch(0.76 0.16 35);
+  --color-warm-500: oklch(0.68 0.19 32);
+
+  --color-success: oklch(0.72 0.17 155);
+  --color-warning: oklch(0.79 0.15 80);
+  --color-danger: oklch(0.65 0.2 25);
+
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+  --radius-card: 1rem;
+  --radius-control: 0.625rem;
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-ink-800);
+  }
+
+  html {
+    color-scheme: dark;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-ink-950);
+    color: var(--color-ink-100);
+    font-family: var(--font-sans);
+    /* Ligaduras y tabulares: los números de duración y créditos no deben
+       saltar de ancho al actualizarse. */
+    font-feature-settings: 'cv11', 'ss01';
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Foco visible y consistente. Se marca solo en navegación por teclado
+     para no ensuciar el clic con ratón. */
+  :focus-visible {
+    outline: 2px solid var(--color-accent-400);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background-color: var(--color-accent-600);
+    color: white;
+  }
+
+  /* Barras de desplazamiento acordes al tema; en claro chirriaban sobre el
+     fondo oscuro en Windows. */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-ink-900);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-ink-700);
+    border-radius: 999px;
+    border: 2px solid var(--color-ink-900);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-ink-600);
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    background: linear-gradient(
+      100deg,
+      var(--color-accent-300),
+      var(--color-accent-500) 45%,
+      var(--color-warm-400)
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .surface {
+    background-color: color-mix(in oklch, var(--color-ink-900) 88%, transparent);
+    border: 1px solid var(--color-ink-800);
+    border-radius: var(--radius-card);
+  }
+
+  /* Resplandor de fondo del hero y del estudio. Se hace con degradados
+     radiales en lugar de imágenes para que no cueste ninguna descarga. */
+  .aurora {
+    background-image:
+      radial-gradient(
+        ellipse 70% 50% at 20% -10%,
+        color-mix(in oklch, var(--color-accent-600) 28%, transparent),
+        transparent
+      ),
+      radial-gradient(
+        ellipse 60% 45% at 85% 5%,
+        color-mix(in oklch, var(--color-warm-500) 18%, transparent),
+        transparent
+      );
+  }
+
+  .animate-in {
+    animation: fade-rise 0.5s var(--ease-out-soft) both;
+  }
+}
+
+@keyframes fade-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes pulse-soft {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/*
+ * Respeta la preferencia de movimiento reducido. Las barras de progreso y
+ * el visualizador de onda son justo el tipo de animación continua que
+ * molesta a quien tiene sensibilidad vestibular.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

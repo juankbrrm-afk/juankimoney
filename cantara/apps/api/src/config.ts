@@ -7,6 +7,7 @@
  */
 
 import { z } from 'zod';
+import { SIGNUP_CREDITS } from '@cantara/shared';
 
 const schema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
@@ -29,7 +30,7 @@ const schema = z.object({
     .transform((value) => value === 'true'),
 
   UPLOAD_MAX_BYTES: z.coerce.number().int().default(50 * 1024 * 1024),
-  FREE_SIGNUP_CREDITS: z.coerce.number().int().default(150),
+  FREE_SIGNUP_CREDITS: z.coerce.number().int().default(SIGNUP_CREDITS),
 });
 
 export type Config = z.infer<typeof schema> & { isProduction: boolean };

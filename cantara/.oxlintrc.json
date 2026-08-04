@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
   "plugins": ["typescript", "unicorn", "react", "import"],
   "env": { "browser": true, "node": true, "es2024": true },
-  "ignorePatterns": ["**/dist/**", "**/.next/**", "**/node_modules/**", "**/generated/**"],
+  "ignorePatterns": ["**/next-env.d.ts", "**/dist/**", "**/.next/**", "**/node_modules/**", "**/generated/**"],
   "rules": {
     "no-console": "off",
     "typescript/no-explicit-any": "warn",

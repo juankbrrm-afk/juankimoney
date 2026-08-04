@@ -49,8 +49,22 @@ export const CREDIT_COSTS = {
 
 export type BillableOperation = keyof typeof CREDIT_COSTS;
 
-/** Créditos de bienvenida: alcanzan para un entrenamiento y una canción. */
-export const SIGNUP_CREDITS = 150;
+/**
+ * Créditos de bienvenida.
+ *
+ * La cifra sale de una cuenta concreta, no de un número redondo: el plan
+ * gratuito debe cubrir el recorrido completo de la primera sesión, y ese
+ * recorrido incluye **volver a intentarlo**.
+ *
+ *   entrenamiento (100) + canción (30) + regeneración (25) = 155
+ *
+ * Se dejan 180 para dar margen a una segunda regeneración parcial. Quedarse
+ * en 150 dejaba al usuario con 20 créditos justo después de oír su primera
+ * canción — sin poder pedir otra toma, que es exactamente lo que uno quiere
+ * hacer en ese momento.
+ */
+export const SIGNUP_CREDITS =
+  CREDIT_COSTS.voiceTraining + CREDIT_COSTS.songGeneration + CREDIT_COSTS.regeneration + 25;
 
 export interface CreditPack {
   readonly id: string;

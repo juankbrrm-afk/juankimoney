@@ -21,3 +21,6 @@ coverage/
 
 # Cliente Prisma generado (npm run db:generate)
 packages/db/src/generated/
+
+# Archivo generado por Next
+apps/web/next-env.d.ts

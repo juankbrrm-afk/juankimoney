@@ -11,6 +11,9 @@
  * levantarse y decir qué le falta, no negarse a arrancar.
  */
 
+import { readFileSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { Genre } from '@cantara/shared';
 import type { AiProviders, StoragePort } from './ports.js';
 import {
@@ -210,9 +213,41 @@ export function createStorage(
     );
   }
 
-  logger.warn('Sin configuración de S3: se usa almacenamiento en disco (solo desarrollo)');
-  return new LocalDiskStorage(
-    env.LOCAL_STORAGE_DIR ?? '.cantara-storage',
-    env.API_PUBLIC_URL ?? 'http://localhost:4000',
+  // La ruta se resuelve a absoluta anclada en la raíz del monorepo, no en el
+  // cwd. `npm run --workspace` ejecuta cada app desde su propio directorio,
+  // así que una ruta relativa daría a la API y al worker dos almacenes
+  // distintos: la API guardaría el audio y el worker no lo encontraría.
+  const directory = env.LOCAL_STORAGE_DIR
+    ? resolve(env.LOCAL_STORAGE_DIR)
+    : join(monorepoRoot(), '.cantara-storage');
+
+  logger.warn(
+    `Sin configuración de S3: se usa almacenamiento en disco en ${directory} (solo desarrollo)`,
   );
+
+  return new LocalDiskStorage(directory, env.API_PUBLIC_URL ?? 'http://localhost:4000');
+}
+
+/**
+ * Raíz del monorepo: el `package.json` más cercano hacia arriba que declara
+ * workspaces. Si no se encuentra, se cae al cwd, que es el comportamiento
+ * razonable fuera de un monorepo.
+ */
+function monorepoRoot(): string {
+  let directory = dirname(fileURLToPath(import.meta.url));
+
+  for (let depth = 0; depth < 10; depth += 1) {
+    const manifest = join(directory, 'package.json');
+    try {
+      if (JSON.parse(readFileSync(manifest, 'utf8')).workspaces) return directory;
+    } catch {
+      // Sin package.json legible en este nivel: se sigue subiendo.
+    }
+
+    const parent = dirname(directory);
+    if (parent === directory) break;
+    directory = parent;
+  }
+
+  return process.cwd();
 }

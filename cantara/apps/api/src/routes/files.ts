@@ -30,7 +30,14 @@ export async function fileRoutes(app: FastifyInstance, ctx: AppContext): Promise
     }
   });
 
-  app.put('/files/*', async (request, reply) => {
+  app.put('/files/*', {
+    // El límite global de la API (2 MB) está pensado para cuerpos JSON: en
+    // producción el audio nunca pasa por aquí, va directo al almacén con una
+    // URL prefirmada. En desarrollo sí atraviesa esta ruta, así que necesita
+    // su propio límite o cualquier grabación de más de dos minutos rompería
+    // la conexión a mitad de subida.
+    bodyLimit: ctx.config.UPLOAD_MAX_BYTES,
+  }, async (request, reply) => {
     const key = decodeURIComponent((request.params as Record<string, string>)['*'] ?? '');
     if (!key) throw badRequest('Falta la ruta del archivo');
 
