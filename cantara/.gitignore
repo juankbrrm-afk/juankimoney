@@ -1,0 +1,23 @@
+node_modules
+dist
+.next
+out
+*.tsbuildinfo
+
+.env
+.env.local
+.env.*.local
+
+# Artefactos de audio generados en desarrollo
+.cantara-storage/
+tmp/
+*.wav
+*.mp3
+!packages/ai/fixtures/**
+
+.DS_Store
+*.log
+coverage/
+
+# Cliente Prisma generado (npm run db:generate)
+packages/db/src/generated/

@@ -1,0 +1,19 @@
+{
+  "name": "@cantara/ai",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.899.0",
+    "@aws-sdk/s3-request-presigner": "^3.899.0",
+    "@breezystack/lamejs": "^1.2.7",
+    "@cantara/shared": "*",
+    "zod": "^3.25.76"
+  }
+}

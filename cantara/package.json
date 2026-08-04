@@ -1,0 +1,37 @@
+{
+  "name": "cantara",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Generador de canciones con IA y clonación de la voz del usuario",
+  "engines": {
+    "node": ">=22"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "tsc -b --pretty",
+    "test": "node --import tsx --test \"packages/*/test/**/*.test.ts\" \"apps/*/test/**/*.test.ts\"",
+    "lint": "oxlint packages apps",
+    "dev": "npm-run-all --parallel dev:api dev:worker dev:web",
+    "dev:api": "npm run dev --workspace @cantara/api",
+    "dev:worker": "npm run dev --workspace @cantara/worker",
+    "dev:web": "npm run dev --workspace @cantara/web",
+    "db:generate": "npm run generate --workspace @cantara/db",
+    "db:migrate": "npm run migrate --workspace @cantara/db",
+    "db:seed": "npm run seed --workspace @cantara/db",
+    "infra:up": "docker compose -f infra/docker-compose.yml up -d",
+    "infra:down": "docker compose -f infra/docker-compose.yml down",
+    "setup": "npm install && npm run db:generate && npm run db:migrate && npm run db:seed"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.2",
+    "npm-run-all2": "^8.0.4",
+    "oxlint": "^1.71.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  }
+}

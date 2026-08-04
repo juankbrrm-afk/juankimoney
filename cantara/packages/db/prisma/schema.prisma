@@ -1,0 +1,375 @@
+// Cantara — esquema de datos
+//
+// Dos decisiones estructurales gobiernan este esquema:
+//
+// 1. El saldo de créditos NO se almacena. Es la suma de CreditLedger. Los
+//    asientos son inmutables, así que todo cargo es auditable y no existe
+//    carrera entre dos generaciones simultáneas.
+// 2. Las canciones son inmutables una vez generadas. Regenerar crea una
+//    SongVersion nueva; nada se sobrescribe. El usuario puede comparar tomas
+//    y volver a una anterior.
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────────
+// Identidad
+// ─────────────────────────────────────────────────────────────
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  displayName  String
+  role         UserRole  @default(USER)
+
+  emailVerifiedAt DateTime?
+  lastLoginAt     DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sessions     Session[]
+  voiceModels  VoiceModel[]
+  songs        Song[]
+  uploads      Upload[]
+  creditLedger CreditLedger[]
+  jobs         Job[]
+  consents     VoiceConsent[]
+
+  @@map("users")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+model Session {
+  id     String @id @default(cuid())
+  userId String
+
+  /// SHA-256 del token de sesión. El token en claro solo vive en la cookie:
+  /// una filtración de esta tabla no permite suplantar a nadie.
+  tokenHash String   @unique
+  expiresAt DateTime
+  ip        String?
+  userAgent String?
+
+  createdAt      DateTime @default(now())
+  lastAccessedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+/// Consentimiento de clonación de voz. Versionado porque, si cambia el texto
+/// legal, hay que poder demostrar qué aceptó cada usuario y cuándo.
+model VoiceConsent {
+  id      String @id @default(cuid())
+  userId  String
+  version String
+
+  acceptedAt DateTime @default(now())
+  ip         String?
+  userAgent  String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, version])
+  @@index([userId])
+  @@map("voice_consents")
+}
+
+// ─────────────────────────────────────────────────────────────
+// Almacenamiento
+// ─────────────────────────────────────────────────────────────
+
+/// Un archivo subido por el usuario, antes de asociarse a nada.
+/// Se crea al pedir la URL prefirmada y se confirma cuando el PUT termina.
+model Upload {
+  id     String @id @default(cuid())
+  userId String
+
+  storageKey  String @unique
+  fileName    String
+  contentType String
+  sizeBytes   Int
+
+  durationSeconds Float?
+  status          UploadStatus @default(PENDING)
+
+  createdAt   DateTime  @default(now())
+  confirmedAt DateTime?
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  voiceSamples VoiceSample[]
+
+  @@index([userId, status])
+  @@map("uploads")
+}
+
+enum UploadStatus {
+  PENDING
+  CONFIRMED
+  /// Sin confirmar y caducado: candidato a limpieza periódica.
+  ORPHANED
+}
+
+// ─────────────────────────────────────────────────────────────
+// Voz
+// ─────────────────────────────────────────────────────────────
+
+model VoiceModel {
+  id     String @id @default(cuid())
+  userId String
+
+  name     String
+  status   VoiceModelStatus @default(PENDING)
+  register VoiceRegister    @default(LOW)
+
+  /// Zero-shot (seed-vc): sin fase de entrenamiento, algo menos fiel.
+  instant Boolean @default(false)
+
+  /// Proveedor que entrenó el modelo: `rvc`, `seedvc`, `local`…
+  provider String @default("local")
+
+  /// Identificador del modelo en el proveedor externo. Necesario para
+  /// inferir y, sobre todo, para poder borrarlo de verdad si el usuario
+  /// ejerce su derecho de supresión.
+  providerModelId String?
+
+  /// Metadatos opacos del proveedor (epochs, índice, checkpoints…).
+  providerMeta Json?
+
+  totalSeconds  Float   @default(0)
+  qualityScore  Float?
+  failureReason String?
+
+  /// Clave en S3 de un fragmento cantado corto, para que el usuario oiga
+  /// cómo quedó su modelo sin gastar créditos en una canción entera.
+  previewKey String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  readyAt   DateTime?
+
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  samples VoiceSample[]
+  songs   Song[]
+  jobs    Job[]
+
+  @@index([userId, status])
+  @@map("voice_models")
+}
+
+enum VoiceModelStatus {
+  PENDING
+  TRAINING
+  READY
+  FAILED
+}
+
+enum VoiceRegister {
+  LOW
+  HIGH
+}
+
+model VoiceSample {
+  id           String @id @default(cuid())
+  voiceModelId String
+  uploadId     String
+
+  durationSeconds Float
+  qualityScore    Float?
+  /// Códigos de `QualityIssue` en shared/audio.ts.
+  issues          String[] @default([])
+  /// Métricas crudas del análisis (SNR, pico, RMS…), útiles para depurar
+  /// una queja concreta de un usuario meses después.
+  metrics         Json?
+
+  /// Una muestra bajo el umbral se conserva pero no entra al entrenamiento.
+  includedInTraining Boolean @default(true)
+
+  createdAt DateTime @default(now())
+
+  voiceModel VoiceModel @relation(fields: [voiceModelId], references: [id], onDelete: Cascade)
+  upload     Upload     @relation(fields: [uploadId], references: [id], onDelete: Cascade)
+
+  @@index([voiceModelId])
+  @@map("voice_samples")
+}
+
+// ─────────────────────────────────────────────────────────────
+// Canciones
+// ─────────────────────────────────────────────────────────────
+
+/// La intención creativa: qué quiso el usuario. Estable entre regeneraciones.
+model Song {
+  id     String @id @default(cuid())
+  userId String
+
+  title     String
+  prompt    String
+  genre     String
+  language  String
+  structure String  @default("standard")
+  timbre    String  @default("natural")
+  bpm       Int
+  instrumental Boolean @default(false)
+  durationSeconds Int  @default(180)
+
+  /// Letra estructurada, validada contra `lyricsSchema`.
+  lyrics Json?
+
+  voiceModelId String?
+
+  archivedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  voiceModel VoiceModel?   @relation(fields: [voiceModelId], references: [id], onDelete: SetNull)
+  versions   SongVersion[]
+
+  @@index([userId, createdAt])
+  @@index([userId, archivedAt])
+  @@map("songs")
+}
+
+/// Un intento concreto de materializar una Song. Inmutable una vez lista.
+model SongVersion {
+  id     String @id @default(cuid())
+  songId String
+
+  version Int
+  status  SongVersionStatus @default(QUEUED)
+
+  /// Overrides aplicados solo a esta toma (prompt o bpm distintos, p. ej.).
+  overrides Json?
+
+  durationSeconds Float?
+  mp3Key          String?
+  wavKey          String?
+
+  /// Picos precalculados para dibujar la onda sin descargar el audio.
+  waveform Float[] @default([])
+
+  /// Claves S3 de los artefactos intermedios. Permiten que un reintento
+  /// reanude desde la última etapa completada en vez de rehacer la canción.
+  artifacts Json?
+
+  /// Proveedor musical usado: determina la nota de licencia en la descarga.
+  musicProvider String @default("local")
+
+  failureReason String?
+  failureCode   String?
+
+  createdAt DateTime  @default(now())
+  readyAt   DateTime?
+
+  song Song  @relation(fields: [songId], references: [id], onDelete: Cascade)
+  jobs Job[]
+
+  @@unique([songId, version])
+  @@index([songId])
+  @@map("song_versions")
+}
+
+enum SongVersionStatus {
+  QUEUED
+  GENERATING
+  READY
+  FAILED
+}
+
+// ─────────────────────────────────────────────────────────────
+// Trabajos
+// ─────────────────────────────────────────────────────────────
+
+/// Espejo duradero del estado de una tarea en la cola.
+///
+/// BullMQ ya conoce el estado, pero es efímero y se purga. Esta tabla es la
+/// que permite que un usuario que recarga la página tres minutos después
+/// siga viendo su barra de progreso donde la dejó.
+model Job {
+  id     String @id @default(cuid())
+  userId String
+
+  type   String
+  status String @default("queued")
+
+  stage    String?
+  progress Int     @default(0)
+  message  String  @default("")
+
+  errorCode    String?
+  errorMessage String?
+
+  /// Créditos reservados al encolar. Se devuelven si el trabajo falla.
+  creditsReserved Int     @default(0)
+  creditsRefunded Boolean @default(false)
+
+  voiceModelId  String?
+  songVersionId String?
+
+  attempts Int @default(0)
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  startedAt  DateTime?
+  finishedAt DateTime?
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  voiceModel  VoiceModel?  @relation(fields: [voiceModelId], references: [id], onDelete: Cascade)
+  songVersion SongVersion? @relation(fields: [songVersionId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@index([status, createdAt])
+  @@map("jobs")
+}
+
+// ─────────────────────────────────────────────────────────────
+// Créditos
+// ─────────────────────────────────────────────────────────────
+
+/// Libro mayor de solo-inserción. El saldo es SUM(amount).
+///
+/// `balanceAfter` se guarda por comodidad de lectura en el historial, pero
+/// no es la fuente de verdad: el saldo real siempre se recalcula sumando.
+model CreditLedger {
+  id     String @id @default(cuid())
+  userId String
+
+  /// Positivo acredita, negativo carga.
+  amount      Int
+  reason      String
+  description String @default("")
+
+  balanceAfter Int
+
+  /// Enlaza el asiento con lo que lo originó (jobId, songVersionId, pago…).
+  referenceId   String?
+  referenceType String?
+
+  /// Clave de idempotencia: impide cobrar dos veces por el mismo evento
+  /// si un reintento de red repite la petición.
+  idempotencyKey String? @unique
+
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("credit_ledger")
+}

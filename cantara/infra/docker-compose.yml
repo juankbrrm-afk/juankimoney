@@ -1,0 +1,75 @@
+version: "3.9"
+
+name: cantara
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: cantara
+      POSTGRES_PASSWORD: cantara
+      POSTGRES_DB: cantara
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cantara -d cantara"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Almacén de objetos compatible con S3 para desarrollo local.
+  # En producción se sustituye por Cloudflare R2 o AWS S3 cambiando
+  # únicamente las variables S3_* — el código es el mismo.
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: cantara
+      MINIO_ROOT_PASSWORD: cantara-dev-secret
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - miniodata:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Crea los buckets al arrancar y sale.
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 cantara cantara-dev-secret &&
+      mc mb --ignore-existing local/cantara-audio &&
+      mc anonymous set none local/cantara-audio &&
+      echo 'buckets listos'
+      "
+
+volumes:
+  pgdata:
+  redisdata:
+  miniodata:

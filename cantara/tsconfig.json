@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node"]
+  },
+  "include": [
+    "packages/*/src/**/*.ts",
+    "packages/*/test/**/*.ts",
+    "apps/api/src/**/*.ts",
+    "apps/api/test/**/*.ts",
+    "apps/worker/src/**/*.ts",
+    "apps/worker/test/**/*.ts"
+  ],
+  "exclude": ["**/node_modules", "**/dist", "**/.next", "packages/db/src/generated"]
+}
