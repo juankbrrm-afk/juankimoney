@@ -43,6 +43,18 @@ import {
 
 // ── Almacenamiento en disco, sin S3 ──────────────────────────
 
+const AUDIO = new Set(['.wav', '.mp3', '.m4a', '.aac', '.ogg', '.webm', '.flac']);
+
+const MIME: Record<string, string> = {
+  '.wav': 'audio/wav',
+  '.mp3': 'audio/mpeg',
+  '.m4a': 'audio/mp4',
+  '.aac': 'audio/aac',
+  '.ogg': 'audio/ogg',
+  '.webm': 'audio/webm',
+  '.flac': 'audio/flac',
+};
+
 /**
  * Los archivos van a una carpeta local. El pipeline solo necesita un
  * `StoragePort`; que detrás haya S3 o el disco de tu portátil le da igual.
@@ -65,8 +77,18 @@ class CarpetaLocal implements StoragePort {
   async exists(clave: string): Promise<boolean> {
     return existsSync(this.ruta(clave));
   }
+  /**
+   * URL que un proveedor externo puede descargar.
+   *
+   * Aquí no hay servidor ni bucket, así que `file://` no le sirve a nadie:
+   * Replicate corre en otra máquina. Se devuelve el audio como data URI, que
+   * sus APIs aceptan igual que una URL http. Es lo que hace posible usar
+   * proveedores de GPU reales desde un CLI sin infraestructura.
+   */
   async signedDownloadUrl(clave: string): Promise<string> {
-    return `file://${this.ruta(clave)}`;
+    const datos = await this.get(clave);
+    const tipo = MIME[extname(clave).toLowerCase()] ?? 'audio/wav';
+    return `data:${tipo};base64,${Buffer.from(datos).toString('base64')}`;
   }
   async signedUploadUrl(clave: string) {
     return { url: `file://${this.ruta(clave)}`, headers: {} };
@@ -98,18 +120,6 @@ function barra(etiqueta: string, fraccion: number): void {
 
   process.stdout.write(`\r${linea.padEnd(78)}`);
 }
-
-const AUDIO = new Set(['.wav', '.mp3', '.m4a', '.aac', '.ogg', '.webm', '.flac']);
-
-const MIME: Record<string, string> = {
-  '.wav': 'audio/wav',
-  '.mp3': 'audio/mpeg',
-  '.m4a': 'audio/mp4',
-  '.aac': 'audio/aac',
-  '.ogg': 'audio/ogg',
-  '.webm': 'audio/webm',
-  '.flac': 'audio/flac',
-};
 
 async function main() {
   const { values } = parseArgs({
@@ -213,7 +223,12 @@ async function main() {
       },
     ).catch((error: Error) => {
       process.stdout.write('\n');
-      fallar(`${error.message}\n\nGraba en un sitio silencioso y sin saturar el micrófono.`);
+      const detalle = (error as { detail?: string }).detail;
+      fallar(
+        detalle
+          ? `${error.message}\n\n   Respuesta del proveedor:\n   ${detalle}`
+          : `${error.message}\n\nGraba en un sitio silencioso y sin saturar el micrófono.`,
+      );
     });
 
     process.stdout.write('\n\n');
@@ -269,7 +284,11 @@ async function main() {
     },
   ).catch((error: Error) => {
     process.stdout.write('\n');
-    fallar(error.message);
+    // El `detail` trae la respuesta literal del proveedor —qué campo rechazó,
+    // qué esperaba—. Sin él solo quedaría «El proveedor rechazó la petición»,
+    // que no le sirve a nadie para arreglarlo.
+    const detalle = (error as { detail?: string }).detail;
+    fallar(detalle ? `${error.message}\n\n   Respuesta del proveedor:\n   ${detalle}` : error.message);
   });
 
   process.stdout.write('\n\n');

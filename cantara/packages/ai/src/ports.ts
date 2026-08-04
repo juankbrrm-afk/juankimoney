@@ -25,6 +25,14 @@ export interface AudioBuffer {
   readonly sampleRate: number;
   readonly channels: number;
   readonly durationSeconds: number;
+  /**
+   * URL de descarga del artefacto, cuando el pipeline ya lo ha publicado.
+   *
+   * Los proveedores que corren en GPU ajena no reciben bytes: reciben una URL
+   * y la descargan ellos. El pipeline la firma al pasar el artefacto; los
+   * adaptadores locales simplemente la ignoran.
+   */
+  readonly url?: string;
 }
 
 /** Progreso dentro de una etapa larga, para que la barra no se congele. */
@@ -130,6 +138,8 @@ export interface VoiceTrainer {
 
 export interface ConversionOptions {
   readonly handle: VoiceHandle;
+  /** URL de la voz guía, para los conversores que la descargan por HTTP. */
+  readonly vocalsUrl?: string;
   /** Semitonos de transposición; ver `pitchShiftFor` en shared/music. */
   readonly pitchShift: number;
   readonly timbre: VocalTimbre;

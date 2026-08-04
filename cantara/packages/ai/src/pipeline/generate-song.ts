@@ -101,6 +101,27 @@ export async function generateSong(
     return key;
   };
 
+  /**
+   * Adjunta a un artefacto una URL desde la que se pueda descargar.
+   *
+   * Los proveedores que corren en GPU ajena —Demucs, RVC, seed-vc,
+   * Matchering— no reciben bytes: reciben una URL y la descargan ellos. Sin
+   * esto, el camino de los proveedores reales falla en la primera llamada
+   * pidiendo algo que nadie le pasó. Firmar aquí, y no dentro del adaptador,
+   * mantiene a los adaptadores ignorantes del almacenamiento.
+   */
+  const withUrl = async <T extends AudioBuffer>(name: string, audio: T): Promise<T & { url?: string }> => {
+    const key = artifacts[name];
+    if (!key) return audio;
+    try {
+      return { ...audio, url: await storage.signedDownloadUrl(key, 3600) };
+    } catch {
+      // Un almacén que no sepa firmar no debe tumbar el pipeline: los
+      // proveedores locales no necesitan la URL.
+      return audio;
+    }
+  };
+
   const load = async (name: string, mime = 'audio/wav'): Promise<AudioBuffer | null> => {
     const key = artifacts[name];
     if (!key) return null;
@@ -182,7 +203,7 @@ export async function generateSong(
       await deps.onStage('separation', 1);
       await deps.onStage('voice-conversion', 1);
       await deps.onStage('mixing', 1);
-      return finish(mix);
+      return finish(mix, 'mix');
     }
 
     // ── 3. Separación de stems ────────────────────────────────
@@ -193,7 +214,10 @@ export async function generateSong(
     const stems =
       nativeStems ??
       (await (async () => {
-        const separated = await providers.separator.separate(mix, ctxFor('separation'));
+        const separated = await providers.separator.separate(
+          await withUrl('mix', mix),
+          ctxFor('separation'),
+        );
         await store('stem-vocals', separated.vocals);
         await store('stem-instrumental', separated.instrumental);
         return separated;
@@ -208,10 +232,13 @@ export async function generateSong(
 
     let converted = await load('vocals-converted');
     if (!converted) {
+      const guia = await withUrl('stem-vocals', stems.vocals);
+
       converted = await providers.converter.convert(
-        stems.vocals,
+        guia,
         {
           handle: request.voice.handle,
+          vocalsUrl: guia.url,
           pitchShift: pitchShiftFor(request.timbre, request.voice.isLowRegister),
           timbre: request.timbre,
           strength: 0.85,
@@ -239,15 +266,19 @@ export async function generateSong(
 
     await deps.onStage('mixing', 1);
 
-    return finish(mixed);
+    return finish(mixed, 'mixed');
 
     // ── 6 y 7. Masterización y codificación ───────────────────
-    async function finish(source: AudioBuffer): Promise<SongResult> {
+    async function finish(source: AudioBuffer, sourceName: string): Promise<SongResult> {
       await deps.onStage('mastering', 0);
 
       let mastered = await load('mastered');
       if (!mastered) {
-        mastered = await providers.mastering.master(source, request.genre, ctxFor('mastering'));
+        mastered = await providers.mastering.master(
+          await withUrl(sourceName, source),
+          request.genre,
+          ctxFor('mastering'),
+        );
         await store('mastered', mastered);
       }
 
