@@ -24,3 +24,6 @@ packages/db/src/generated/
 
 # Archivo generado por Next
 apps/web/next-env.d.ts
+
+# Snapshot de Redis (se crea si redis-server arranca desde aquí)
+dump.rdb
