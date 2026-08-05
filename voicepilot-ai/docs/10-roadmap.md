@@ -24,12 +24,12 @@ invisible?*
 
 | # | Módulo | Semanas | Criterio de salida |
 |---|---|---|---|
-| 0.1 | Banco de latencia instrumentado | 1–2 | Medición punto a punto con precisión ±5 ms |
+| 0.1 | ✅ **Banco de latencia instrumentado** (`media/voice-engine`) | 1–2 | ✅ **CUMPLIDO** — ±5 ms verificado de tres formas. 50 tests. Encontró 4 defectos, 3 de ellos en la especificación |
 | 0.2 | Media Plane mínimo (LiveKit + SIP + Voice Engine) | 2–4 | Audio bidireccional PSTN estable 30 min |
 | 0.3 | Modo A con VC open-source | 3–5 | p95 boca-a-oído añadida < 400 ms |
 | 0.4 | Acondicionamiento de audio | 4–6 | Funciona con ruido real de call center grabado |
 | 0.5 | Fine-tuning de acento | 5–8 | Similitud ≥ 0.75, WER de contenido ≤ 8% |
-| 0.6 | Bypass y degradación | 6–7 | Mata la GPU en vivo: la llamada no se corta |
+| 0.6 | ✅ **Bypass y degradación** (adelantado desde sem. 6) | 1–2 | ✅ **CUMPLIDO** — GPU muerta, stalls, 100% de pérdida, backpressure: la cadencia de 20 ms nunca se rompe |
 | 0.7 | **Prueba ciega en EE.UU.** | 8 | **≥ 8/10 receptores no detectan síntesis** |
 | 0.8 | Modo B con wait-k adaptativo | 9–10 | p50 < 1,000 ms, cero retractaciones |
 | 0.9 | Prueba de carga | 11–12 | 50 llamadas concurrentes/GPU sin degradar p95 |

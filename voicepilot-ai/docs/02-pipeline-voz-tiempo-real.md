@@ -1,5 +1,16 @@
 # 02 — Pipeline de voz en tiempo real
 
+> **Estado: parcialmente verificado.** Las cifras de este documento eran
+> estimaciones cuando se escribió. El banco de latencia
+> (`media/voice-engine`, Fase 0 módulo 0.1) ya las mide sobre un pipeline
+> real con modelo simulado. Las secciones marcadas **[MEDIDO]** contienen
+> números reproducibles; el resto sigue siendo estimación hasta que exista el
+> modelo de conversión.
+>
+> El banco encontró **tres errores en este documento**. Están corregidos abajo
+> y anotados, no borrados: un presupuesto que se corrige en silencio es un
+> presupuesto en el que nadie vuelve a confiar.
+
 > Este es el documento más importante del proyecto. Todo lo demás es software
 > de negocio que miles de equipos saben construir. Esto es lo que nos hace
 > defendibles — y lo que puede matarnos.
@@ -14,7 +25,7 @@ oración**, tanto para mejorar acento como para traducir.
 - **Para el Modo A (inglés → inglés mejorado): sí. Es alcanzable, y este
   diseño lo alcanza.** Objetivo: **< 300 ms de latencia añadida**, p95.
 - **Para el Modo B (español → inglés): no es posible. Ni para nosotros, ni
-  para OpenAI, ni para nadie, hoy.** Objetivo honesto: **~900 ms**.
+  para OpenAI, ni para nadie, hoy.** Cifra honesta: **~1,025 ms [MEDIDO]**.
 
 No es una limitación de ingeniería que se resuelva con mejor código o más
 GPU. Es una propiedad del lenguaje. Vale la pena entender exactamente por
@@ -51,16 +62,20 @@ compromiso es irreversible**. Un sistema de texto puede revisar su
 hipótesis; un sistema de voz que ya habló, no.
 
 Los intérpretes humanos simultáneos de la ONU — los mejores del mundo en
-esto — operan con un décalage de **2 a 4 segundos**. Nuestro objetivo de
-~900 ms ya es agresivamente mejor que un profesional humano.
+esto — operan con un décalage de **2 a 4 segundos**. Nuestro ~1,025 ms medido
+sigue siendo el doble de rápido que un profesional humano.
 
 ### La consecuencia de producto
 
 **El Modo A es el producto. El Modo B es una capacidad de expansión.**
 
-- Modo A se vende como: *"tu agente suena americano"* → 300 ms → invisible.
-- Modo B se vende como: *"contrata gente que no habla inglés"* → 900 ms →
+- Modo A se vende como: *"tu agente suena americano"* → 292 ms → invisible.
+- Modo B se vende como: *"contrata gente que no habla inglés"* → ~1 segundo →
   se siente como una llamada satelital. Aceptable, pero perceptible.
+
+El material comercial del Modo B debe decir **"alrededor de un segundo"**, no
+"menos de un segundo". La medición cerró esa puerta y es mejor así: una
+promesa que el producto no cumple se descubre en la primera demo.
 
 Vender el Modo B como "sin delay" quema la credibilidad en la primera demo.
 Vender el Modo B como *"acceso a un mercado laboral 5× más grande, a costa
@@ -93,21 +108,66 @@ nuestro campo de juego.
 | 8 | Jitter buffer de salida + mezcla | 25 ms | Absorbe la varianza de la GPU |
 | 9 | Red edge → gateway PSTN | 20 ms | Interconexión en el mismo datacenter idealmente |
 | 10 | Transcodificación Opus → G.711 | 10 ms | Inevitable en PSTN |
-| | **TOTAL AÑADIDO (p50)** | **270 ms** | |
-| | **TOTAL AÑADIDO (p95)** | **~340 ms** | Con jitter y cola de GPU |
+| 11 | **Margen de playout** | **52 ms** | **Faltaba en la versión original.** Ver abajo |
+| | **TOTAL AÑADIDO (p50)** | **~292 ms** | |
+| | **TOTAL AÑADIDO (p95)** | **~292 ms** | Sí, igual que p50. Ver §2.1 |
 
-**Veredicto:** el objetivo de 300 ms se cumple en p50 y queda al filo en p95.
+### [MEDIDO] Resultado del banco
+
+```
+mode_a_good_edge    p50 292.5 ms   99.93% de audio convertido entregado
+mode_a_busy_floor   p50 292.5 ms   99.20%   (WiFi compartida, 60 personas)
+mode_a_wrong_region p50 392.5 ms   98.30%   (+100 ms por enrutar mal)
+```
+
+Reproducible: `cd media/voice-engine && cargo run --release --bin latency-bench`
+
+**Veredicto:** el objetivo de 300 ms se cumple. El margen real sobre el
+presupuesto es de 8 ms, no de 30 — apretado, pero cumplido.
+
 Las tres palancas para defenderlo:
 
-1. **Edge regional obligatorio.** Un agente enrutado a la región equivocada
-   añade 80–150 ms y revienta el presupuesto solo. El enrutamiento por
-   geolocalización no es una optimización: es un requisito funcional.
+1. **Edge regional obligatorio.** [MEDIDO] Un agente enrutado a la región
+   equivocada añade **exactamente 100 ms** y sale del presupuesto él solo. El
+   enrutamiento por geolocalización no es una optimización: es un requisito
+   funcional, y ahora hay un número que lo respalda.
 2. **GPU dedicada, no compartida.** Batching dinámico entre llamadas ahorra
    costo pero introduce cola. La política es: **batch máximo 4, timeout de
    batch 10 ms**. Preferimos pagar más GPU que perder el p95.
-3. **Lookahead configurable.** 80 ms es el punto dulce. Bajar a 40 ms
+3. **Chunk y lookahead configurables.** 80 ms es el punto dulce. Bajar a 40 ms
    degrada la naturalidad de la prosodia; subir a 160 ms mejora calidad pero
    nos saca del objetivo. Se expone como perilla por tenant.
+
+## 2.1 [MEDIDO] Corrección importante: la latencia es constante por diseño
+
+El p50 y el p95 son idénticos, y no es un error de medición.
+
+En un scheduler de playout fijo, la latencia boca-a-oído **es constante por
+construcción**: es el offset de playout más los términos fijos de entrada y
+salida. La varianza del pipeline no se manifiesta como jitter de latencia.
+Se manifiesta como **frames que pierden su plazo** y caen a bypass.
+
+Esto cambia cómo se opera el sistema:
+
+- La métrica de calidad no es la latencia (que es fija y conocida), sino el
+  **porcentaje de audio realmente convertido** que escuchó el cliente.
+- El offset de playout es la **única perilla de latencia** del sistema, y
+  elegirlo es un compromiso medible, no una intuición.
+
+El banco lo tarifica con `latency-bench --sweep`:
+
+```
+   offset     boca-a-oído    convertido   veredicto
+    120 ms       235.5 ms       95.51%    ✗ demasiado justo
+    140 ms       255.5 ms       99.10%    ✓ mínimo viable
+    160 ms       275.5 ms       99.40%    ✓
+    180 ms       295.5 ms       99.70%    ✓
+```
+
+El piso absoluto son 140 ms — pero al 99.1%, sin margen para un mal minuto de
+red. El valor de producción cuesta ~25 ms más y entrega 99.9%. La diferencia
+entre 255 ms y 280 ms es inaudible; la diferencia entre 99.1% y 99.9% de audio
+convertido no lo es.
 
 ---
 
@@ -122,8 +182,23 @@ Las tres palancas para defenderlo:
 | 8 | **TTS: time-to-first-byte** | **120 ms** | Modelos de streaming de baja latencia |
 | 9 | Buffer de continuidad prosódica | 40 ms | Evita cortes entre chunks sintetizados |
 | 10 | Jitter de salida + red + transcodificación | 55 ms | Igual que Modo A |
-| | **TOTAL AÑADIDO (p50)** | **~930 ms** | |
-| | **TOTAL AÑADIDO (p95)** | **~1,400 ms** | Frases largas y subordinadas pagan más |
+| 11 | **Margen de playout** | **90 ms** | **Faltaba en la versión original.** Escala con la varianza del modelo |
+| | **TOTAL AÑADIDO (p50)** | **~1,025 ms** | Corregido: la estimación original de 930 ms omitía el margen |
+| | **TOTAL AÑADIDO (p95)** | **~1,025 ms** | Constante, por la misma razón que el Modo A |
+
+### [MEDIDO] Resultado del banco
+
+```
+mode_b_good_edge    p50 1025.5 ms   97.53% de audio traducido entregado
+```
+
+La estimación original de ~930 ms era optimista en unos 95 ms porque la tabla
+no tenía línea para el margen de playout — que un scheduler de playout fijo no
+puede omitir. **Se corrigió el documento, no el número.**
+
+Nota de producto: 1,025 ms no cambia el posicionamiento del Modo B. Sigue
+siendo tres veces mejor que un intérprete humano simultáneo. Pero el material
+comercial debe decir *"alrededor de un segundo"*, no *"menos de un segundo"*.
 
 ### Cómo hacemos que ~930 ms se sienta bien y no roto
 
@@ -304,9 +379,25 @@ Entre Voice Engine (Rust) y los servicios de IA (Python):
 - **Formato:** PCM float32, 24 kHz, mono, chunks de 20 ms
 - **Cada chunk lleva:** `call_id`, `seq`, `capture_timestamp_ns`,
   `speaker` (agent/customer), flags de VAD
-- **Backpressure:** si el consumidor de IA se retrasa más de 3 chunks, el
-  Voice Engine **descarta y activa bypass**. No encola. Un buffer creciente
-  en un sistema de tiempo real es una bomba de tiempo.
+- **Backpressure:** si el consumidor de IA se retrasa más de 3 chunks **por
+  encima de la profundidad inherente del modelo**, el Voice Engine descarta.
+  No encola. Un buffer creciente en un sistema de tiempo real es una bomba de
+  tiempo.
+
+  > **[CORRECCIÓN — hallada por el banco]** La versión original de esta regla
+  > decía solo "3 chunks", y se implementó como una cola máxima de 3 frames.
+  > Es incorrecto y costoso: un modelo de streaming con 80 ms de lookahead
+  > retiene ~6 frames **por construcción** — eso es el algoritmo funcionando,
+  > no congestión. Con el umbral en 3 se descartaba el **46% de una llamada
+  > perfectamente sana**.
+  >
+  > Y "3 chunks" significa tres *chunks de inferencia*, no tres frames. Para
+  > el Modo B, cuyo chunk son 8 frames, contar el margen en frames le daba
+  > 60 ms de holgura a un stage cuya propia varianza es mayor que eso, y
+  > tiraba el **33% de una llamada traducida sana**.
+  >
+  > Umbral correcto:
+  > `max_depth = profundidad_inherente + chunks_de_holgura × frames_por_chunk`
 - **Marca de latencia:** el `capture_timestamp_ns` viaja con el audio hasta la
   salida, lo que permite medir latencia real punto a punto, no estimada
 
@@ -319,7 +410,7 @@ construye **únicamente esto** y se mide:
 
 | Semana | Entregable | Criterio de salida |
 |---|---|---|
-| 1–2 | Banco de pruebas de latencia: audio grabado → pipeline → medición punto a punto | Instrumentación con precisión ±5 ms |
+| 1–2 | ✅ **HECHO** — Banco de latencia instrumentado (`media/voice-engine`) | ✅ Precisión ±5 ms, verificada de tres formas independientes |
 | 3–4 | Modo A extremo a extremo con VC open-source, una GPU | p95 boca-a-oído añadida < 400 ms |
 | 5–6 | Fine-tuning de acento + evaluación de calidad | Similitud ≥ 0.75, WER ≤ 8% |
 | 7 | Modo A sobre llamada PSTN real | p95 < 340 ms sostenido, 30 min |
@@ -337,9 +428,11 @@ sobre un motor de voz que no convence es construir sobre arena.
 
 | Compromiso | Valor | Confianza |
 |---|---|---|
-| Latencia añadida Modo A, p50 | 270 ms | Alta |
-| Latencia añadida Modo A, p95 | 340 ms | Media — depende de edge regional y GPU dedicada |
-| Latencia añadida Modo B, p50 | 930 ms | Media |
+| Latencia añadida Modo A, p50 | **292 ms [MEDIDO]** | Alta — reproducible en el banco |
+| Latencia añadida Modo A, p95 | **292 ms [MEDIDO]** | Alta — constante por diseño (§2.1) |
+| Audio convertido entregado, Modo A | **99.9% [MEDIDO]** | Alta |
+| Latencia añadida Modo B, p50 | **1,025 ms [MEDIDO]** | Alta — corregido desde 930 ms |
+| Audio traducido entregado, Modo B | **97.5% [MEDIDO]** | Alta |
 | Naturalidad Modo A (MOS) | ≥ 4.0 | Media — es el riesgo de I+D |
-| Continuidad de audio ante fallo de IA | 100% | Alta — es una garantía arquitectónica |
+| Continuidad de audio ante fallo de IA | **100% [MEDIDO]** | Alta — garantía arquitectónica, verificada matando la GPU en vivo |
 | Cero retractaciones de traducción | 100% | Alta — es una decisión de política, no de modelo |

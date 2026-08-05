@@ -18,9 +18,24 @@ Funciona de dos formas:
 
 ## Estado del proyecto
 
-**Fase actual: especificación aprobada / pendiente de aprobación.**
-No hay código de aplicación todavía — por diseño. Este repositorio contiene
-la arquitectura completa antes de la primera línea de producción.
+**Especificación aprobada. Fase 0 en curso.**
+
+| Módulo | Estado |
+|---|---|
+| Especificación completa (13 documentos) | ✅ Aprobada |
+| **Fase 0 · 0.1 — Banco de latencia + Voice Engine** | ✅ **Completo** — [`media/voice-engine`](media/voice-engine/) |
+| Fase 0 · 0.2 — Media Plane mínimo (LiveKit + SIP) | Siguiente |
+| Todo lo demás | No empezado, por diseño |
+
+Lo medido hasta ahora, reproducible con
+`cd media/voice-engine && cargo run --release --bin latency-bench`:
+
+- **Modo A: 292 ms boca-a-oído, 99.9% de audio convertido entregado** — dentro
+  de la promesa de 300 ms
+- **Modo B: 1,025 ms, 97.5% entregado** — corregido desde la estimación de
+  930 ms, a la que le faltaba el margen de playout
+- **Continuidad de audio: 100%** con la GPU muerta, con 900 ms de stall, con
+  100% de pérdida de paquetes y bajo backpressure sostenido
 
 Lee los documentos en este orden:
 
@@ -46,6 +61,7 @@ Lee los documentos en este orden:
 
 ```
 voicepilot-ai/
+├── media/               Rust — Media Plane: Voice Engine, scheduler, SIP
 ├── frontend/            Next.js — dashboard, CRM, consola del agente
 ├── backend/             NestJS — API de negocio, CRM, orquestación
 ├── ai-services/         Python — voz, ASR, MT, TTS, copilot, análisis
@@ -64,8 +80,11 @@ su frontera y lo que tiene prohibido hacer.
 
 1. **< 300 ms de latencia añadida** en Modo A (mismo idioma, conversión de
    acento). Es el número que hace que el cliente jamás sospeche.
-2. **< 900 ms de latencia añadida** en Modo B (español → inglés). Traducir
+   **Medido: 292 ms.**
+2. **~1,025 ms de latencia añadida** en Modo B (español → inglés). Traducir
    exige entender, y entender exige esperar. Ver [doc 02](docs/02-pipeline-voz-tiempo-real.md#por-qué-el-modo-b-no-puede-bajar-de-300-ms).
+   **Medido: 1,025 ms** — la estimación original de 930 ms omitía el margen
+   de playout.
 3. **0 respuestas inventadas** en el copilot. Si no está en el material de
    la empresa, el copilot calla. Sin excepción.
 
