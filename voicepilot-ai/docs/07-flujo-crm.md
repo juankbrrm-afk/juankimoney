@@ -47,6 +47,17 @@ explícito de cuál aplica:
 **Decisión para el MVP: L3 solo en HubSpot y Salesforce. L2 en Zoho y
 Pipedrive. L1 para todo lo demás.**
 
+> **[ACTUALIZADO]** El primer objetivo real es **ReadyMode**, no HubSpot: es lo
+> que usa nuestro socio de diseño, y es un dialer con CRM incorporado, no un
+> CRM. Eso levanta una pregunta que este documento no contemplaba —
+> **¿quién es dueño de la ruta del audio?** — y que resulta ser más importante
+> que toda la capa de CRM junta. Ver [doc 13](13-integracion-readymode.md).
+>
+> El núcleo genérico ya está construido y probado en
+> [`shared/crm`](../shared/crm/): modelo canónico, contrato de adaptador con
+> declaración de capacidades, motor de mapeo con dry-run, y cola de sync
+> idempotente con DLQ.
+
 Justificación: L3 en ocho CRMs es un equipo entero dedicado a mantenimiento
 eterno de APIs ajenas. L1 cubre el 100% del mercado con el 5% del esfuerzo,
 y es lo que hace vendible el producto desde el día uno.

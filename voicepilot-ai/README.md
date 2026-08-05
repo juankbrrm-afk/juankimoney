@@ -26,6 +26,8 @@ Funciona de dos formas:
 | **Fase 0 · 0.1 — Banco de latencia + Voice Engine** | ✅ **Completo** — [`media/voice-engine`](media/voice-engine/) |
 | **Fase 0 · 0.2a — Contrato e integración remota** | ✅ **Completo** — [`shared/proto/voice.proto`](shared/proto/voice.proto) + `remote.rs` |
 | Fase 0 · 0.2b — LiveKit SFU + puente SIP | ⛔ Bloqueado por entorno (sin acceso a crates.io) |
+| **Núcleo de integración de CRM** | ✅ **Completo** — [`shared/crm`](shared/crm/) · 41 tests |
+| **Integración ReadyMode** (socio de diseño) | 📋 Plan + worklist — [doc 13](docs/13-integracion-readymode.md) |
 | Todo lo demás | No empezado, por diseño |
 
 Lo medido hasta ahora, reproducible con
@@ -59,6 +61,7 @@ Lee los documentos en este orden:
 | 10 | [Roadmap: MVP → Enterprise](docs/10-roadmap.md) | Fases, hitos, criterios de salida |
 | 11 | [Unit economics](docs/11-unit-economics.md) | Costo por minuto, precio, margen |
 | 12 | [Sistema de diseño](docs/12-sistema-de-diseno.md) | UI, color, densidad, componentes clave |
+| 13 | [Integración ReadyMode](docs/13-integracion-readymode.md) | Socio de diseño. **Quién es dueño del audio** |
 
 ---
 
@@ -72,6 +75,8 @@ voicepilot-ai/
 ├── ai-services/         Python — voz, ASR, MT, TTS, copilot, análisis
 ├── browser-extension/   Chrome MV3 — VoicePilot encima de CRMs ajenos
 ├── shared/              Contratos, tipos, esquemas de eventos, SDK
+│   ├── proto/           Contrato gRPC Media ↔ Intelligence
+│   └── crm/             Modelo canónico, adaptadores, mapeo, cola de sync
 ├── infrastructure/      Terraform, Helm, CI/CD, observabilidad
 └── docs/                Esta especificación
 ```

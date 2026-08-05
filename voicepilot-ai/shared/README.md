@@ -12,13 +12,16 @@ contratos. Aquí viven, una sola vez.
 ```
 shared/
 ├── proto/               Definiciones gRPC entre Rust, Python y TypeScript
-│   ├── voice.proto      VoiceProcessor, AudioFrame, ProcessedFrame
+│   ├── voice.proto      ✅ CONSTRUIDO — VoiceProcessor, AudioFrame, ProcessedFrame
 │   ├── transcribe.proto
 │   └── copilot.proto
+├── crm/                 ✅ CONSTRUIDO — modelo canónico, contrato de adaptador,
+│   ├── src/                motor de mapeo, cola de sync idempotente
+│   ├── test/               41 tests, cero dependencias
+│   └── providers/          ReadyMode como primer objetivo
 ├── schemas/
 │   ├── openapi.yaml     Contrato de la API pública (fuente, no derivado)
-│   ├── events/          Esquemas de eventos del bus y del WebSocket
-│   └── entities/        Modelo canónico de CRM (Zod)
+│   └── events/          Esquemas de eventos del bus y del WebSocket
 ├── types/               Tipos TypeScript generados + compartidos
 ├── ui/                  Componentes compartidos frontend ↔ extensión
 │   ├── copilot/         Panel de sugerencias — la misma pieza en ambas
@@ -45,5 +48,9 @@ superficies distintas para hablarse?** Si no, no entra.
 
 ## Estado
 
-No implementado. Se crea en Fase 1, módulo 1.1, antes que cualquier otro
-código ([roadmap](../docs/10-roadmap.md)).
+Parcialmente implementado:
+
+- ✅ `proto/voice.proto` — contrato Media ↔ Intelligence, consumido por
+  `media/voice-engine/src/remote.rs`
+- ✅ `crm/` — modelo canónico, adaptadores y cola de sync, 41 tests
+- Pendiente: `openapi.yaml`, esquemas de eventos, `ui/`, `i18n/`
