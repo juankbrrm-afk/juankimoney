@@ -16,6 +16,15 @@ Funciona de dos formas:
 
 ---
 
+## Demo
+
+**Abre [`demo/index.html`](demo/index.html)** — doble clic, sin servidor ni
+instalación. La consola del agente con una llamada en vivo, y tu propio
+micrófono procesado en tiempo real. Ver [demo/README.md](demo/README.md) para
+qué es real y qué está simulado.
+
+---
+
 ## Estado del proyecto
 
 **Especificación aprobada. Fase 0 en curso.**
@@ -69,6 +78,7 @@ Lee los documentos en este orden:
 
 ```
 voicepilot-ai/
+├── demo/                Demo de un archivo — ábrelo en el navegador
 ├── media/               Rust — Media Plane: Voice Engine, scheduler, SIP
 ├── frontend/            Next.js — dashboard, CRM, consola del agente
 ├── backend/             NestJS — API de negocio, CRM, orquestación
