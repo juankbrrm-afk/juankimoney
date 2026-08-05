@@ -372,26 +372,14 @@
 
   /* ---------- mic ---------- */
 
-  .mic-panel {
-    border: 1px solid var(--page-line); border-radius: 12px;
-    background: var(--page-surface); overflow: hidden;
-  }
-  .mic-body { padding: 20px; display: flex; flex-direction: column; gap: 18px; }
+  
+  
 
-  .mic-warn {
-    display: flex; gap: 10px; align-items: flex-start;
-    padding: 12px 14px; border-radius: var(--r);
-    background: color-mix(in srgb, var(--crit) 9%, transparent);
-    border: 1px solid color-mix(in srgb, var(--crit) 32%, transparent);
-    font-size: 13.5px;
-  }
+  
   .mic-warn b { color: var(--crit); }
 
-  .meters { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; }
-  .meter {
-    border: 1px solid var(--page-line); border-radius: var(--r);
-    padding: 12px 14px; background: var(--page-bg);
-  }
+  
+  
   .meter .k {
     font-family: var(--mono); font-size: 10px; letter-spacing: 0.09em;
     text-transform: uppercase; color: var(--page-fg-2);
@@ -404,17 +392,15 @@
 
   canvas { display: block; width: 100%; height: 76px; border-radius: var(--r); background: var(--page-bg); border: 1px solid var(--page-line); }
 
-  .ab {
-    display: inline-flex; border: 1px solid var(--page-line); border-radius: 999px; overflow: hidden;
-  }
+  
   .ab button {
     border: 0; border-radius: 0; background: transparent; color: var(--page-fg-2);
     padding: 7px 17px;
   }
   .ab button[aria-pressed="true"] { background: var(--info); color: #05070C; font-weight: 600; }
 
-  .sliders { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; }
-  .slider { display: flex; flex-direction: column; gap: 6px; }
+  
+  
   .slider label {
     font-family: var(--mono); font-size: 11px; color: var(--page-fg-2);
     display: flex; justify-content: space-between; gap: 10px;
@@ -423,6 +409,80 @@
   input[type="range"] { width: 100%; accent-color: var(--info); }
 
   .mic-status { font-family: var(--mono); font-size: 12.5px; color: var(--page-fg-2); }
+
+
+  /* ---------- before/after workflow ---------- */
+
+  .steps { display: flex; flex-direction: column; gap: 2px; }
+
+  .step {
+    display: grid; grid-template-columns: 56px 1fr;
+    border: 1px solid var(--page-line);
+    background: var(--page-surface);
+  }
+  .step:first-child { border-radius: 12px 12px 0 0; }
+  .step:last-child { border-radius: 0 0 12px 12px; }
+  .step + .step { border-top: 0; }
+  @media (max-width: 620px) { .step { grid-template-columns: 40px 1fr; } }
+
+  .step-n {
+    display: flex; align-items: flex-start; justify-content: center;
+    padding: 22px 0 0;
+    font-family: var(--mono); font-size: 13px; font-weight: 600;
+    color: var(--page-fg-2);
+    border-right: 1px solid var(--page-line);
+  }
+
+  .step-body { padding: 20px 22px; display: flex; flex-direction: column; gap: 12px; }
+  .step-body h3 {
+    margin: 0; font-size: 18px; font-weight: 600; letter-spacing: -0.015em;
+  }
+  .step-body p { margin: 0; color: var(--page-fg-2); font-size: 14.5px; max-width: 64ch; }
+  .step-body p strong { color: var(--page-fg); font-weight: 600; }
+  .step-body .fine { font-size: 13px; color: var(--page-fg-2); opacity: .8; }
+
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+  .sample {
+    border-left: 2px solid var(--info); padding: 8px 0 8px 14px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .sample-k {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--page-fg-2);
+  }
+  .sample-v { font-size: 14.5px; line-height: 1.5; }
+
+  .drops { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 620px) { .drops { grid-template-columns: 1fr; } }
+
+  .drop {
+    border: 1px dashed var(--page-line); border-radius: var(--r);
+    padding: 22px 16px; text-align: center; cursor: pointer;
+    transition: border-color .15s, background .15s;
+    display: flex; flex-direction: column; gap: 5px;
+  }
+  .drop:hover, .drop:focus-visible { border-color: var(--info); background: color-mix(in srgb, var(--info) 6%, transparent); }
+  .drop:focus-visible { outline: 2px solid var(--info); outline-offset: 2px; }
+  .drop.loaded { border-style: solid; border-color: color-mix(in srgb, var(--good) 45%, transparent); background: color-mix(in srgb, var(--good) 7%, transparent); }
+  .drop-k {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em;
+    color: var(--page-fg-2);
+  }
+  .drop.loaded .drop-k { color: var(--good); }
+  .drop-sub { font-size: 13px; color: var(--page-fg-2); word-break: break-word; }
+
+  .ab-big { display: flex; gap: 10px; flex-wrap: wrap; }
+  .ab-big button { padding: 13px 20px; font-size: 15px; font-weight: 600; }
+  .ab-big button.accent {
+    background: var(--good); border-color: var(--good); color: #04120B;
+  }
+  .ab-big button.accent:hover:not(:disabled) { background: #5FDCA3; border-color: #5FDCA3; }
+  .ab-big button.playing { outline: 2px solid var(--info); outline-offset: 2px; }
+
+  .mic-status { font-family: var(--mono); font-size: 12.5px; color: var(--page-fg-2); }
+
+  canvas { display: block; width: 100%; height: 64px; border-radius: var(--r); background: var(--page-bg); border: 1px solid var(--page-line); }
 
   /* ---------- truth table ---------- */
 
@@ -468,11 +528,12 @@
     <div class="honesty">
       <span aria-hidden="true">⚠</span>
       <div>
-        <b>Qué es real y qué no.</b> La conversión de voz de abajo es DSP real
-        corriendo en tu navegador — no el modelo de acento entrenado, que
-        necesita GPU. La llamada de arriba es un guion reproducido, no una
-        llamada en vivo. Todo lo demás — los tiempos, la latencia medida, el
-        comportamiento ante fallos — es el sistema real.
+        <b>El acento es el negocio, y aquí lo oyes con tu propia voz.</b>
+        La sección 2 te lleva paso a paso: grabas, conviertes con un servicio
+        que ya existe, y comparas. La conversión no corre en este navegador —
+        necesita GPU. La llamada de la sección 1 es un guion reproducido. Los
+        tiempos, la latencia y el comportamiento ante fallos son del sistema
+        real.
       </div>
     </div>
   </header>
@@ -585,69 +646,80 @@
   </section>
 
   <section>
-    <h2>2 · Tu voz, procesada en vivo</h2>
+    <h2>2 · Tu antes y después, con tu propia voz</h2>
     <p class="section-note">
-      Habla y escúchate. Esto es DSP real — desplazamiento de tono, moldeado de
-      formantes y compresión de radiodifusión — con la latencia que tu navegador
-      reporta de verdad. No convierte tu acento; demuestra la ruta: micrófono →
-      procesamiento → salida, sin cortes.
+      Esto es el negocio. Tres pasos, diez minutos, sin pagar nada — y al final
+      tienes un antes/después real que puedes ponerle a un cliente en la mesa.
     </p>
 
-    <div class="mic-panel">
-      <div class="mic-body">
-        <div class="mic-warn">
-          <span aria-hidden="true">🎧</span>
-          <div><b>Usa audífonos.</b> Sin ellos el micrófono captura la salida y
-          se produce un acople muy desagradable.</div>
-        </div>
+    <div class="steps">
 
-        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-          <button class="primary" id="micStart">Activar micrófono</button>
-          <div class="ab" role="group" aria-label="Comparar voz">
-            <button id="abRaw" aria-pressed="false" disabled>Cruda</button>
-            <button id="abProc" aria-pressed="true" disabled>Procesada</button>
+      <div class="step">
+        <div class="step-n">1</div>
+        <div class="step-body">
+          <h3>Graba tu voz como está hoy</h3>
+          <p>
+            Di una línea de tu pitch en inglés, como la dirías en una llamada.
+            Veinte segundos bastan. Se graba aquí y se descarga a tu máquina —
+            no se sube a ningún lado.
+          </p>
+          <div class="row">
+            <button class="primary" id="recBtn">● Grabar</button>
+            <button id="recDl" disabled>↓ Descargar</button>
+            <span class="mic-status" id="recStatus">Listo para grabar</span>
           </div>
-          <span class="mic-status" id="micStatus">Micrófono apagado</span>
-        </div>
-
-        <canvas id="scope" width="1000" height="76" aria-label="Forma de onda del audio procesado"></canvas>
-
-        <div class="meters">
-          <div class="meter">
-            <div class="k">Latencia añadida</div>
-            <div class="v" id="mLat">—</div>
-            <div class="sub" id="mLatSub">medida, no estimada</div>
-          </div>
-          <div class="meter">
-            <div class="k">Frecuencia de muestreo</div>
-            <div class="v" id="mRate">—</div>
-            <div class="sub">del dispositivo</div>
-          </div>
-          <div class="meter">
-            <div class="k">Nivel de entrada</div>
-            <div class="v" id="mLevel">—</div>
-            <div class="sub" id="mLevelSub">objetivo −18 dBFS</div>
-          </div>
-          <div class="meter">
-            <div class="k">Actividad de voz</div>
-            <div class="v" id="mVad">—</div>
-            <div class="sub">la GPU solo paga esto</div>
+          <canvas id="scope" width="1000" height="64" aria-label="Nivel de grabación"></canvas>
+          <div class="sample">
+            <div class="sample-k">Línea sugerida</div>
+            <div class="sample-v">“Hi Michael, this is Andrew with Solaris Energy. We're finishing installs on your street this month, and I wanted to check what you're paying the utility right now.”</div>
           </div>
         </div>
+      </div>
 
-        <div class="sliders">
-          <div class="slider">
-            <label for="sPitch"><span>Tono</span><span id="vPitch">+2.5 st</span></label>
-            <input type="range" id="sPitch" min="-6" max="6" step="0.5" value="2.5" />
+      <div class="step">
+        <div class="step-n">2</div>
+        <div class="step-body">
+          <h3>Conviértela a acento americano</h3>
+          <p>
+            Sube el archivo a cualquier conversor de voz a voz. El de
+            <strong>ElevenLabs (Voice Changer)</strong> tiene capa gratis y hace
+            exactamente esto: entra tu voz, sale la misma frase con la misma
+            entonación, en una voz americana nativa. Descarga el resultado.
+          </p>
+          <p class="fine">
+            Esto es lo que en producción corre en vivo a 292 ms. Aquí lo haces a
+            mano una vez, para oírlo.
+          </p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-n">3</div>
+        <div class="step-body">
+          <h3>Ponlos lado a lado</h3>
+          <p>
+            Arrastra los dos archivos aquí. Quedan guardados en este navegador,
+            así que el demo sigue funcionando cuando lo abras mañana frente a un
+            cliente.
+          </p>
+
+          <div class="drops">
+            <div class="drop" id="dropBefore" tabindex="0" role="button" aria-label="Cargar audio antes">
+              <div class="drop-k">ANTES</div>
+              <div class="drop-sub" id="beforeName">arrastra tu voz original</div>
+            </div>
+            <div class="drop" id="dropAfter" tabindex="0" role="button" aria-label="Cargar audio después">
+              <div class="drop-k">DESPUÉS</div>
+              <div class="drop-sub" id="afterName">arrastra la voz convertida</div>
+            </div>
           </div>
-          <div class="slider">
-            <label for="sPresence"><span>Presencia (2.8 kHz)</span><span id="vPresence">+5.0 dB</span></label>
-            <input type="range" id="sPresence" min="0" max="12" step="0.5" value="5" />
+
+          <div class="ab-big" id="abBig" hidden>
+            <button id="playBefore">▶ ANTES · tu voz</button>
+            <button id="playAfter" class="accent">▶ DESPUÉS · lo que oye el cliente</button>
+            <button id="stopAB">■</button>
           </div>
-          <div class="slider">
-            <label for="sBody"><span>Cuerpo (250 Hz)</span><span id="vBody">−3.0 dB</span></label>
-            <input type="range" id="sBody" min="-10" max="4" step="0.5" value="-3" />
-          </div>
+          <div class="mic-status" id="abStatus" hidden></div>
         </div>
       </div>
     </div>
@@ -679,11 +751,15 @@
         </div>
       </div>
       <div class="truth-row" data-real="no">
-        <div class="k">Falta el modelo</div>
+        <div class="k">Se compra, no se construye</div>
         <div class="d">
-          El modelo de conversión de acento necesita GPU y semanas de
-          entrenamiento. El banco que lo va a medir ya está construido: cuando
-          el modelo llegue, sabemos si cumple el presupuesto el mismo día.
+          <strong>Corrección de estrategia.</strong> La conversión de acento ya
+          existe como servicio — ElevenLabs, Respeecher y otros la venden hoy.
+          Para el MVP y los primeros clientes <strong>se compra</strong>: sale
+          esta semana en vez de en seis meses. El modelo propio es para después,
+          cuando el volumen justifique el costo por minuto y la latencia sea el
+          diferenciador. El banco que lo va a medir ya está construido, así que
+          el día que se entrene sabemos si cumple.
         </div>
       </div>
     </div>
@@ -1006,246 +1082,202 @@
   reset();
 
   // ---------------------------------------------------------------------
-  // Real-time microphone processing
+  // Before / after: record here, convert elsewhere, compare here
   //
-  // Granular pitch shift with two crossfaded read heads over a delay line,
-  // plus formant shaping and broadcast compression. Real DSP, real latency.
+  // The conversion itself is not done in the browser — accent conversion needs
+  // a trained model on a GPU. What this does is close the loop: capture the
+  // agent's real voice, and put the two clips side by side so the difference
+  // is something you hear rather than something you are told about.
   // ---------------------------------------------------------------------
 
-  let ctx = null, stream = null, nodes = null, analyser = null, drawRaf = null;
-  let bypassing = false;
-
-  const micStart = $("micStart");
-  const micStatus = $("micStatus");
-  const abRaw = $("abRaw"), abProc = $("abProc");
+  const recBtn = $("recBtn"), recDl = $("recDl"), recStatus = $("recStatus");
   const scope = $("scope"), sctx = scope.getContext("2d");
 
-  const sPitch = $("sPitch"), sPresence = $("sPresence"), sBody = $("sBody");
+  let mediaRecorder = null, chunks = [], recStream = null;
+  let recCtx = null, recAnalyser = null, drawRaf = null, recordedUrl = null;
 
-  function makePitchShifter(audioCtx, bufSize) {
-    // ScriptProcessor is deprecated but needs no separate module file, which
-    // matters here: an AudioWorklet would require a blob URL that the page's
-    // content policy may refuse.
-    const node = audioCtx.createScriptProcessor(bufSize, 1, 1);
-    const ringSize = 8192;
-    const ring = new Float32Array(ringSize);
-    let writePos = 0;
-    let readPos = 0;
-    node.ratio = 1.0;
-
-    node.onaudioprocess = (e) => {
-      const input = e.inputBuffer.getChannelData(0);
-      const output = e.outputBuffer.getChannelData(0);
-      const n = input.length;
-      const ratio = node.ratio;
-      const window = 2048;
-
-      for (let i = 0; i < n; i++) {
-        ring[writePos] = input[i];
-        writePos = (writePos + 1) % ringSize;
-
-        // Two read heads half a window apart, crossfaded triangularly, so the
-        // seam where a head wraps is masked by the other head.
-        const p1 = readPos;
-        const p2 = (readPos + window / 2) % ringSize;
-
-        const s1 = sampleAt(p1);
-        const s2 = sampleAt(p2);
-
-        const phase = (readPos % window) / window;
-        const g1 = 1 - Math.abs(2 * phase - 1);
-        const g2 = 1 - g1;
-
-        output[i] = s1 * g1 + s2 * g2;
-        readPos = (readPos + ratio) % ringSize;
-        if (readPos < 0) readPos += ringSize;
-      }
-
-      function sampleAt(pos) {
-        const i0 = Math.floor(pos) % ringSize;
-        const i1 = (i0 + 1) % ringSize;
-        const frac = pos - Math.floor(pos);
-        return ring[i0] * (1 - frac) + ring[i1] * frac;
-      }
-    };
-    return node;
-  }
-
-  async function startMic() {
+  async function startRecording() {
     try {
-      micStatus.textContent = "Pidiendo permiso…";
-      stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: false,
-          channelCount: 1,
-        },
+      recStream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: true, channelCount: 1 },
       });
     } catch (err) {
-      micStatus.textContent = "Permiso denegado. Habilita el micrófono y vuelve a intentar.";
+      recStatus.textContent = "Permiso de micrófono denegado.";
       return;
     }
 
-    ctx = new (window.AudioContext || window.webkitAudioContext)({
-      latencyHint: "interactive",
-    });
-    await ctx.resume();
+    recCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const src = recCtx.createMediaStreamSource(recStream);
+    recAnalyser = recCtx.createAnalyser();
+    recAnalyser.fftSize = 2048;
+    src.connect(recAnalyser);
+    // Deliberately not connected to the destination: monitoring your own mic
+    // through the speakers is how you get feedback.
 
-    const src = ctx.createMediaStreamSource(stream);
+    chunks = [];
+    mediaRecorder = new MediaRecorder(recStream);
+    mediaRecorder.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(chunks, { type: mediaRecorder.mimeType || "audio/webm" });
+      if (recordedUrl) URL.revokeObjectURL(recordedUrl);
+      recordedUrl = URL.createObjectURL(blob);
+      recDl.disabled = false;
+      recDl.dataset.url = recordedUrl;
+      recDl.dataset.ext = (mediaRecorder.mimeType || "").includes("ogg") ? "ogg" : "webm";
+      const secs = (blob.size / 16000).toFixed(0);
+      recStatus.textContent = "Grabado · " + (blob.size / 1024).toFixed(0) + " KB — descárgalo";
+      // Offer it straight to the ANTES slot: it is already the right file.
+      loadAudio("before", blob, "grabación de tu voz");
+    };
+    mediaRecorder.start();
 
-    const bufSize = 1024;
-    const shifter = makePitchShifter(ctx, bufSize);
-
-    const hp = ctx.createBiquadFilter();
-    hp.type = "highpass"; hp.frequency.value = 90;
-
-    const body = ctx.createBiquadFilter();
-    body.type = "peaking"; body.frequency.value = 250; body.Q.value = 0.9;
-
-    const presence = ctx.createBiquadFilter();
-    presence.type = "peaking"; presence.frequency.value = 2800; presence.Q.value = 0.8;
-
-    const air = ctx.createBiquadFilter();
-    air.type = "highshelf"; air.frequency.value = 7000; air.gain.value = 2.5;
-
-    const comp = ctx.createDynamicsCompressor();
-    comp.threshold.value = -22; comp.knee.value = 8;
-    comp.ratio.value = 3.5; comp.attack.value = 0.004; comp.release.value = 0.18;
-
-    const out = ctx.createGain();
-    out.gain.value = 0.9;
-
-    analyser = ctx.createAnalyser();
-    analyser.fftSize = 2048;
-
-    // Processed chain.
-    src.connect(shifter);
-    shifter.connect(hp).connect(body).connect(presence).connect(air).connect(comp).connect(out);
-
-    // Raw chain, muted until the A/B toggle asks for it.
-    const rawGain = ctx.createGain();
-    rawGain.gain.value = 0;
-    src.connect(rawGain).connect(out);
-
-    out.connect(analyser);
-    out.connect(ctx.destination);
-
-    nodes = { src, shifter, hp, body, presence, air, comp, out, rawGain, bufSize };
-
-    applyControls();
-    updateLatency();
-    $("mRate").textContent = (ctx.sampleRate / 1000).toFixed(1) + " kHz";
-
-    micStart.textContent = "Detener micrófono";
-    micStatus.textContent = "En vivo · habla";
-    abRaw.disabled = false; abProc.disabled = false;
+    recBtn.textContent = "■ Detener";
+    recBtn.classList.add("danger");
+    recStatus.textContent = "Grabando…";
     drawLoop();
   }
 
-  function stopMic() {
+  function stopRecording() {
+    if (mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop();
+    if (recStream) recStream.getTracks().forEach((t) => t.stop());
+    if (recCtx) recCtx.close();
     cancelAnimationFrame(drawRaf);
-    if (stream) stream.getTracks().forEach((t) => t.stop());
-    if (ctx) ctx.close();
-    ctx = null; stream = null; nodes = null; analyser = null;
-    micStart.textContent = "Activar micrófono";
-    micStatus.textContent = "Micrófono apagado";
-    abRaw.disabled = true; abProc.disabled = true;
-    $("mLat").textContent = "—"; $("mRate").textContent = "—";
-    $("mLevel").textContent = "—"; $("mVad").textContent = "—";
+    recCtx = null; recAnalyser = null; recStream = null;
+    recBtn.textContent = "● Grabar";
+    recBtn.classList.remove("danger");
     sctx.clearRect(0, 0, scope.width, scope.height);
   }
 
-  function updateLatency() {
-    if (!ctx || !nodes) return;
-    // Every term here is reported by the browser or fixed by the buffer size —
-    // none of it is estimated.
-    const base = (ctx.baseLatency || 0) * 1000;
-    const output = (ctx.outputLatency || 0) * 1000;
-    const block = (nodes.bufSize / ctx.sampleRate) * 1000;
-    const total = base + output + block;
-    $("mLat").textContent = total.toFixed(0) + " ms";
-    $("mLatSub").textContent =
-      "bloque " + block.toFixed(0) + " · entrada " + base.toFixed(0) +
-      " · salida " + output.toFixed(0);
-  }
+  recBtn.addEventListener("click", () => {
+    if (mediaRecorder && mediaRecorder.state === "recording") stopRecording();
+    else startRecording();
+  });
 
-  function applyControls() {
-    const semitones = parseFloat(sPitch.value);
-    $("vPitch").textContent = (semitones >= 0 ? "+" : "") + semitones.toFixed(1) + " st";
-    $("vPresence").textContent = "+" + parseFloat(sPresence.value).toFixed(1) + " dB";
-    $("vBody").textContent = parseFloat(sBody.value).toFixed(1) + " dB";
-    if (!nodes) return;
-    nodes.shifter.ratio = Math.pow(2, semitones / 12);
-    nodes.presence.gain.value = parseFloat(sPresence.value);
-    nodes.body.gain.value = parseFloat(sBody.value);
-  }
+  recDl.addEventListener("click", () => {
+    if (!recDl.dataset.url) return;
+    const a = document.createElement("a");
+    a.href = recDl.dataset.url;
+    a.download = "mi-voz-original." + (recDl.dataset.ext || "webm");
+    a.click();
+  });
 
-  [sPitch, sPresence, sBody].forEach((s) => s.addEventListener("input", applyControls));
-
-  function setAB(raw) {
-    bypassing = raw;
-    abRaw.setAttribute("aria-pressed", String(raw));
-    abProc.setAttribute("aria-pressed", String(!raw));
-    if (!nodes) return;
-    const t = ctx.currentTime;
-    // Crossfade rather than a hard cut: a step change in timbre is more
-    // noticeable than a gradual one.
-    nodes.rawGain.gain.setTargetAtTime(raw ? 0.9 : 0, t, 0.02);
-    nodes.out.gain.setTargetAtTime(0.9, t, 0.02);
-    nodes.comp.threshold.setTargetAtTime(raw ? 0 : -22, t, 0.02);
-    micStatus.textContent = raw ? "En vivo · voz cruda" : "En vivo · voz procesada";
-  }
-
-  abRaw.addEventListener("click", () => setAB(true));
-  abProc.addEventListener("click", () => setAB(false));
-
-  micStart.addEventListener("click", () => (ctx ? stopMic() : startMic()));
-
-  const data = new Uint8Array(2048);
-  let vadFrames = 0, totalFrames = 0;
-
+  const recData = new Uint8Array(2048);
   function drawLoop() {
-    if (!analyser) return;
-    analyser.getByteTimeDomainData(data);
-
-    let sum = 0, peak = 0;
-    for (let i = 0; i < data.length; i++) {
-      const v = (data[i] - 128) / 128;
-      sum += v * v;
-      if (Math.abs(v) > peak) peak = Math.abs(v);
+    if (!recAnalyser) return;
+    recAnalyser.getByteTimeDomainData(recData);
+    let peak = 0;
+    for (let i = 0; i < recData.length; i++) {
+      const v = Math.abs((recData[i] - 128) / 128);
+      if (v > peak) peak = v;
     }
-    const rms = Math.sqrt(sum / data.length);
-    const db = rms > 0.0001 ? 20 * Math.log10(rms) : -80;
-
-    totalFrames++;
-    const speaking = db > -42;
-    if (speaking) vadFrames++;
-
-    const lvl = $("mLevel");
-    lvl.textContent = db > -79 ? db.toFixed(0) + " dB" : "—";
-    lvl.style.color = db > -12 ? "var(--crit)" : db > -26 ? "var(--good)" : "var(--page-fg)";
-    $("mLevelSub").textContent = db > -12 ? "demasiado alto — baja la ganancia" : "objetivo −18 dBFS";
-    $("mVad").textContent = totalFrames > 30
-      ? Math.round((vadFrames / totalFrames) * 100) + "%" : "—";
-
-    // Waveform
     const w = scope.width, h = scope.height;
     sctx.clearRect(0, 0, w, h);
-    sctx.strokeStyle = speaking ? "#3ECF8E" : "#2C3033";
+    sctx.strokeStyle = peak > 0.02 ? "#3ECF8E" : "#2C3033";
     sctx.lineWidth = 1.6;
     sctx.beginPath();
     for (let i = 0; i < w; i++) {
-      const idx = Math.floor((i / w) * data.length);
-      const v = (data[idx] - 128) / 128;
-      const y = h / 2 + v * (h / 2 - 4);
+      const v = (recData[Math.floor((i / w) * recData.length)] - 128) / 128;
+      const y = h / 2 + v * (h / 2 - 3);
       i === 0 ? sctx.moveTo(i, y) : sctx.lineTo(i, y);
     }
     sctx.stroke();
-
     drawRaf = requestAnimationFrame(drawLoop);
   }
 
-  window.addEventListener("pagehide", () => { if (ctx) stopMic(); });
+  // --- A/B comparison -------------------------------------------------
+
+  const players = { before: null, after: null };
+  const dropEls = { before: $("dropBefore"), after: $("dropAfter") };
+  const nameEls = { before: $("beforeName"), after: $("afterName") };
+  const abBig = $("abBig"), abStatus = $("abStatus");
+  const playBefore = $("playBefore"), playAfter = $("playAfter"), stopAB = $("stopAB");
+
+  function loadAudio(slot, blob, label) {
+    const url = URL.createObjectURL(blob);
+    if (players[slot]) { players[slot].pause(); URL.revokeObjectURL(players[slot].src); }
+    const audio = new Audio(url);
+    audio.preload = "auto";
+    players[slot] = audio;
+
+    dropEls[slot].classList.add("loaded");
+    nameEls[slot].textContent = label;
+
+    // Persist across reloads, so the demo still works tomorrow in front of a
+    // customer without redoing the whole flow.
+    const reader = new FileReader();
+    reader.onload = () => {
+      try { localStorage.setItem("vp_" + slot, reader.result); } catch (e) { /* quota */ }
+    };
+    reader.readAsDataURL(blob);
+
+    maybeShowAB();
+  }
+
+  function maybeShowAB() {
+    const ready = players.before && players.after;
+    abBig.hidden = !ready;
+    abStatus.hidden = !ready;
+    if (ready) abStatus.textContent = "Alterna entre los dos. Esa diferencia es el producto.";
+  }
+
+  function wireDrop(slot) {
+    const el = dropEls[slot];
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "audio/*";
+    input.addEventListener("change", () => {
+      const f = input.files && input.files[0];
+      if (f) loadAudio(slot, f, f.name);
+    });
+
+    el.addEventListener("click", () => input.click());
+    el.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); input.click(); }
+    });
+    el.addEventListener("dragover", (e) => { e.preventDefault(); el.classList.add("loaded"); });
+    el.addEventListener("dragleave", () => { if (!players[slot]) el.classList.remove("loaded"); });
+    el.addEventListener("drop", (e) => {
+      e.preventDefault();
+      const f = e.dataTransfer.files && e.dataTransfer.files[0];
+      if (f) loadAudio(slot, f, f.name);
+      else if (!players[slot]) el.classList.remove("loaded");
+    });
+  }
+  wireDrop("before");
+  wireDrop("after");
+
+  // Restore anything saved from a previous session.
+  for (const slot of ["before", "after"]) {
+    const saved = localStorage.getItem("vp_" + slot);
+    if (!saved) continue;
+    fetch(saved)
+      .then((r) => r.blob())
+      .then((b) => loadAudio(slot, b, "guardado en este navegador"))
+      .catch(() => {});
+  }
+
+  function playSlot(slot) {
+    stopAll();
+    const a = players[slot];
+    if (!a) return;
+    a.currentTime = 0;
+    a.play();
+    (slot === "before" ? playBefore : playAfter).classList.add("playing");
+    a.onended = () => stopAll();
+  }
+
+  function stopAll() {
+    for (const s of ["before", "after"]) {
+      if (players[s]) { players[s].pause(); }
+    }
+    playBefore.classList.remove("playing");
+    playAfter.classList.remove("playing");
+  }
+
+  playBefore.addEventListener("click", () => playSlot("before"));
+  playAfter.addEventListener("click", () => playSlot("after"));
+  stopAB.addEventListener("click", stopAll);
+
+  window.addEventListener("pagehide", stopRecording);
 })();
 </script>

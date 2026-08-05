@@ -20,10 +20,18 @@ cliente nunca escucha un hueco, escucha al agente.
 
 Al colgar, el resumen post-llamada se genera solo.
 
-**2 · Tu voz, procesada en vivo.** Activa el micrófono (**con audífonos** — sin
-ellos hay acople) y habla. Hay un botón para alternar entre tu voz cruda y la
-procesada. La latencia que muestra es la que tu navegador reporta de verdad,
-no una estimación.
+**2 · Tu antes y después, con tu propia voz.** Esto es el negocio. Tres pasos:
+
+1. **Grabas** una línea de tu pitch en inglés, aquí mismo. Se descarga a tu
+   máquina, no se sube a ningún lado.
+2. **La conviertes** con cualquier conversor de voz a voz —
+   ElevenLabs Voice Changer tiene capa gratis y hace exactamente esto: entra tu
+   voz, sale la misma frase con tu misma entonación, en voz americana nativa.
+3. **Los comparas** arrastrando los dos archivos. Quedan guardados en el
+   navegador, así que el demo sigue funcionando mañana frente a un cliente.
+
+Diez minutos, sin pagar nada, y sales con un antes/después real que puedes
+poner sobre la mesa.
 
 ## Qué es real y qué no
 
@@ -33,11 +41,12 @@ Esto importa más que el demo: un demo que no distingue no sirve para decidir.
 |---|---|
 | **Real** | El procesamiento del micrófono es DSP genuino — desplazamiento de tono granular, moldeado de formantes, compresión. La latencia está medida. El motor de audio en Rust existe, con 71 tests. |
 | **Simulado** | El contenido de la llamada es un guion. Las sugerencias del copilot están escritas a mano; el motor de recuperación anclada aún no existe. |
-| **Falta** | El modelo de conversión de acento. Necesita GPU y semanas de entrenamiento. El banco que lo va a medir ya está construido. |
+| **Se compra** | La conversión de acento ya existe como servicio. Para el MVP y los primeros clientes se compra — sale esta semana, no en seis meses. El modelo propio es para cuando el volumen justifique el costo por minuto. |
 
-**El demo no convierte tu acento a americano.** Demuestra la ruta —
-micrófono → procesamiento → salida, sin cortes — y la experiencia completa del
-agente. Prometer lo otro se cae en la primera prueba frente a un cliente.
+**La conversión no corre dentro de este navegador** — necesita GPU. Lo que el
+demo hace es cerrar el ciclo: capturar tu voz real y poner las dos versiones
+lado a lado, para que la diferencia sea algo que se oye y no algo que se
+promete.
 
 ## Para mostrárselo a alguien
 
@@ -46,7 +55,8 @@ agente. Prometer lo otro se cae en la primera prueba frente a un cliente.
    momento que vende
 3. Pulsa **Matar la GPU** y explica por qué la llamada sigue viva
 4. Deja que termine y muestra el resumen automático
-5. Baja, activa el micrófono con audífonos y alterna cruda/procesada
+5. Baja a la sección 2 y dale al botón grande: **ANTES · tu voz** y luego
+   **DESPUÉS · lo que oye el cliente**. Esa diferencia cierra la venta sola
 
 Los números que puedes citar sin exagerar: **292 ms de latencia añadida, 99.9 %
 de audio convertido entregado, 100 % de continuidad con la GPU muerta.** Los
