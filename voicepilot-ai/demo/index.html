@@ -453,6 +453,30 @@
   }
   .sample-v { font-size: 14.5px; line-height: 1.5; }
 
+  .keyrow { display: flex; gap: 10px; flex-wrap: wrap; }
+  .keyrow input {
+    flex: 1; min-width: 220px;
+    font: inherit; font-family: var(--mono); font-size: 13px;
+    padding: 8px 12px; border-radius: 6px;
+    border: 1px solid var(--page-line);
+    background: var(--page-bg); color: var(--page-fg);
+  }
+  .keyrow input:focus-visible { outline: 2px solid var(--info); outline-offset: 1px; }
+
+  select {
+    font: inherit; font-size: 13.5px; padding: 7px 12px; border-radius: 6px;
+    border: 1px solid var(--page-line);
+    background: var(--page-bg); color: var(--page-fg);
+  }
+
+  .cors-note {
+    padding: 12px 14px; border-radius: var(--r);
+    background: color-mix(in srgb, var(--warn) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--warn) 34%, transparent);
+    font-size: 13.5px;
+  }
+  .cors-note strong { color: var(--warn); }
+
   .drops { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   @media (max-width: 620px) { .drops { grid-template-columns: 1fr; } }
 
@@ -529,9 +553,10 @@
       <span aria-hidden="true">⚠</span>
       <div>
         <b>El acento es el negocio, y aquí lo oyes con tu propia voz.</b>
-        La sección 2 te lleva paso a paso: grabas, conviertes con un servicio
-        que ya existe, y comparas. La conversión no corre en este navegador —
-        necesita GPU. La llamada de la sección 1 es un guion reproducido. Los
+        La sección 2 graba, convierte y compara — conversión de verdad, con tu
+        llave gratuita de ElevenLabs. Requiere abrir este archivo desde tu
+        máquina; la versión publicada en la web no puede llamar a otros
+        servidores. La llamada de la sección 1 es un guion reproducido; los
         tiempos, la latencia y el comportamiento ante fallos son del sistema
         real.
       </div>
@@ -648,8 +673,9 @@
   <section>
     <h2>2 · Tu antes y después, con tu propia voz</h2>
     <p class="section-note">
-      Esto es el negocio. Tres pasos, diez minutos, sin pagar nada — y al final
-      tienes un antes/después real que puedes ponerle a un cliente en la mesa.
+      Esto es el negocio. Grabas, la página convierte, y comparas. Diez minutos,
+      sin pagar nada, y sales con un antes/después con tu propia voz que puedes
+      ponerle a un cliente en la mesa.
     </p>
 
     <div class="steps">
@@ -681,15 +707,34 @@
         <div class="step-body">
           <h3>Conviértela a acento americano</h3>
           <p>
-            Sube el archivo a cualquier conversor de voz a voz. El de
-            <strong>ElevenLabs (Voice Changer)</strong> tiene capa gratis y hace
-            exactamente esto: entra tu voz, sale la misma frase con la misma
-            entonación, en una voz americana nativa. Descarga el resultado.
+            Pega tu llave de <strong>ElevenLabs</strong> (la capa gratuita
+            alcanza) y la página hace la conversión aquí mismo: entra tu voz,
+            sale la misma frase con tu misma entonación, en voz americana
+            nativa.
           </p>
+
+          <div class="keyrow">
+            <input type="password" id="apiKey" placeholder="xi-api-key" autocomplete="off"
+                   aria-label="Llave de API de ElevenLabs" />
+            <button id="keySave">Guardar y cargar voces</button>
+          </div>
           <p class="fine">
-            Esto es lo que en producción corre en vivo a 292 ms. Aquí lo haces a
-            mano una vez, para oírlo.
+            La llave se guarda solo en este navegador y viaja solo a ElevenLabs.
+            Consíguela en elevenlabs.io → tu perfil → API Keys.
           </p>
+
+          <div class="row" id="voiceRow" hidden>
+            <select id="voiceSel" aria-label="Voz americana destino"></select>
+            <button class="primary" id="convertBtn" disabled>Convertir a acento americano</button>
+          </div>
+          <div class="mic-status" id="convStatus"></div>
+
+          <div class="cors-note" id="corsNote" hidden>
+            <strong>Esto solo funciona con el archivo abierto desde tu máquina.</strong>
+            La versión publicada en la web bloquea llamadas a otros servidores por
+            seguridad. Descarga <code>demo/index.html</code> del repositorio y
+            ábrelo con doble clic.
+          </div>
         </div>
       </div>
 
@@ -698,9 +743,9 @@
         <div class="step-body">
           <h3>Ponlos lado a lado</h3>
           <p>
-            Arrastra los dos archivos aquí. Quedan guardados en este navegador,
-            así que el demo sigue funcionando cuando lo abras mañana frente a un
-            cliente.
+            El paso 2 llena el lado derecho solo. También puedes arrastrar
+            archivos a mano. Quedan guardados en este navegador, así que el demo
+            sigue funcionando cuando lo abras mañana frente a un cliente.
           </p>
 
           <div class="drops">
@@ -754,12 +799,12 @@
         <div class="k">Se compra, no se construye</div>
         <div class="d">
           <strong>Corrección de estrategia.</strong> La conversión de acento ya
-          existe como servicio — ElevenLabs, Respeecher y otros la venden hoy.
-          Para el MVP y los primeros clientes <strong>se compra</strong>: sale
-          esta semana en vez de en seis meses. El modelo propio es para después,
-          cuando el volumen justifique el costo por minuto y la latencia sea el
-          diferenciador. El banco que lo va a medir ya está construido, así que
-          el día que se entrene sabemos si cumple.
+          existe como servicio, y la sección 2 la usa de verdad. Para el MVP y
+          los primeros clientes <strong>se compra</strong>: sale esta semana en
+          vez de en seis meses. El modelo propio viene cuando el volumen
+          justifique el costo por minuto y la latencia sea el diferenciador — el
+          banco que lo va a medir ya está construido, así que el día que se
+          entrene sabemos si cumple.
         </div>
       </div>
     </div>
@@ -1126,8 +1171,14 @@
       recDl.dataset.ext = (mediaRecorder.mimeType || "").includes("ogg") ? "ogg" : "webm";
       const secs = (blob.size / 16000).toFixed(0);
       recStatus.textContent = "Grabado · " + (blob.size / 1024).toFixed(0) + " KB — descárgalo";
-      // Offer it straight to the ANTES slot: it is already the right file.
+      // Straight into the ANTES slot: it is already the right file, and the
+      // converter needs the same blob.
+      recordedBlob = blob;
       loadAudio("before", blob, "grabación de tu voz");
+      if (!voiceRow.hidden) {
+        convertBtn.disabled = false;
+        convStatus.textContent = "Grabado. Elige una voz y convierte.";
+      }
     };
     mediaRecorder.start();
 
@@ -1183,6 +1234,125 @@
     sctx.stroke();
     drawRaf = requestAnimationFrame(drawLoop);
   }
+
+  // --- Real accent conversion, via ElevenLabs -------------------------
+  //
+  // The conversion itself is bought, not built. That is the right call for a
+  // demo and for the first customers: it exists today, it works today, and it
+  // turns six months into an afternoon. Training our own model is for later,
+  // when per-minute cost and latency become the differentiator.
+  //
+  // This only runs when the file is opened from disk. A published page cannot
+  // call another origin — the browser refuses, and it is right to.
+
+  const apiKeyEl = $("apiKey"), keySave = $("keySave");
+  const voiceRow = $("voiceRow"), voiceSel = $("voiceSel");
+  const convertBtn = $("convertBtn"), convStatus = $("convStatus");
+  const corsNote = $("corsNote");
+
+  const KEY_STORE = "vp_eleven_key";
+  const VOICE_STORE = "vp_eleven_voice";
+  let recordedBlob = null;
+
+  apiKeyEl.value = localStorage.getItem(KEY_STORE) || "";
+  if (apiKeyEl.value) loadVoices();
+
+  keySave.addEventListener("click", () => {
+    const key = apiKeyEl.value.trim();
+    if (!key) { convStatus.textContent = "Pega tu llave primero."; return; }
+    localStorage.setItem(KEY_STORE, key);
+    loadVoices();
+  });
+
+  async function loadVoices() {
+    const key = apiKeyEl.value.trim();
+    convStatus.textContent = "Cargando voces…";
+    corsNote.hidden = true;
+    try {
+      const res = await fetch("https://api.elevenlabs.io/v1/voices", {
+        headers: { "xi-api-key": key },
+      });
+      if (!res.ok) {
+        convStatus.textContent =
+          res.status === 401
+            ? "La llave no es válida. Revísala en elevenlabs.io → API Keys."
+            : "ElevenLabs respondió " + res.status + ".";
+        return;
+      }
+      const data = await res.json();
+      const voices = (data.voices || []).filter((v) => v.voice_id && v.name);
+      if (!voices.length) { convStatus.textContent = "No hay voces en tu cuenta."; return; }
+
+      voiceSel.innerHTML = "";
+      for (const v of voices) {
+        const opt = document.createElement("option");
+        opt.value = v.voice_id;
+        const accent = v.labels && (v.labels.accent || v.labels.description);
+        opt.textContent = v.name + (accent ? " · " + accent : "");
+        voiceSel.appendChild(opt);
+      }
+      const saved = localStorage.getItem(VOICE_STORE);
+      if (saved && voices.some((v) => v.voice_id === saved)) voiceSel.value = saved;
+
+      voiceRow.hidden = false;
+      convertBtn.disabled = !recordedBlob;
+      convStatus.textContent = recordedBlob
+        ? voices.length + " voces cargadas. Elige una y convierte."
+        : voices.length + " voces cargadas. Graba en el paso 1 y vuelve.";
+    } catch (err) {
+      // A network-level failure here is almost always the browser refusing a
+      // cross-origin request from a published page.
+      corsNote.hidden = false;
+      convStatus.textContent = "No se pudo contactar a ElevenLabs.";
+    }
+  }
+
+  voiceSel.addEventListener("change", () =>
+    localStorage.setItem(VOICE_STORE, voiceSel.value),
+  );
+
+  convertBtn.addEventListener("click", async () => {
+    if (!recordedBlob) { convStatus.textContent = "Graba tu voz primero (paso 1)."; return; }
+    const key = apiKeyEl.value.trim();
+    const voiceId = voiceSel.value;
+
+    convertBtn.disabled = true;
+    convStatus.textContent = "Convirtiendo…";
+
+    try {
+      const form = new FormData();
+      form.append("audio", recordedBlob, "voz.webm");
+      form.append("model_id", "eleven_multilingual_sts_v2");
+
+      const res = await fetch(
+        "https://api.elevenlabs.io/v1/speech-to-speech/" +
+          encodeURIComponent(voiceId) +
+          "?output_format=mp3_44100_128",
+        { method: "POST", headers: { "xi-api-key": key }, body: form },
+      );
+
+      if (!res.ok) {
+        let detail = "";
+        try {
+          const j = await res.json();
+          detail = (j.detail && (j.detail.message || j.detail)) || "";
+        } catch (e) { /* body was not json */ }
+        convStatus.textContent =
+          "ElevenLabs devolvió " + res.status +
+          (detail ? " — " + (typeof detail === "string" ? detail : JSON.stringify(detail)) : "");
+        convertBtn.disabled = false;
+        return;
+      }
+
+      const blob = await res.blob();
+      loadAudio("after", blob, "convertida · " + voiceSel.selectedOptions[0].textContent);
+      convStatus.textContent = "Listo. Baja al paso 3 y compara.";
+    } catch (err) {
+      corsNote.hidden = false;
+      convStatus.textContent = "La llamada a ElevenLabs falló.";
+    }
+    convertBtn.disabled = false;
+  });
 
   // --- A/B comparison -------------------------------------------------
 

@@ -20,18 +20,21 @@ cliente nunca escucha un hueco, escucha al agente.
 
 Al colgar, el resumen post-llamada se genera solo.
 
-**2 · Tu antes y después, con tu propia voz.** Esto es el negocio. Tres pasos:
+**2 · Tu voz con acento americano — conversión real.** Esto es el negocio.
 
-1. **Grabas** una línea de tu pitch en inglés, aquí mismo. Se descarga a tu
-   máquina, no se sube a ningún lado.
-2. **La conviertes** con cualquier conversor de voz a voz —
-   ElevenLabs Voice Changer tiene capa gratis y hace exactamente esto: entra tu
-   voz, sale la misma frase con tu misma entonación, en voz americana nativa.
-3. **Los comparas** arrastrando los dos archivos. Quedan guardados en el
-   navegador, así que el demo sigue funcionando mañana frente a un cliente.
+1. **Grabas** una línea de tu pitch en inglés, aquí mismo.
+2. **Pegas tu llave de ElevenLabs** (capa gratuita) y la página convierte tu voz
+   en el momento: misma frase, tu misma entonación, voz americana nativa.
+3. **Comparas** con dos botones grandes: ANTES · tu voz / DESPUÉS · lo que oye
+   el cliente. Los clips quedan guardados en el navegador.
 
-Diez minutos, sin pagar nada, y sales con un antes/después real que puedes
-poner sobre la mesa.
+> ⚠ **La conversión solo funciona con el archivo abierto desde tu máquina.**
+> La versión publicada en la web no puede llamar a ElevenLabs — el navegador lo
+> bloquea por seguridad, y hace bien. Descarga `demo/index.html` de este
+> repositorio y ábrelo con doble clic.
+
+La llave se guarda solo en tu navegador y viaja solo a ElevenLabs. Consíguela
+en elevenlabs.io → tu perfil → API Keys.
 
 ## Qué es real y qué no
 
@@ -41,12 +44,17 @@ Esto importa más que el demo: un demo que no distingue no sirve para decidir.
 |---|---|
 | **Real** | El procesamiento del micrófono es DSP genuino — desplazamiento de tono granular, moldeado de formantes, compresión. La latencia está medida. El motor de audio en Rust existe, con 71 tests. |
 | **Simulado** | El contenido de la llamada es un guion. Las sugerencias del copilot están escritas a mano; el motor de recuperación anclada aún no existe. |
-| **Se compra** | La conversión de acento ya existe como servicio. Para el MVP y los primeros clientes se compra — sale esta semana, no en seis meses. El modelo propio es para cuando el volumen justifique el costo por minuto. |
+| **Comprado, y funcionando** | La conversión de acento del paso 2 es real, vía ElevenLabs. Para el MVP y los primeros clientes se compra — sale esta semana, no en seis meses. El modelo propio es para cuando el volumen justifique el costo por minuto. |
 
-**La conversión no corre dentro de este navegador** — necesita GPU. Lo que el
-demo hace es cerrar el ciclo: capturar tu voz real y poner las dos versiones
-lado a lado, para que la diferencia sea algo que se oye y no algo que se
-promete.
+**La conversión de acento en el demo es real, pero es comprada, no nuestra.**
+Usa la API de ElevenLabs. Eso es exactamente lo correcto para demostrar el
+negocio: existe hoy, funciona hoy. Nuestro modelo propio viene después, cuando
+el volumen justifique el costo por minuto y la latencia sea el diferenciador.
+
+**Lo que el demo no hace es la conversión en vivo durante una llamada.** Aquí
+grabas y conviertes en dos pasos; en producción corre continuo a 292 ms. Esa
+diferencia es el trabajo de ingeniería que ya está medido en
+`media/voice-engine`.
 
 ## Para mostrárselo a alguien
 
@@ -55,8 +63,9 @@ promete.
    momento que vende
 3. Pulsa **Matar la GPU** y explica por qué la llamada sigue viva
 4. Deja que termine y muestra el resumen automático
-5. Baja a la sección 2 y dale al botón grande: **ANTES · tu voz** y luego
-   **DESPUÉS · lo que oye el cliente**. Esa diferencia cierra la venta sola
+5. Baja a la sección 2, graba veinte segundos, convierte, y dale a
+   **ANTES · tu voz** y luego **DESPUÉS · lo que oye el cliente**.
+   Esa diferencia cierra la venta sola — y es tu propia voz, no un ejemplo
 
 Los números que puedes citar sin exagerar: **292 ms de latencia añadida, 99.9 %
 de audio convertido entregado, 100 % de continuidad con la GPU muerta.** Los
