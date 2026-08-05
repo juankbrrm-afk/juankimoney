@@ -54,6 +54,35 @@ pub trait Stage {
 
     /// Drops everything held. Used when a call ends or on hard reset.
     fn reset(&mut self);
+
+    /// Frames that actually cost inference. Zero for stages that do no work.
+    fn processed(&self) -> u64 {
+        0
+    }
+
+    /// Frames that skipped inference because they carried silence.
+    fn skipped_silence(&self) -> u64 {
+        0
+    }
+
+    // --- Fault injection -----------------------------------------------------
+    //
+    // Part of the trait, not a test helper bolted on the side. Chaos testing is
+    // mandated for this plane (`docs/08` ADR-014): every model stage must be
+    // killable on demand, whether it is an in-process simulation or a gRPC
+    // client to a GPU in another rack. A stage that cannot be broken on purpose
+    // is a stage whose bypass path has never been exercised.
+
+    /// Makes the next `n` pushes fail hard.
+    fn inject_failures(&mut self, _n: u64) {}
+
+    /// Adds a constant delay to every subsequent frame.
+    fn inject_stall(&mut self, _extra_ns: u64) {}
+
+    /// Severs the link, if the stage has one. No-op for in-process stages.
+    fn inject_disconnect(&mut self, _now_ns: u64) {}
+
+    fn clear_injections(&mut self) {}
 }
 
 /// Records residence time on the way out of a stage, so per-stage latency is

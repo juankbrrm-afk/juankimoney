@@ -205,32 +205,6 @@ impl ModelStage {
         self.max_depth
     }
 
-    /// Makes the next `n` pushes fail hard. Chaos testing for the bypass path.
-    pub fn inject_failures(&mut self, n: u64) {
-        self.inject_failures = n;
-    }
-
-    /// Adds a constant delay to every subsequent frame — a degraded GPU, a
-    /// noisy neighbour, a model that got slower after a deploy.
-    pub fn inject_stall(&mut self, extra_ns: u64) {
-        self.inject_stall_ns = extra_ns;
-    }
-
-    pub fn clear_injections(&mut self) {
-        self.inject_failures = 0;
-        self.inject_stall_ns = 0;
-    }
-
-    /// Frames that skipped inference because they were silence. Multiply by the
-    /// per-frame GPU cost to get the money saved.
-    pub fn skipped_silence(&self) -> u64 {
-        self.skipped_silence
-    }
-
-    pub fn processed(&self) -> u64 {
-        self.processed
-    }
-
     /// Runs inference over the accumulated chunk and releases its frames.
     ///
     /// A chunk containing only silence costs no compute at all — that is
@@ -330,5 +304,31 @@ impl Stage for ModelStage {
         self.queue.clear();
         self.pending.clear();
         self.worker_free_at_ns = 0;
+    }
+
+    /// Frames that skipped inference because they were silence. Multiply by the
+    /// per-frame GPU cost to get the money saved.
+    fn skipped_silence(&self) -> u64 {
+        self.skipped_silence
+    }
+
+    fn processed(&self) -> u64 {
+        self.processed
+    }
+
+    /// Makes the next `n` pushes fail hard. Chaos testing for the bypass path.
+    fn inject_failures(&mut self, n: u64) {
+        self.inject_failures = n;
+    }
+
+    /// Adds a constant delay to every subsequent frame — a degraded GPU, a
+    /// noisy neighbour, a model that got slower after a deploy.
+    fn inject_stall(&mut self, extra_ns: u64) {
+        self.inject_stall_ns = extra_ns;
+    }
+
+    fn clear_injections(&mut self) {
+        self.inject_failures = 0;
+        self.inject_stall_ns = 0;
     }
 }

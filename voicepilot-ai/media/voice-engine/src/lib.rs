@@ -44,6 +44,7 @@
 //! | [`stage`] | The stage contract and backpressure rules |
 //! | [`stages`] | Network, jitter buffer, conditioning, model |
 //! | [`health`] | processing / degraded / bypass state machine |
+//! | [`remote`] | Remote inference: transport, reconnection, warm session pool |
 //! | [`scheduler`] | The invariant lives here |
 //! | [`engine`] | Everything wired together |
 //! | [`sim`] | Synthetic call driver |
@@ -55,6 +56,7 @@ pub mod frame;
 pub mod health;
 pub mod metrics;
 pub mod profile;
+pub mod remote;
 pub mod rng;
 pub mod scheduler;
 pub mod sim;
@@ -66,5 +68,9 @@ pub use engine::{verify_cadence, EmittedRecord, EngineConfig, Report, VoiceEngin
 pub use frame::{Frame, FramePool, Speaker, FRAME_MS, FRAME_NS, FRAME_SAMPLES, SAMPLE_RATE_HZ};
 pub use health::{Health, HealthMonitor, HealthParams};
 pub use profile::{Budget, Profile};
+pub use remote::{
+    LinkState, MockParams, MockTransport, RemoteModelParams, RemoteModelStage, SessionPool,
+    Transport, TransportEvent,
+};
 pub use scheduler::{Emitted, OutputScheduler, Source};
 pub use sim::{run_call, run_clean_call, SimulationResult};

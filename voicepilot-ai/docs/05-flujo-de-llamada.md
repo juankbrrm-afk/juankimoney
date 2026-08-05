@@ -89,6 +89,18 @@ crudo o cortadas.
 por agente activo. Cuando el dialer marca, la sesión ya existe. El costo es
 GPU ociosa; el beneficio es que el saludo suena perfecto. Se paga.
 
+> **[MEDIDO — módulo 0.2a]** El costo de no hacerlo, cuantificado: una sesión
+> fría entrega **75.57%** de audio convertido contra **99.73%** de una
+> pre-calentada. Los 363 frames que faltan son **7.3 segundos consecutivos**,
+> todos al inicio de la llamada — es decir, el saludo completo y la apertura
+> del pitch salen sin convertir.
+>
+> Este documento pedía el pool por principio. Ahora hay un número, y una
+> métrica de SLA: `SessionPool::served_cold()` cuenta cada llamada que pagó
+> un arranque en frío.
+>
+> Reproducible: `cd media/voice-engine && cargo run --release --example remote-report`
+
 ```
 Agente entra a turno → se reserva 1 sesión caliente
 Llamada conectada    → se adopta la sesión, se reserva otra

@@ -223,8 +223,20 @@ Región del agente  ──WebRTC──►  Media Plane REGIONAL  ──►  GPU 
 
 - **Media Plane y GPU: regionales**, desplegados cerca del agente y del punto
   de interconexión PSTN. Un agente en Colombia y un cliente en Florida deben
-  procesarse en `us-east-1`, no en `eu-west-1`. Cada salto transatlántico
-  cuesta más que todo nuestro presupuesto de latencia.
+  procesarse en `us-east-1`, no en `eu-west-1`.
+
+  > **[MEDIDO — módulo 0.2a]** Esto no es una preferencia de rendimiento, es
+  > una condición de existencia del producto. Con la GPU a 70 ms de ida, el
+  > sistema entrega **0.00% de audio convertido**: cada frame llega pasado su
+  > plazo y el cliente escucha la voz cruda del agente durante toda la llamada,
+  > mientras todos los tableros reportan un enlace sano.
+  >
+  > Redimensionar el offset de playout a 330 ms restaura la entrega al 99.73%
+  > — y sitúa la latencia boca-a-oído en **445 ms**, muy por encima de los
+  > 300 ms prometidos. **No existe configuración que haga aceptable una GPU en
+  > otra región.** O está colocada, o la promesa es otra.
+  >
+  > Reproducible: `cd media/voice-engine && cargo run --release --example remote-report`
 - **Control Plane: global**, una región primaria con réplicas de lectura.
   Tolera 200 ms sin problema.
 - **Datos: residencia por tenant.** Un tenant europeo fija su región de

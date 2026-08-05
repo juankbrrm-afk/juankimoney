@@ -23,16 +23,19 @@ tolerate a garbage-collection pause.
 
 ```
 media/
-└── voice-engine/     Frame scheduler, pipeline stages, latency bench
+└── voice-engine/     Frame scheduler, pipeline stages, latency bench,
+                      remote-inference seam (transport, reconnection,
+                      warm session pool)
 ```
 
-Still to come in Fase 0 / Fase 1:
+Still to come:
 
 ```
 media/
-├── sip-gateway/      SIP trunk bridge (LiveKit SIP)
+├── sip-gateway/      SIP trunk bridge (LiveKit SIP)   — blocked on network access
 ├── recorder/         Three-track recording to S3, off the hot path
-└── engine-bridge/    gRPC client toward ai-services
+└── transport-grpc/   TonicTransport: the real implementation of the
+                      `Transport` trait the voice engine already consumes
 ```
 
 ## The rule this plane exists to enforce
@@ -47,6 +50,12 @@ costs, and for all of them the answer in the "customer notices" column is
 
 ## Status
 
-`voice-engine` is **complete and tested** (Fase 0, módulo 0.1). The
-remaining components start once the conversion model clears its
-week-8 decision gate.
+`voice-engine` is **complete and tested** — módulo 0.1 (latency bench and
+scheduler) and módulo 0.2a (remote-inference seam), 71 tests.
+
+Módulo 0.2b (LiveKit SFU + SIP bridge) is **blocked on environment, not on
+design**: it needs `tonic` and the LiveKit crates, and this environment has no
+access to crates.io. The contract those components implement
+(`shared/proto/voice.proto`) and the client that consumes it are done and
+tested against a fault-injecting mock, so the remaining work is wiring rather
+than design.

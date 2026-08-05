@@ -1,14 +1,16 @@
 # voice-engine
 
-**Fase 0, módulo 0.1 — completo.**
+**Fase 0, módulo 0.1 — completo. Módulo 0.2a — completo.**
 
-The instrumented latency bench and the output scheduler. The first code of the
-project, and deliberately not the CRM, the dashboard, or the copilot.
+The instrumented latency bench, the output scheduler, and the remote-inference
+seam. The first code of the project, and deliberately not the CRM, the
+dashboard, or the copilot.
 
 ```bash
-cargo test                                    # 50 tests
+cargo test                                    # 71 tests
 cargo run --release --bin latency-bench       # the budget, measured
 cargo run --release --bin latency-bench -- --sweep
+cargo run --release --example remote-report   # what remote inference costs
 ```
 
 Zero dependencies. Builds and tests offline.
@@ -162,6 +164,66 @@ and 99.9% converted audio is not.
 
 ---
 
+## Módulo 0.2a — remote inference
+
+The model does not live in this process. It sits behind
+[`shared/proto/voice.proto`](../../shared/proto/voice.proto) on a GPU in
+another rack, and that is not a transport detail: it introduces failure modes
+an in-process stage cannot have.
+
+| In-process | Remote |
+|---|---|
+| A call either returns or panics | A request can vanish with no reply, ever |
+| Responses arrive in order | Responses arrive out of order, or twice |
+| Available immediately | Costs 300–900 ms to warm up |
+| Fails visibly | **Fails by going quiet** |
+
+That last row is the dangerous one: a dead link and a slow model look identical
+from the client, and the difference decides whether to wait or to bypass. So
+liveness is never inferred from silence — every in-flight frame carries a
+deadline, the protocol requires an explicit `Dropped` instead of silence, and a
+link that misses its deadlines is declared dead and reconnected.
+
+`cargo run --release --example remote-report`:
+
+| Scenario | e2e p50 | Converted | Cadence | |
+|---|---|---|---|---|
+| Local model (module 0.1) | 292.5 ms | 99.53% | OK | baseline |
+| **Remote, colocated, warm** | **292.5 ms** | **99.73%** | OK | the deployment we require |
+| Remote, colocated, **cold** | 292.5 ms | **75.57%** | OK | no pre-warm |
+| Remote, **cross-region** | — | **0.00%** | OK | 70 ms hop |
+| Cross-region, offset resized | 445.5 ms | 99.73% | OK | delivery back, promise broken |
+| Link dies at 12 s | 292.5 ms | 39.21% | OK | GPU node rescheduled |
+| Link goes silent | — | 0.00% | OK | socket open, server gone |
+| 15% response loss | 292.5 ms | 84.22% | OK | lossy link |
+
+**Cadence is OK in every row, including the ones delivering 0% converted
+audio.** That is the invariant doing its job: the call never breaks, it
+degrades to the agent's real voice.
+
+### Two findings worth more than the transport work itself
+
+**A cold session costs 7.3 seconds of the greeting.** Without pre-warming,
+363 frames go out unconverted while the model loads — at the exact start of the
+call, which is the only part that decides whether the customer stays on the
+line. `docs/05` argued for a pre-warmed session pool on principle; this is the
+number. Warm sessions deliver 99.73%, cold ones 75.57%, and the missing quarter
+is all at the front.
+
+**A GPU in another region delivers nothing at all.** Not "somewhat worse" —
+0.00% converted. A 70 ms one-way hop pushes every single frame past a playout
+offset that was sized for the model alone, so the customer hears the agent's
+raw voice for the entire call while every dashboard reports a healthy link.
+
+Resizing the offset to 330 ms restores delivery to 99.73% — and lands
+mouth-to-ear at **445 ms**, well past the 300 ms the product promises. So there
+is no configuration that makes a remote-region GPU acceptable: the choice is
+colocation or a different promise. `docs/01` treats regional placement as a
+functional requirement; this is why, with a number attached.
+
+Both halves are asserted in `tests/remote.rs` — the failure *and* the
+remediation, so neither can quietly stop being true.
+
 ## Design rules, enforced by tests rather than convention
 
 | Rule | Enforced by |
@@ -187,14 +249,24 @@ and 99.9% converted audio is not.
 | `health` | processing / degraded / bypass state machine |
 | `scheduler` | **The invariant lives here** |
 | `engine` | Everything wired together |
+| `remote` | Transport contract, reconnection, warm session pool |
 | `sim` | Synthetic call driver |
 | `profile` | Named scenarios with their latency budgets |
 
-## What replaces the model stage
+## What is left before real audio flows
 
-`ModelStage` models a real streaming model's timing: chunked inference, a
-serial worker (so an oversubscribed model shows up as unbounded latency rather
-than vanishing), variance, stalls, and injectable hard failures. Swapping it
-for a gRPC client to `ai-services` changes that one file. Everything else —
-scheduler, health, bench, budget tests — works unchanged and starts reporting
-on real inference the same day.
+`RemoteModelStage` speaks the contract and handles every network failure mode
+above. What it talks to is `MockTransport`, because the real transport needs
+`tonic` (gRPC) and the real media path needs LiveKit — neither of which can be
+fetched in this environment.
+
+Two pieces remain, and both are now mechanical:
+
+| Piece | Work |
+|---|---|
+| `TonicTransport` | Implement `Transport` over the generated gRPC client. ~200 lines; every failure path it must handle is already specified and already tested against the mock. |
+| LiveKit SFU + SIP bridge | Module 0.2b. Blocked on network access, not on design. |
+
+Everything downstream — scheduler, health monitor, bench, budget tests — is
+unaware of which transport is installed, and stays unchanged when the real one
+arrives.

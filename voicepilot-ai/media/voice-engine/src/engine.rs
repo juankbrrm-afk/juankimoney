@@ -136,7 +136,11 @@ pub struct VoiceEngine {
     network: NetworkStage,
     jitter: JitterBuffer,
     conditioning: VadGate,
-    model: ModelStage,
+    /// Boxed so the same engine drives the in-process simulation and a real
+    /// gRPC client to a GPU in another rack. Everything downstream — scheduler,
+    /// health, bench, budget tests — is unaware of which it is talking to, and
+    /// that is the whole point: swapping in the real model changes one line.
+    model: Box<dyn Stage>,
     scheduler: OutputScheduler,
     health: HealthMonitor,
     playout_offset_ns: u64,
@@ -154,14 +158,23 @@ pub struct VoiceEngine {
 }
 
 impl VoiceEngine {
+    /// Builds an engine driven by the in-process simulated model.
     pub fn new(config: EngineConfig) -> Self {
+        let seed = config.seed;
+        let model = ModelStage::new("model", ModelParams { ..config.model }, seed ^ 0xA5A5);
+        VoiceEngine::with_model(config, Box::new(model))
+    }
+
+    /// Builds an engine driven by any model stage — in-process, remote, or a
+    /// fault-injecting wrapper around either.
+    pub fn with_model(config: EngineConfig, model: Box<dyn Stage>) -> Self {
         let pool = FramePool::with_capacity(config.pool_capacity);
         let playout_offset_ns = config.effective_playout_offset();
         VoiceEngine {
             network: NetworkStage::new(config.network, config.seed),
             jitter: JitterBuffer::new(config.jitter),
             conditioning: VadGate::new(config.vad),
-            model: ModelStage::new("model", config.model, config.seed ^ 0xA5A5),
+            model,
             scheduler: OutputScheduler::new(config.scheduler, pool.clone()),
             health: HealthMonitor::new(config.health),
             playout_offset_ns,
@@ -175,9 +188,10 @@ impl VoiceEngine {
         }
     }
 
-    /// Chaos-testing handle. Lets a test kill the GPU mid-call.
-    pub fn model_mut(&mut self) -> &mut ModelStage {
-        &mut self.model
+    /// Chaos-testing handle. Lets a test kill the GPU mid-call, whichever kind
+    /// of model stage is installed.
+    pub fn model_mut(&mut self) -> &mut dyn Stage {
+        self.model.as_mut()
     }
 
     pub fn health(&self) -> Health {

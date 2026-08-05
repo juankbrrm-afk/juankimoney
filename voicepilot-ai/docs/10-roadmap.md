@@ -25,7 +25,8 @@ invisible?*
 | # | Módulo | Semanas | Criterio de salida |
 |---|---|---|---|
 | 0.1 | ✅ **Banco de latencia instrumentado** (`media/voice-engine`) | 1–2 | ✅ **CUMPLIDO** — ±5 ms verificado de tres formas. 50 tests. Encontró 4 defectos, 3 de ellos en la especificación |
-| 0.2 | Media Plane mínimo (LiveKit + SIP + Voice Engine) | 2–4 | Audio bidireccional PSTN estable 30 min |
+| 0.2a | ✅ **Contrato e integración remota del modelo** (`shared/proto/voice.proto` + `remote.rs`) | 2 | ✅ **CUMPLIDO** — 12 tests de fallo de red con el motor completo. Encontró 2 hallazgos críticos de despliegue |
+| 0.2b | Media Plane mínimo (LiveKit SFU + puente SIP) | 3–4 | ⛔ **BLOQUEADO POR ENTORNO** — requiere `tonic` y crates de LiveKit; sin acceso a crates.io. El contrato y el cliente están hechos y probados contra un mock con inyección de fallos: lo que falta es cableado, no diseño |
 | 0.3 | Modo A con VC open-source | 3–5 | p95 boca-a-oído añadida < 400 ms |
 | 0.4 | Acondicionamiento de audio | 4–6 | Funciona con ruido real de call center grabado |
 | 0.5 | Fine-tuning de acento | 5–8 | Similitud ≥ 0.75, WER de contenido ≤ 8% |

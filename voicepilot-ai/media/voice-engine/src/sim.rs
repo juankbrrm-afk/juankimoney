@@ -110,12 +110,40 @@ pub struct SourceCounts {
 ///
 /// `on_frame` is called with (frame_index, &mut engine) before each capture,
 /// which is how chaos tests kill the GPU at a chosen moment.
-pub fn run_call<F>(config: EngineConfig, duration_ms: u64, mut on_frame: F) -> SimulationResult
+pub fn run_call<F>(config: EngineConfig, duration_ms: u64, on_frame: F) -> SimulationResult
 where
     F: FnMut(u64, &mut VoiceEngine),
 {
     let seed = config.seed;
-    let mut engine = VoiceEngine::new(config);
+    let engine = VoiceEngine::new(config);
+    drive(engine, seed, duration_ms, on_frame)
+}
+
+/// Same, with a caller-supplied model stage — an in-process simulation, a
+/// remote gRPC client, or anything else implementing [`crate::stage::Stage`].
+pub fn run_call_with_model<F>(
+    config: EngineConfig,
+    model: Box<dyn crate::stage::Stage>,
+    duration_ms: u64,
+    on_frame: F,
+) -> SimulationResult
+where
+    F: FnMut(u64, &mut VoiceEngine),
+{
+    let seed = config.seed;
+    let engine = VoiceEngine::with_model(config, model);
+    drive(engine, seed, duration_ms, on_frame)
+}
+
+fn drive<F>(
+    mut engine: VoiceEngine,
+    seed: u64,
+    duration_ms: u64,
+    mut on_frame: F,
+) -> SimulationResult
+where
+    F: FnMut(u64, &mut VoiceEngine),
+{
     let clock = TestClock::new();
     let mut gen = SpeechGenerator::new(seed ^ 0xBEEF);
 

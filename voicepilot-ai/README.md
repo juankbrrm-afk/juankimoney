@@ -24,7 +24,8 @@ Funciona de dos formas:
 |---|---|
 | Especificación completa (13 documentos) | ✅ Aprobada |
 | **Fase 0 · 0.1 — Banco de latencia + Voice Engine** | ✅ **Completo** — [`media/voice-engine`](media/voice-engine/) |
-| Fase 0 · 0.2 — Media Plane mínimo (LiveKit + SIP) | Siguiente |
+| **Fase 0 · 0.2a — Contrato e integración remota** | ✅ **Completo** — [`shared/proto/voice.proto`](shared/proto/voice.proto) + `remote.rs` |
+| Fase 0 · 0.2b — LiveKit SFU + puente SIP | ⛔ Bloqueado por entorno (sin acceso a crates.io) |
 | Todo lo demás | No empezado, por diseño |
 
 Lo medido hasta ahora, reproducible con
@@ -35,7 +36,11 @@ Lo medido hasta ahora, reproducible con
 - **Modo B: 1,025 ms, 97.5% entregado** — corregido desde la estimación de
   930 ms, a la que le faltaba el margen de playout
 - **Continuidad de audio: 100%** con la GPU muerta, con 900 ms de stall, con
-  100% de pérdida de paquetes y bajo backpressure sostenido
+  100% de pérdida de paquetes, con el enlace de inferencia caído a mitad de
+  llamada y bajo backpressure sostenido
+- **Inferencia remota colocada: 99.73% entregado**, indistinguible de local
+- **GPU en otra región: 0.00% entregado** — el hallazgo que convierte la
+  colocación regional en requisito funcional, no en optimización
 
 Lee los documentos en este orden:
 
