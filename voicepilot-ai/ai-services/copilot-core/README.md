@@ -1,12 +1,18 @@
 # copilot-core
 
-The grounded copilot: the module whose exit criterion is **0 invented
-answers**. Pure Python 3.11, zero dependencies.
+Two modules of the Intelligence Plane, sharing one tokeniser: the **grounded
+copilot** (exit criterion: 0 invented answers) and the **compliance engine**
+(exit criterion: recall > 0.95 on critical rules). Pure Python 3.11, zero
+dependencies.
 
 ```bash
-python3 -m unittest discover -s . -p "test_*.py" -t .   # 63 tests
+python3 -m unittest discover -s . -p "test_*.py" -t .   # 102 tests
 python3 -m eval.run                                     # the exit criterion, measured
 ```
+
+They live in one directory because they share `copilot/text.py`. If retrieval
+and compliance disagreed about what a word is, a phrase could be "said" for
+one and not the other.
 
 ---
 
@@ -144,3 +150,76 @@ the same failure as a hallucination:
 | `verify.py` | Layer 4: figures, promises, drift |
 | `pipeline.py` | The single path text can take to reach an agent |
 | `eval/` | The exit criterion, as a program |
+| `compliance/rules.py` | The rule model, and the severity levels that decide whether any of it works |
+| `compliance/engine.py` | Two layers, a clock, and the hard noise budget |
+| `compliance/backtest.py` | What a rule would have done, before it is allowed to do anything |
+
+---
+
+# The compliance engine
+
+`docs/06` §4. Four rule kinds — `must_say`, `must_say_before`,
+`must_not_say`, `conditional` — matched deterministically first, with a
+learned classifier as the safety net. Same two-layer shape as the copilot's
+verifier, for the same reason: **a rule a lawyer can read runs first, and its
+refusal is final.**
+
+## The asymmetry that makes the safety net safe
+
+Not in the spec, and the most important decision in the module:
+
+- For **must_say**, the model may only *excuse* a miss — the agent covered
+  the obligation in their own words and the rules did not see it.
+- For **must_not_say**, the model may only *add* a violation. It can never
+  suppress one the rules found.
+
+So a model failure degrades in exactly one direction: more alerts, never
+fewer, on the rules that carry legal exposure. There is a test where the
+classifier claims everything is covered and nothing is ever a violation, and
+the deterministic violation still reaches the agent.
+
+## The number that decides whether any of this protects anyone
+
+`docs/06` §4 says it plainly: *a badly designed alert trains the agent to
+ignore alerts, and then the whole module is worth zero.* So there is a hard
+cap of **3 live alerts per call**, enforced as a constant rather than a
+setting — the first thing a customer asks for after a month is more alerts,
+and granting it is how the panel becomes wallpaper.
+
+`INFO` severity never appears during a call at all. Only in the report.
+
+**And the budget is a ranking, not a queue.** The first implementation spent
+it in arrival order: three warnings early in a call filled the panel, and the
+critical legal alert at second 200 was silently deferred — the exact alert a
+regulator would ask about, hidden behind three notes about script
+completeness. Deferral is now decided at render time, so a later, more
+serious violation can push an earlier one off.
+
+## Before a rule is allowed to do anything
+
+`POST /compliance-rules/{id}/test` in the spec; `backtest()` here. It replays
+history **twice** — without the rule, then with it — because the number that
+matters is not how often a rule fires. It is what the rule *costs*: the panel
+holds three, so a fourth means an agent stops seeing something they used to
+see. A single-rule test cannot show that.
+
+The verdict reports **every** concern rather than the loudest one. A rule can
+be both too noisy and displacing a critical alert, and those are different
+fixes.
+
+## What the compliance tests protect
+
+| Test | What it prevents |
+|---|---|
+| `a late critical alert still reaches the agent` | A legal alert suppressed by three earlier warnings |
+| `the model can never suppress a violation the rules found` | A learned component talking the system out of a fine |
+| `a deadline fires during silence` | Never reporting the identity verification that never happened — the most common critical rule in this industry |
+| `a phrase inside a larger sentence matches` | Punctuation deciding compliance: `recorded.` failing to satisfy a rule looking for `recorded` |
+| `word order is part of the obligation` | "we do not guarantee a refund" satisfying a rule looking for "guarantee a refund" |
+| `an info rule never appears during the call` | Interrupting an agent mid-sentence with an improvement tip, on the panel that also carries the legal alerts |
+| `the same rule does not fire twice in one call` | The repetition that trains agents to stop looking |
+| `an armed obligation still fires if the call ends first` | Hanging up as a way to satisfy a disclosure |
+| `price and terms in the same breath is the normal case` | Punishing the correct behaviour |
+| `no history is never a green light` | Activating a rule blind |
+| `the cost of a new rule is what it displaces` | Growing a rule set without noticing the panel stopped working |
+| `a critical rule must tell the agent what to do` | A red band with a sound and no instruction, mid-sentence |

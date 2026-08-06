@@ -17,7 +17,9 @@ que permite escalarlo, sustituirlo y probarlo de forma independiente.
 
 | Módulo | Estado |
 |---|---|
-| **`copilot-core/`** — anclaje, recuperación, verificación | ✅ **Construido** — 63 tests · **0 alucinaciones en 200 pruebas** · [README](copilot-core/README.md) |
+| **`copilot-core/copilot/`** — anclaje, recuperación, verificación | ✅ **Construido** — **0 alucinaciones en 200 pruebas** · [README](copilot-core/README.md) |
+| **`copilot-core/compliance/`** — motor determinista + red de seguridad | ✅ **Construido** — recall y precisión sobre el bar en reglas críticas · presupuesto de ruido de 3 alertas |
+| Ambos juntos | **102 tests**, cero dependencias |
 | Todo lo demás | No empezado |
 
 `copilot-core` es el núcleo del módulo 1.6 del roadmap, adelantado porque su
