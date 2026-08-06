@@ -3,8 +3,10 @@
 **Descarga `index.html` y ábrelo con doble clic.** Un solo archivo, sin
 servidor, sin instalar nada.
 
-> ⚠ **Tiene que ser desde tu máquina.** La versión publicada en la web no puede
-> llamar a ElevenLabs — el navegador lo bloquea por seguridad, y hace bien.
+> ⚠ **La conversión en vivo tiene que ser desde tu máquina.** La versión
+> publicada en la web no puede llamar a ElevenLabs — el navegador lo bloquea
+> por seguridad, y hace bien. El **comparador manual** sí funciona en el link
+> publicado y en el teléfono.
 
 ---
 
@@ -37,6 +39,31 @@ quedas callado ~650 ms, esa frase se cierra y sale a convertir mientras tú
 sigues con la siguiente. Se convierten en paralelo pero **se reproducen en
 orden estricto** — una llamada donde la frase tres llega antes que la dos no es
 una llamada.
+
+---
+
+## Comparador manual — para el celular, y para vender
+
+Dentro de la sección 2 hay un panel plegable, **Comparador manual**. No
+necesita llave, ni micrófono, ni internet, ni abrir el archivo desde tu
+máquina: **funciona en el link publicado, en el teléfono.**
+
+Cargas dos audios — tu voz original y la versión convertida — y quedan dos
+botones grandes: **ANTES** y **DESPUÉS**. Los aprietas delante del cliente.
+
+1. Grábate 15 segundos con la grabadora del teléfono.
+2. Conviértelo en la app de ElevenLabs (Voice Changer para Modo A, Dubbing
+   para Modo B) y descarga el resultado.
+3. Carga los dos en el panel.
+
+**Los audios quedan guardados en el navegador.** Cierras, vuelves mañana, y
+el panel se abre solo con tus clips listos. Un clip demasiado grande para el
+almacenamiento del navegador (>2 MB) suena igual, pero no sobrevive al
+cierre.
+
+Esta es la herramienta de venta: la conversión en vivo impresiona, pero
+depende de tu red y de una API. El comparador nunca falla delante de un
+cliente.
 
 ---
 

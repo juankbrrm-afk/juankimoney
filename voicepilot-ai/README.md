@@ -25,6 +25,10 @@ acento → inglés americano) y **Modo B** (español → inglés), continuo y ma
 libres, con tu propia voz y una llave gratuita de ElevenLabs. Más la consola
 del agente con una llamada en vivo.
 
+Dentro trae un **comparador manual** (ANTES / DESPUÉS) que no necesita llave
+ni micrófono: cargas dos audios, quedan guardados, y los reproduces delante
+del cliente desde el teléfono.
+
 Ver [demo/README.md](demo/README.md) para cómo probarlo y qué es real.
 
 ---
