@@ -17,8 +17,8 @@ shared/
 │   └── copilot.proto
 ├── crm/                 ✅ CONSTRUIDO — modelo canónico, contrato de adaptador,
 │   ├── src/                motor de mapeo, cola de sync idempotente
-│   ├── test/               41 tests, cero dependencias
-│   └── providers/          ReadyMode como primer objetivo
+│   ├── test/               67 tests, cero dependencias
+│   └── providers/          ReadyMode, y el adaptador universal L1
 ├── schemas/
 │   ├── openapi.yaml     Contrato de la API pública (fuente, no derivado)
 │   └── events/          Esquemas de eventos del bus y del WebSocket
@@ -52,5 +52,7 @@ Parcialmente implementado:
 
 - ✅ `proto/voice.proto` — contrato Media ↔ Intelligence, consumido por
   `media/voice-engine/src/remote.rs`
-- ✅ `crm/` — modelo canónico, adaptadores y cola de sync, 41 tests
+- ✅ `crm/` — modelo canónico, adaptadores, cola de sync y **el nivel L1 que
+  funciona con cualquier CRM**: cascada de detección de registro y escritura
+  verificada contra el formulario del CRM anfitrión. 67 tests
 - Pendiente: `openapi.yaml`, esquemas de eventos, `ui/`, `i18n/`

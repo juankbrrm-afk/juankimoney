@@ -4,7 +4,7 @@ The canonical CRM model, the adapter contract, the field-mapping engine and the
 idempotent sync queue. Zero dependencies.
 
 ```bash
-npm test          # 41 tests, node:test, no install required
+npm test          # 67 tests, node:test, no install required
 npm run typecheck # tsc --noEmit, strict
 ```
 
@@ -32,7 +32,10 @@ these types and never learn which mode the tenant is in.
 | `adapter.ts` | The `CrmAdapter` contract and — the important part — `AdapterCapabilities` |
 | `mapping.ts` | Declarative field mapping with transforms, validation and dry run |
 | `sync-queue.ts` | Idempotent writes, bounded retries, dead-letter queue |
+| `binding.ts` | **Which record is the agent looking at?** The detection cascade that makes L1 work on a CRM nobody has integrated with |
+| `overlay.ts` | L1 writeback: fill the host CRM's own form, then verify the value actually landed |
 | `providers/readymode.ts` | First integration target. See `docs/13` |
+| `providers/universal.ts` | The adapter for a CRM we have never seen. This is what "works with any CRM" means concretely |
 
 ## Four decisions worth knowing about
 
@@ -62,6 +65,40 @@ and three different keys to a database. Anything that cannot be normalised
 confidently throws rather than being guessed at — guessing is how a US campaign
 dials Colombia at scale, and how a DNC check silently misses.
 
+## How "works with any CRM" is actually true
+
+`docs/07` §2 tiers the effort: L3 for Salesforce and HubSpot, L2 for Zoho and
+Pipedrive, **L1 for everything else** — and everything else is most of this
+market, including the in-house systems with no API at all. L3 on eight CRMs
+is a permanent team maintaining somebody else's APIs. L1 covers 100% of the
+market for 5% of the effort.
+
+L1 rests on two questions, and both are here.
+
+**Which record is open?** `docs/07` §6 gives the cascade — URL pattern, then
+`data-*` attributes, then server-supplied CSS selectors, then ask the agent.
+The cascade is the easy part. The design decision is **what happens when two
+rungs disagree**: nothing is voted on, because a wrong answer here writes a
+call note onto a different customer's record and nobody notices for weeks.
+Conflicting evidence produces a refusal and a one-click question to the
+agent, who can see the screen.
+
+Confidence is per rung, and it gates writes separately from display. A CSS
+selector reading rendered text is good enough to point the copilot at a
+record and **not** good enough to write to a customer's CRM unattended. The
+asymmetry is the point: a wrong suggestion wastes a suggestion; a wrong write
+corrupts a pipeline.
+
+**Did the write land?** `docs/07` §6 requires it be verified before the
+operation is marked successful, and the reasons are all in `overlay.ts`:
+React ignores a programmatic `.value =` without an input event, so the field
+looks filled while the framework's state is empty; the CRM reformats
+`3055550142` into `(305) 555-0142`; the CRM truncates a 900-character summary
+to 500 and cuts off exactly the end, where the follow-up commitment lives.
+Reporting any of those as "written" is how a customer finds out a month later
+that a third of their call notes are missing. So every field gets a verdict,
+and only `written` is success.
+
 ## What the tests are actually protecting
 
 Not coverage. Specific failure modes that cost money:
@@ -80,6 +117,15 @@ Not coverage. Specific failure modes that cost money:
 | `a do-not-call flag must record why it was set` | A DNC that cannot be defended to a regulator or safely cleared |
 | `aiScore is a probability and is range-checked` | Silently mixing `73` and `0.73` |
 | `phone normalisation refuses ambiguous numbers` | Dialling the wrong country |
+| `two rungs disagreeing is refused, never voted on` | A call note written onto a different customer's record |
+| `a lookalike domain does not activate the extension` | `endsWith("salesforce.com")` also matching `evil-salesforce.com` |
+| `a CSS selector binds but is not trusted enough to write` | Layout-guessing driving an unattended write |
+| `a stale server config cannot take down the panel` | A bad selector killing the copilot mid-call |
+| `a framework that swallows the value is caught` | The most common L1 failure: nothing saved, reported as saved |
+| `a CRM reformatting a phone number is not a failure` | Retrying forever against a write that already succeeded |
+| `a truncated note is flagged, with what survived` | Losing the end of a summary — where the commitment is |
+| `read-only and missing are different problems` | Sending a stale-config bug to the customer's admin |
+| `an unknown CRM's audio path stays unknown, not assumed` | Discovering ReadyMode's problem after the contract is signed |
 
 ## ReadyMode
 
