@@ -25,3 +25,6 @@ automation/n8n/.env
 *.njsproj
 *.sln
 *.sw?
+
+__pycache__/
+*.py[cod]

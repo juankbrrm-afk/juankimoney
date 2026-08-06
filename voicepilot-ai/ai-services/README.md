@@ -13,6 +13,22 @@ Este servicio no sabe qué es un lead, ni un pipeline, ni una factura. Recibe
 audio y contexto, devuelve audio y señales. Esa ignorancia deliberada es lo
 que permite escalarlo, sustituirlo y probarlo de forma independiente.
 
+## Estado
+
+| Módulo | Estado |
+|---|---|
+| **`copilot-core/`** — anclaje, recuperación, verificación | ✅ **Construido** — 63 tests · **0 alucinaciones en 200 pruebas** · [README](copilot-core/README.md) |
+| Todo lo demás | No empezado |
+
+`copilot-core` es el núcleo del módulo 1.6 del roadmap, adelantado porque su
+criterio de salida — *0 respuestas inventadas* — es uno de los tres números
+que definen el producto, y porque se puede verificar sin GPU y sin modelo.
+Lo que trae es la **garantía estructural** y la recuperación; el modelo de
+embeddings, el cross-encoder y el verificador NLI se inyectan por sus
+protocolos y no están aquí.
+
+Reproducible: `cd copilot-core && python3 -m eval.run`
+
 ## Estructura prevista
 
 ```
@@ -24,6 +40,10 @@ ai-services/
 │   ├── asr/                 Streaming, con abstracción de proveedor
 │   ├── translation/         Modo B — wait-k adaptativo, política de commit
 │   └── tts/                 Streaming incremental con continuidad prosódica
+├── copilot-core/            ✅ CONSTRUIDO — la garantía de cero invención
+│   ├── copilot/             Tipos, chunking, índice, disparadores, verificación
+│   ├── tests/               63 tests, incluida la suite adversaria
+│   └── eval/                El criterio de salida, como programa
 ├── copilot/
 │   ├── retrieval/           Híbrido BM25 + vectorial + reranking
 │   ├── generation/          Generación anclada, salida estructurada

@@ -67,7 +67,7 @@ posterga sin discusión.
 | 1.3 | Consola del agente v1 | 17–20 | Sesión de 8 h sin fugas de memoria |
 | 1.4 | ASR + transcripción en vivo | 19–21 | WER < 15% en audio telefónico con acento |
 | 1.5 | Ingesta de conocimiento (PDF, DOCX, TXT, URL) | 21–23 | 500 páginas ingeridas en < 10 min |
-| 1.6 | **Copilot con RAG anclado** | 23–26 | **0 alucinaciones en set de 200 objeciones**, p95 < 800 ms |
+| 1.6 | **Copilot con RAG anclado** — núcleo ✅ **adelantado** ([`ai-services/copilot-core`](../ai-services/copilot-core/)) | 23–26 | ✅ **CUMPLIDO en el núcleo** — 0 afirmaciones sin respaldo y 0 citas cruzadas en 200 pruebas, con un generador adversario. 63 tests. Falta el modelo de embeddings, el cross-encoder y el verificador NLI, todos inyectables. Encontró 4 defectos, 3 de ellos en la puntuación de relevancia |
 | 1.7 | Compliance determinista | 25–27 | Recall > 95% en reglas críticas |
 | 1.8 | Análisis post-llamada | 27–29 | Cobertura de puntos clave > 90% vs. QA humano |
 | 1.9 | CRM nativo v1 (contactos, leads, pipeline, notas, tareas) | 26–30 | Importación de 50k contactos sin errores |
@@ -83,6 +83,21 @@ Los cinco del [doc 00 §7](00-vision-y-alcance.md#7-criterio-de-éxito-del-mvp):
 3. 0 alucinaciones del copilot en el set de evaluación
 4. 1 piloto con 500+ llamadas/semana durante 4 semanas seguidas
 5. Reducción ≥ 60% del tiempo de after-call work
+
+### Hallazgo que cambia el orden de la Fase 1
+
+El núcleo del 1.6 se adelantó y midió antes de tener modelo. El resultado
+reordena la fase: **sin modelo de embeddings el copilot responde 0 de 40
+objeciones parafraseadas** — frases como *"eso es más de lo que quería
+gastar"* o *"no me alcanza el presupuesto"*, que es como los clientes
+objetan de verdad. El manual dice *"es muy caro"*; nadie lo dice así en voz
+alta.
+
+El doc 06 §3 lista BM25 y vectorial como si fueran pares. No lo son: BM25
+cubre las frases que alguien escribió, y el modelo de embeddings cubre las
+que la gente usa. **El modelo de embeddings es bloqueante del 1.6, no una
+mejora posterior**, y por eso el 1.5 (ingesta) debe entregar embeddings
+reales desde el primer día.
 
 ### Fuera del MVP, explícitamente
 

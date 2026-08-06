@@ -44,6 +44,7 @@ Ver [demo/README.md](demo/README.md) para cómo probarlo y qué es real.
 | **Fase 0 · 0.2a — Contrato e integración remota** | ✅ **Completo** — [`shared/proto/voice.proto`](shared/proto/voice.proto) + `remote.rs` |
 | Fase 0 · 0.2b — LiveKit SFU + puente SIP | ⛔ Bloqueado por entorno (sin acceso a crates.io) |
 | **Núcleo de integración de CRM** | ✅ **Completo** — [`shared/crm`](shared/crm/) · 41 tests |
+| **Copilot anclado — núcleo** (adelantado de Fase 1 · 1.6) | ✅ **Completo** — [`ai-services/copilot-core`](ai-services/copilot-core/) · 63 tests · **0 alucinaciones en 200 pruebas** |
 | **Integración ReadyMode** (socio de diseño) | 📋 Plan + worklist — [doc 13](docs/13-integracion-readymode.md) |
 | Todo lo demás | No empezado, por diseño |
 
@@ -60,6 +61,12 @@ Lo medido hasta ahora, reproducible con
 - **Inferencia remota colocada: 99.73% entregado**, indistinguible de local
 - **GPU en otra región: 0.00% entregado** — el hallazgo que convierte la
   colocación regional en requisito funcional, no en optimización
+- **Copilot: 0 afirmaciones sin respaldo y 0 citas cruzadas entre tenants**
+  en 200 pruebas, con un generador que miente a propósito. El costo de las
+  cuatro capas de defensa: **0.5 ms p95**
+- **Sin modelo de embeddings el copilot responde 0 de 40 objeciones
+  parafraseadas** — el hallazgo que convierte la búsqueda vectorial en
+  bloqueante de Fase 1, no en mejora de Fase 2
 
 Lee los documentos en este orden:
 
@@ -91,6 +98,7 @@ voicepilot-ai/
 ├── frontend/            Next.js — dashboard, CRM, consola del agente
 ├── backend/             NestJS — API de negocio, CRM, orquestación
 ├── ai-services/         Python — voz, ASR, MT, TTS, copilot, análisis
+│   └── copilot-core/    Anclaje, recuperación, verificación — 0 invención
 ├── browser-extension/   Chrome MV3 — VoicePilot encima de CRMs ajenos
 ├── shared/              Contratos, tipos, esquemas de eventos, SDK
 │   ├── proto/           Contrato gRPC Media ↔ Intelligence
@@ -115,6 +123,9 @@ su frontera y lo que tiene prohibido hacer.
    de playout.
 3. **0 respuestas inventadas** en el copilot. Si no está en el material de
    la empresa, el copilot calla. Sin excepción.
+   **Medido: 0 en 200 pruebas**, contra un modelo que miente en dos de cada
+   tres llamadas. Reproducible con
+   `cd ai-services/copilot-core && python3 -m eval.run`.
 
 ---
 
