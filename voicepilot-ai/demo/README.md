@@ -1,72 +1,85 @@
 # demo/
 
-**Ábrelo: `demo/index.html`.** Doble clic. No necesita servidor, ni instalar
-nada, ni internet.
+**Descarga `index.html` y ábrelo con doble clic.** Un solo archivo, sin
+servidor, sin instalar nada.
 
-Un solo archivo. Si lo mandas por WhatsApp o correo, funciona igual del otro
-lado.
+> ⚠ **Tiene que ser desde tu máquina.** La versión publicada en la web no puede
+> llamar a ElevenLabs — el navegador lo bloquea por seguridad, y hace bien.
 
-## Qué hay dentro
+---
 
-**1 · La consola del agente.** Una llamada de ventas reproduciéndose en tiempo
-real: transcripción palabra por palabra, el copilot apareciendo en el momento
-exacto de la objeción de precio — con la cita al manual y la página —, alertas
-de compliance, y los medidores de sentimiento moviéndose.
+## Sección 2 — el negocio
 
-Hay un botón que dice **"Matar la GPU"**. Púlsalo a mitad de llamada. El
-indicador se pone rojo, el agente ve que su voz real está saliendo, y **la
-llamada no se corta**. Eso es el invariante del motor, hecho visible: el
-cliente nunca escucha un hueco, escucha al agente.
-
-Al colgar, el resumen post-llamada se genera solo.
-
-**2 · Tu voz con acento americano — conversión real.** Esto es el negocio.
-
-1. **Grabas** una línea de tu pitch en inglés, aquí mismo.
-2. **Pegas tu llave de ElevenLabs** (capa gratuita) y la página convierte tu voz
-   en el momento: misma frase, tu misma entonación, voz americana nativa.
-3. **Comparas** con dos botones grandes: ANTES · tu voz / DESPUÉS · lo que oye
-   el cliente. Los clips quedan guardados en el navegador.
-
-> ⚠ **La conversión solo funciona con el archivo abierto desde tu máquina.**
-> La versión publicada en la web no puede llamar a ElevenLabs — el navegador lo
-> bloquea por seguridad, y hace bien. Descarga `demo/index.html` de este
-> repositorio y ábrelo con doble clic.
-
-La llave se guarda solo en tu navegador y viaja solo a ElevenLabs. Consíguela
-en elevenlabs.io → tu perfil → API Keys.
-
-## Qué es real y qué no
-
-Esto importa más que el demo: un demo que no distingue no sirve para decidir.
+**Hablas tú, el cliente te oye en inglés perfecto.** Continuo, sin apretar
+nada.
 
 | | |
 |---|---|
-| **Real** | El procesamiento del micrófono es DSP genuino — desplazamiento de tono granular, moldeado de formantes, compresión. La latencia está medida. El motor de audio en Rust existe, con 71 tests. |
-| **Simulado** | El contenido de la llamada es un guion. Las sugerencias del copilot están escritas a mano; el motor de recuperación anclada aún no existe. |
-| **Comprado, y funcionando** | La conversión de acento del paso 2 es real, vía ElevenLabs. Para el MVP y los primeros clientes se compra — sale esta semana, no en seis meses. El modelo propio es para cuando el volumen justifique el costo por minuto. |
+| **Modo A** | Hablas inglés con acento → sale inglés americano nativo |
+| **Modo B** | Hablas **español** → sale inglés |
 
-**La conversión de acento en el demo es real, pero es comprada, no nuestra.**
-Usa la API de ElevenLabs. Eso es exactamente lo correcto para demostrar el
-negocio: existe hoy, funciona hoy. Nuestro modelo propio viene después, cuando
-el volumen justifique el costo por minuto y la latencia sea el diferenciador.
+Le das a **Empezar a hablar** y hablas normal. Cada vez que haces una pausa,
+esa frase se convierte y **suena sola**. Sigues hablando mientras tanto.
 
-**Lo que el demo no hace es la conversión en vivo durante una llamada.** Aquí
-grabas y conviertes en dos pasos; en producción corre continuo a 292 ms. Esa
-diferencia es el trabajo de ingeniería que ya está medido en
-`media/voice-engine`.
+### Para probarlo
+
+1. **Audífonos.** Sin ellos el micrófono capta la salida y se enloquece.
+2. Cuenta gratis en **elevenlabs.io** → perfil → **API Keys** → copia la llave.
+3. Pégala en el demo, dale **Conectar**, elige la voz del cliente.
+4. **Empezar a hablar.** Di una frase, haz una pausa, escucha.
+
+La llave se guarda solo en tu navegador y viaja solo a ElevenLabs.
+
+### Cómo funciona por dentro
+
+Un detector de actividad de voz vigila el nivel. Cuando llevas hablando y te
+quedas callado ~650 ms, esa frase se cierra y sale a convertir mientras tú
+sigues con la siguiente. Se convierten en paralelo pero **se reproducen en
+orden estricto** — una llamada donde la frase tres llega antes que la dos no es
+una llamada.
+
+---
+
+## Lo que este demo no es
+
+**El retardo que ves no es el del producto.** Aquí cada frase hace un viaje de
+ida y vuelta a una API: uno o dos segundos en Modo A, más en Modo B porque el
+doblaje es un trabajo asíncrono.
+
+En producción el modelo corre pegado al agente y va **continuo, sin esperar tus
+pausas**: 292 ms medidos, con el audio saliendo mientras todavía hablas. Eso es
+lo que mide `media/voice-engine`, y es la única diferencia real entre este demo
+y el producto.
+
+Lo que este demo sí prueba, y es lo que hay que probar: **que la conversión
+suena bien, que funciona en los dos modos, y que el flujo es manos libres.**
+
+---
+
+## Sección 1 — la consola del agente
+
+Una llamada de ventas reproduciéndose en tiempo real: transcripción palabra por
+palabra, el copilot apareciendo en la objeción de precio con su cita al manual,
+alertas de compliance, medidores de sentimiento.
+
+Hay un botón **"Matar la GPU"**. Púlsalo a mitad de llamada: el indicador se
+pone rojo, el agente ve que su voz real está saliendo, **y la llamada no se
+corta**. Ese es el invariante del motor, hecho visible.
+
+Esta sección **es un guion** — el contenido está escrito a mano. Sus tiempos,
+su latencia y su comportamiento ante fallos sí son los del sistema real.
+
+---
 
 ## Para mostrárselo a alguien
 
-1. Abre el archivo, dale a **Reproducir llamada**
-2. En el segundo 42 aparece la sugerencia del copilot con su cita — ese es el
-   momento que vende
-3. Pulsa **Matar la GPU** y explica por qué la llamada sigue viva
-4. Deja que termine y muestra el resumen automático
-5. Baja a la sección 2, graba veinte segundos, convierte, y dale a
-   **ANTES · tu voz** y luego **DESPUÉS · lo que oye el cliente**.
-   Esa diferencia cierra la venta sola — y es tu propia voz, no un ejemplo
+1. Abre en la **sección 2**, no en la 1. El acento es lo que vende.
+2. Ponte los audífonos, Modo A, di tu pitch. Deja que lo oiga.
+3. Cambia a **Modo B** y di la misma frase **en español**. Ahí se cae de
+   espaldas.
+4. Sube a la sección 1 y muestra la consola, el copilot con su cita, y el botón
+   de matar la GPU.
 
-Los números que puedes citar sin exagerar: **292 ms de latencia añadida, 99.9 %
-de audio convertido entregado, 100 % de continuidad con la GPU muerta.** Los
-tres están medidos y son reproducibles desde `media/voice-engine`.
+Números que puedes citar sin exagerar, todos medidos y reproducibles desde
+`media/voice-engine`: **292 ms de latencia añadida, 99.9 % de audio convertido
+entregado, 100 % de continuidad con la GPU muerta.**

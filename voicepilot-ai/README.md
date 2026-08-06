@@ -18,10 +18,14 @@ Funciona de dos formas:
 
 ## Demo
 
-**Abre [`demo/index.html`](demo/index.html)** — doble clic, sin servidor ni
-instalación. La consola del agente con una llamada en vivo, y tu propio
-micrófono procesado en tiempo real. Ver [demo/README.md](demo/README.md) para
-qué es real y qué está simulado.
+**Descarga [`demo/index.html`](demo/index.html) y ábrelo con doble clic.**
+
+Hablas tú, el cliente te oye en inglés perfecto — **Modo A** (inglés con
+acento → inglés americano) y **Modo B** (español → inglés), continuo y manos
+libres, con tu propia voz y una llave gratuita de ElevenLabs. Más la consola
+del agente con una llamada en vivo.
+
+Ver [demo/README.md](demo/README.md) para cómo probarlo y qué es real.
 
 ---
 
