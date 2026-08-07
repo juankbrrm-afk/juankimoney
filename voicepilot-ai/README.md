@@ -47,7 +47,8 @@ Ver [demo/README.md](demo/README.md) para cómo probarlo y qué es real.
 | **Nivel L1 — funciona con cualquier CRM** (detección de registro + escritura verificada) | ✅ **Completo** — `binding.ts`, `overlay.ts`, `providers/universal.ts` |
 | **Copilot anclado — núcleo** (adelantado de Fase 1 · 1.6) | ✅ **Completo** — [`ai-services/copilot-core`](ai-services/copilot-core/) · **0 alucinaciones en 200 pruebas** |
 | **Motor de compliance** (adelantado de Fase 1 · 1.7) | ✅ **Completo** — dos capas, reloj, y presupuesto de ruido de 3 alertas |
-| **Análisis post-llamada** (adelantado de Fase 1 · 1.8) | ✅ **Completo** — cada elemento anclado a una cita literal; una invención no tiene dónde existir · **124 tests** con el copilot y compliance |
+| **Análisis post-llamada** (adelantado de Fase 1 · 1.8) | ✅ **Completo** — cada elemento anclado a una cita literal; una invención no tiene dónde existir |
+| **Model Gateway** — abstracción de proveedor con failover | ✅ **Completo** — cambiar de modelo es configuración, no código · **146 tests** en el plano de inteligencia |
 | **Integración ReadyMode** (socio de diseño) | 📋 Plan + worklist — [doc 13](docs/13-integracion-readymode.md) |
 | Todo lo demás | No empezado, por diseño |
 

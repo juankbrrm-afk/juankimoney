@@ -1,12 +1,13 @@
 # copilot-core
 
-Three modules of the Intelligence Plane, sharing one tokeniser: the
-**grounded copilot** (0 invented answers), the **compliance engine** (recall
-> 0.95 on critical rules), and **post-call analysis** (key-point coverage >
-90% vs human QA). Pure Python 3.11, zero dependencies.
+Four modules of the Intelligence Plane: the **grounded copilot** (0 invented
+answers), the **compliance engine** (recall > 0.95 on critical rules),
+**post-call analysis** (key-point coverage > 90% vs human QA), and the
+**model gateway** (routing, failover, deadlines, versioning, cost ceiling).
+Pure Python 3.11, zero dependencies.
 
 ```bash
-python3 -m unittest discover -s . -p "test_*.py" -t .   # 124 tests
+python3 -m unittest discover -s . -p "test_*.py" -t .   # 146 tests
 python3 -m eval.run                                     # the exit criterion, measured
 ```
 
@@ -161,6 +162,7 @@ the same failure as a hallucination:
 | `compliance/backtest.py` | What a rule would have done, before it is allowed to do anything |
 | `postcall/analysis.py` | The record, and the rule that makes it worth reading |
 | `postcall/extract.py` | Anchoring every extraction to the moment it happened |
+| `gateway/gateway.py` | One door for every model call — and the deadline that belongs to the task |
 
 ---
 
@@ -284,3 +286,50 @@ outcomes nobody chose.
 | `a gap in the transcript becomes silence not a monologue` | A talk ratio that makes coaching decisions meaningless |
 | `the note carries its anchors into the CRM` | A summary a supervisor cannot verify from inside Salesforce |
 | `the writes are canonical, not CRM-specific` | This module learning which CRM it is talking to |
+
+
+---
+
+# The model gateway
+
+`docs/06` §7: **the code is never coupled to a provider.** Prices and the
+capability frontier move every quarter; changing models must be a
+configuration change, not a code change.
+
+Every learned component here is already injected behind a protocol, which
+makes it replaceable *in a test*. This makes it replaceable **in production,
+at 3am, without a deploy** — a different problem, needing failover,
+deadlines, versioning and a cost ceiling.
+
+## The deadline belongs to the task, not to the attempt
+
+The decision the module is shaped around, and the opposite of what a retry
+library does by default.
+
+The copilot gets 800 ms because past that the agent has carried on speaking
+and the suggestion arrives too late to use — worse than silence, since they
+read it and lose their place. A failover that grants the backup a *fresh*
+800 ms turns that into 1,600 ms and delivers a perfectly good suggestion into
+a conversation that moved on two sentences ago.
+
+So a slow primary does not get to spend the backup's time, and a late answer
+is discarded rather than delivered. Returning nothing on time is a supported
+outcome everywhere in this system: the copilot stays silent, compliance keeps
+its deterministic verdict, the post-call summary runs later.
+
+## Four smaller rules
+
+**A provider without a version cannot be registered.** Six weeks after a
+quality regression, the answer is in which model produced the output.
+
+**The cost ceiling refuses, it does not warn.** A per-tenant runaway is
+otherwise discovered on an invoice. Better to lose a feature for one tenant
+for an hour than the margin on that tenant for a quarter — and an
+unaffordable primary falls through to a cheaper backup rather than failing.
+
+**The cache is scoped to one call.** The same question from a different
+customer is a different question; a suggestion cached across calls would be
+a data leak wearing a performance optimisation's clothes.
+
+**A single-provider task is reported as such.** `has_failover()` puts it on a
+dashboard instead of leaving it to be discovered during an incident.
