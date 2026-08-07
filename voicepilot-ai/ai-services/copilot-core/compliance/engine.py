@@ -25,11 +25,10 @@ in a position to talk the system out of a violation a written rule detected.
 
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass, field, replace
 from typing import Protocol, Sequence
 
-from copilot.text import normalise
+from copilot.text import canonical_phrase
 
 from .rules import Kind, RuleSet, Rule, Segment, Severity, Speaker, Violation
 
@@ -70,24 +69,6 @@ class NoClassifier:
         return False, ""
 
 
-#: Everything that is not a letter or a digit becomes a word boundary.
-#
-# Without this, punctuation decides compliance. "This call is being recorded."
-# did not satisfy a rule looking for "this call is being recorded", because
-# the full stop sat where the matcher wanted a space — and every real
-# utterance ends in punctuation. The rule was correct, the agent said the
-# right words, and the company would have been reported as non-compliant on
-# every single call.
-#
-# It also makes numbers agree across locales and transcription styles:
-# "$28,000", "28.000" and "28 000" all reduce to the same word sequence.
-_WORDS = re.compile(r"[^a-z0-9]+")
-
-
-def _canonical(s: str) -> str:
-    return " " + " ".join(_WORDS.sub(" ", normalise(s)).split()) + " "
-
-
 def phrase_hit(text: str, phrases: Sequence[str]) -> str | None:
     """Return the phrase that matched, or None.
 
@@ -98,9 +79,9 @@ def phrase_hit(text: str, phrases: Sequence[str]) -> str | None:
     guarantee a refund" would otherwise satisfy a rule looking for
     "guarantee a refund".
     """
-    haystack = _canonical(text)
+    haystack = canonical_phrase(text)
     for phrase in phrases:
-        if _canonical(phrase) in haystack:
+        if canonical_phrase(phrase) in haystack:
             return phrase
     return None
 

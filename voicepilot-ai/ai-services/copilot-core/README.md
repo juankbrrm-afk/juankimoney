@@ -1,18 +1,24 @@
 # copilot-core
 
-Two modules of the Intelligence Plane, sharing one tokeniser: the **grounded
-copilot** (exit criterion: 0 invented answers) and the **compliance engine**
-(exit criterion: recall > 0.95 on critical rules). Pure Python 3.11, zero
-dependencies.
+Three modules of the Intelligence Plane, sharing one tokeniser: the
+**grounded copilot** (0 invented answers), the **compliance engine** (recall
+> 0.95 on critical rules), and **post-call analysis** (key-point coverage >
+90% vs human QA). Pure Python 3.11, zero dependencies.
 
 ```bash
-python3 -m unittest discover -s . -p "test_*.py" -t .   # 102 tests
+python3 -m unittest discover -s . -p "test_*.py" -t .   # 124 tests
 python3 -m eval.run                                     # the exit criterion, measured
 ```
 
 They live in one directory because they share `copilot/text.py`. If retrieval
 and compliance disagreed about what a word is, a phrase could be "said" for
-one and not the other.
+one and not the other — and the post-call extractor asks the same question of
+the same text when it checks whether a quote is really in the transcript.
+
+All three enforce the same discipline in three different shapes: **a claim
+without evidence is not representable.** The copilot needs a citation, a
+compliance violation needs the words that caused it, and a post-call item
+needs a verbatim span of the transcript.
 
 ---
 
@@ -153,6 +159,8 @@ the same failure as a hallucination:
 | `compliance/rules.py` | The rule model, and the severity levels that decide whether any of it works |
 | `compliance/engine.py` | Two layers, a clock, and the hard noise budget |
 | `compliance/backtest.py` | What a rule would have done, before it is allowed to do anything |
+| `postcall/analysis.py` | The record, and the rule that makes it worth reading |
+| `postcall/extract.py` | Anchoring every extraction to the moment it happened |
 
 ---
 
@@ -223,3 +231,56 @@ fixes.
 | `no history is never a green light` | Activating a rule blind |
 | `the cost of a new rule is what it displaces` | Growing a rule set without noticing the panel stopped working |
 | `a critical rule must tell the agent what to do` | A red band with a sound and no instruction, mid-sentence |
+
+
+---
+
+# Post-call analysis
+
+`docs/06` §6. One pass of the highest-quality model over the whole
+transcript — no latency pressure here, which is exactly why it is the most
+dangerous place in the system for a hallucination. Nobody listens back to the
+recording. The supervisor reads the summary, believes it, and coaches from
+it: a fabricated objection becomes a training priority, a fabricated
+commitment becomes a promise the company never made.
+
+## One constraint, two guarantees
+
+The spec asks for `at_ms` on every extracted element so a supervisor can
+click "price objection" and jump to second 145. Made structural — an item
+**cannot be constructed** without a verbatim span of the transcript behind it
+— the same field also makes invention impossible: a fabricated event has no
+quote, a quote that is not in the transcript resolves to no moment, and an
+item with no moment does not exist.
+
+Measured on the test call, against a summariser that describes a call that
+did not happen: **2 of 3 invented items dropped, 0 true items lost.** The
+drops are counted rather than hidden — a rising count is the earliest signal
+the model has drifted.
+
+## Three smaller decisions
+
+**Talk metrics are arithmetic, never a model.** A talk ratio that is
+occasionally invented is worse than none, because coaching decisions get made
+from it. Turn duration is capped so one gap in the transcript becomes silence
+rather than a ninety-second monologue.
+
+**Compliance is carried over, not recomputed.** The violations come from the
+live engine unchanged. "The panel said one thing and the report says another"
+destroys trust in both faster than either being wrong alone.
+
+**The disposition is a proposal.** `confirmed_by_agent` lives on the type
+rather than in the UI, so no code path can write an unconfirmed outcome by
+forgetting a check. An auto-applied disposition is how a pipeline fills with
+outcomes nobody chose.
+
+| Test | What it prevents |
+|---|---|
+| `an event that never happened is dropped` | A fabricated commitment becoming a promise the company must keep |
+| `what was actually said still survives` | Paying for the guarantee in usefulness |
+| `a short quote is not a quote` | Anchoring an invented objection to the word "price" |
+| `a summary anchored to nothing is refused outright` | Writing fiction into a customer's CRM |
+| `an unconfirmed disposition is never written` | A forecast built on outcomes nobody chose |
+| `a gap in the transcript becomes silence not a monologue` | A talk ratio that makes coaching decisions meaningless |
+| `the note carries its anchors into the CRM` | A summary a supervisor cannot verify from inside Salesforce |
+| `the writes are canonical, not CRM-specific` | This module learning which CRM it is talking to |

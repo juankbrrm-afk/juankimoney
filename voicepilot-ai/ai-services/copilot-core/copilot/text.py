@@ -144,3 +144,27 @@ _SENTENCE = re.compile(r"[^.!?¡¿\n]+[.!?]*")
 
 def sentences(s: str) -> list[str]:
     return [m.group().strip() for m in _SENTENCE.finditer(s) if m.group().strip()]
+
+
+# Everything that is not a letter or a digit becomes a word boundary.
+_PHRASE = re.compile(r"[^a-z0-9]+")
+
+
+def canonical_phrase(s: str) -> str:
+    """A string reduced to its word sequence, padded for whole-word matching.
+
+    Shared by the compliance engine (does a phrase appear?) and the post-call
+    extractor (is this quote really in the transcript?). Both are asking the
+    same question of the same text, and if they answered it differently the
+    same sentence could be "said" for one and not the other.
+
+    Punctuation is the reason this exists. `"This call is being recorded."`
+    did not match a rule looking for `this call is being recorded`, because
+    the full stop sat where the matcher wanted a space — and every real
+    utterance ends in punctuation. The company would have been reported as
+    non-compliant on every call while saying exactly the right words.
+
+    It also makes numbers agree across locales and transcription styles:
+    `$28,000`, `28.000` and `28 000` reduce to the same word sequence.
+    """
+    return " " + " ".join(_PHRASE.sub(" ", normalise(s)).split()) + " "

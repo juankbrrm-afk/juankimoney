@@ -19,7 +19,8 @@ que permite escalarlo, sustituirlo y probarlo de forma independiente.
 |---|---|
 | **`copilot-core/copilot/`** — anclaje, recuperación, verificación | ✅ **Construido** — **0 alucinaciones en 200 pruebas** · [README](copilot-core/README.md) |
 | **`copilot-core/compliance/`** — motor determinista + red de seguridad | ✅ **Construido** — recall y precisión sobre el bar en reglas críticas · presupuesto de ruido de 3 alertas |
-| Ambos juntos | **102 tests**, cero dependencias |
+| **`copilot-core/postcall/`** — resumen, extracción trazable, escrituras al CRM | ✅ **Construido** — cada elemento anclado a una cita literal · cobertura 100% vs QA humano en el set de prueba |
+| Los tres juntos | **124 tests**, cero dependencias |
 | Todo lo demás | No empezado |
 
 `copilot-core` es el núcleo del módulo 1.6 del roadmap, adelantado porque su

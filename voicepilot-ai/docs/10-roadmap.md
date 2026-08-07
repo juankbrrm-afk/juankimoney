@@ -69,7 +69,7 @@ posterga sin discusión.
 | 1.5 | Ingesta de conocimiento (PDF, DOCX, TXT, URL) | 21–23 | 500 páginas ingeridas en < 10 min |
 | 1.6 | **Copilot con RAG anclado** — núcleo ✅ **adelantado** ([`ai-services/copilot-core`](../ai-services/copilot-core/)) | 23–26 | ✅ **CUMPLIDO en el núcleo** — 0 afirmaciones sin respaldo y 0 citas cruzadas en 200 pruebas, con un generador adversario. 63 tests. Falta el modelo de embeddings, el cross-encoder y el verificador NLI, todos inyectables. Encontró 4 defectos, 3 de ellos en la puntuación de relevancia |
 | 1.7 | **Compliance determinista** ✅ **adelantado** ([`ai-services/copilot-core/compliance`](../ai-services/copilot-core/compliance/)) | 25–27 | ✅ **CUMPLIDO en el núcleo** — recall y precisión sobre el bar en reglas críticas, con set etiquetado. Falta el clasificador semántico, inyectable. Encontró un defecto grave: el presupuesto de alertas se repartía por orden de llegada y suprimía alertas críticas tardías |
-| 1.8 | Análisis post-llamada | 27–29 | Cobertura de puntos clave > 90% vs. QA humano |
+| 1.8 | **Análisis post-llamada** ✅ **adelantado** ([`ai-services/copilot-core/postcall`](../ai-services/copilot-core/postcall/)) | 27–29 | ✅ **CUMPLIDO en el núcleo** — cobertura 100% vs QA humano en el set de prueba, y 2 de 3 invenciones descartadas sin perder ningún hallazgo real. Falta el modelo de resumen, inyectable |
 | 1.9 | CRM nativo v1 (contactos, leads, pipeline, notas, tareas) | 26–30 | Importación de 50k contactos sin errores |
 | 1.10 | Dashboard de supervisor | 29–31 | Actualización < 2 s con 100 llamadas activas |
 | 1.11 | Extensión de Chrome (L1) + HubSpot (L2) | 30–32 | Escritura de llamada verificada en HubSpot real |

@@ -46,7 +46,8 @@ Ver [demo/README.md](demo/README.md) para cómo probarlo y qué es real.
 | **Núcleo de integración de CRM** | ✅ **Completo** — [`shared/crm`](shared/crm/) · 67 tests |
 | **Nivel L1 — funciona con cualquier CRM** (detección de registro + escritura verificada) | ✅ **Completo** — `binding.ts`, `overlay.ts`, `providers/universal.ts` |
 | **Copilot anclado — núcleo** (adelantado de Fase 1 · 1.6) | ✅ **Completo** — [`ai-services/copilot-core`](ai-services/copilot-core/) · **0 alucinaciones en 200 pruebas** |
-| **Motor de compliance** (adelantado de Fase 1 · 1.7) | ✅ **Completo** — dos capas, reloj, y presupuesto de ruido de 3 alertas · 102 tests con el copilot |
+| **Motor de compliance** (adelantado de Fase 1 · 1.7) | ✅ **Completo** — dos capas, reloj, y presupuesto de ruido de 3 alertas |
+| **Análisis post-llamada** (adelantado de Fase 1 · 1.8) | ✅ **Completo** — cada elemento anclado a una cita literal; una invención no tiene dónde existir · **124 tests** con el copilot y compliance |
 | **Integración ReadyMode** (socio de diseño) | 📋 Plan + worklist — [doc 13](docs/13-integracion-readymode.md) |
 | Todo lo demás | No empezado, por diseño |
 
