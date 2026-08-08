@@ -7,7 +7,7 @@ answers), the **compliance engine** (recall > 0.95 on critical rules),
 Pure Python 3.11, zero dependencies.
 
 ```bash
-python3 -m unittest discover -s . -p "test_*.py" -t .   # 166 tests
+python3 -m unittest discover -s . -p "test_*.py" -t .   # 183 tests
 python3 -m eval.run                                     # the exit criterion, measured
 ```
 
@@ -165,6 +165,7 @@ the same failure as a hallucination:
 | `gateway/gateway.py` | One door for every model call — and the deadline that belongs to the task |
 | `signals/live.py` | Live signals, and the close probability that cannot be invented |
 | `signals/triage.py` | Which three calls the supervisor needs to be on, right now |
+| `script/adherence.py` | Did the agent follow the script, and where did it come apart |
 
 ---
 
@@ -400,3 +401,43 @@ the unsalvageable calls at the top of the screen.
 | `a quiet floor says so instead of finding three worries` | A dashboard that always manufactures urgency |
 | `an acknowledged problem stops competing for attention` | A handled call hiding three unhandled ones behind it |
 | `every ranked call says why` | A ranking supervisors overrule from instinct within a week |
+
+
+---
+
+# Script adherence
+
+`docs/06` §6 step 4 — one line in the spec, and what a floor supervisor
+actually buys. Compliance protects the company from a regulator; script
+adherence is how a team gets better at selling. **They stay separate**:
+merging them gives you either a legal alert about small talk or a coaching
+tip about a statute, and both are worse than two lists.
+
+**Adherence is not a percentage.** "78% adherence" is a number a supervisor
+cannot coach from — it does not say whether the agent skipped discovery or
+fumbled the close, and those are different conversations with different
+people. The output is a per-step verdict plus a short list of **named**
+failures, each carrying what to say about it. A score exists because someone
+will want to chart it, but it is *derived* from the verdicts, so nobody can
+improve the number without improving the calls.
+
+**Order matters for some steps and not others.** Verifying the service
+address has to precede pricing — that is the sequence the script exists to
+enforce. Whether the warranty comes before or after the financing is nobody's
+business. Treating every step as ordered produces a wall of false "out of
+order" findings, agents learn the report is wrong, and this joins the
+compliance panel nobody reads.
+
+Four smaller calls, each with a test: `late` is distinguished from `skipped`
+(one agent forgot, the other buried it); ordering is judged **before**
+lateness (reporting a sequencing problem as lateness sends the agent to fix
+the wrong thing); optional branches are never failures (every real script has
+them, and marking them required makes the report wrong on most calls); and
+coaching notes lead with skips, because a conversation that opens with
+sequencing when the agent forgot the close entirely is one they stop
+listening to.
+
+`current_stage()` feeds the copilot's `STAGE_CHANGE` trigger from the same
+matcher compliance uses — so a copilot never offers closing material while
+the agent is still doing discovery, and the panel and the report never
+disagree about the same sentence in front of the same supervisor.

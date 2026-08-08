@@ -22,7 +22,8 @@ que permite escalarlo, sustituirlo y probarlo de forma independiente.
 | **`copilot-core/postcall/`** — resumen, extracción trazable, escrituras al CRM | ✅ **Construido** — cada elemento anclado a una cita literal · cobertura 100% vs QA humano en el set de prueba |
 | **`copilot-core/gateway/`** — enrutamiento, failover, plazos, versionado, techo de coste | ✅ **Construido** — el plazo pertenece a la tarea, no al intento |
 | **`copilot-core/signals/`** — señales en vivo y triaje del supervisor | ✅ **Construido** — la probabilidad de cierre no se puede inventar; el piso se ordena por riesgo, no por duración |
-| Los cinco juntos | **166 tests**, cero dependencias |
+| **`copilot-core/script/`** — adherencia al guion y etapa actual | ✅ **Construido** — hallazgos con nombre, no un puntaje sobre 100 |
+| Los seis juntos | **183 tests**, cero dependencias |
 | Todo lo demás | No empezado |
 
 `copilot-core` es el núcleo del módulo 1.6 del roadmap, adelantado porque su
