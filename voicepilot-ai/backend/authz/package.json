@@ -1,0 +1,11 @@
+{
+  "name": "@voicepilot/authz",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Scoped RBAC, tenant isolation and the audit obligation",
+  "scripts": {
+    "test": "node --experimental-strip-types --test test/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  }
+}
