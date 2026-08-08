@@ -1,0 +1,15 @@
+<!doctype html><meta charset="utf-8"><title>Acme CRM</title>
+<h1>Lead</h1>
+<div id="rec" data-record-id="00Q5g00000AbCdE">Michael Reed</div>
+<label>Nota <textarea id="note"></textarea></label>
+<label>Disposición <input id="disp" /></label>
+<label>Etapa <input id="stage" readonly /></label>
+<script>
+  // A framework that tracks its own state and ignores a plain .value
+  // assignment — exactly the case content.js's native-setter dance exists
+  // for. If the extension writes naively, this stays empty.
+  const note = document.getElementById("note");
+  let shadow = "";
+  note.addEventListener("input", () => { shadow = note.value; });
+  window.__shadowNote = () => shadow;
+</script>

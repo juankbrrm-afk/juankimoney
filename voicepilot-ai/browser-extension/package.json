@@ -1,0 +1,11 @@
+{
+  "name": "@voicepilot/browser-extension",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Chrome MV3 — VoicePilot on top of somebody else's CRM",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node build.mjs && node test/extension.test.mjs"
+  }
+}
