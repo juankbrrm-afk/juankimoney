@@ -49,6 +49,7 @@ Ver [demo/README.md](demo/README.md) para cómo probarlo y qué es real.
 | **Motor de compliance** (adelantado de Fase 1 · 1.7) | ✅ **Completo** — dos capas, reloj, y presupuesto de ruido de 3 alertas |
 | **Análisis post-llamada** (adelantado de Fase 1 · 1.8) | ✅ **Completo** — cada elemento anclado a una cita literal; una invención no tiene dónde existir |
 | **Model Gateway** — abstracción de proveedor con failover | ✅ **Completo** — cambiar de modelo es configuración, no código · **146 tests** en el plano de inteligencia |
+| **Análisis en vivo + triaje del supervisor** (Fase 1 · 1.10) | ✅ **Completo** — un 73% inventado no se puede construir · **166 tests** en el plano de inteligencia |
 | **Fase 1 · 1.1 — Tenancy, RBAC y auditoría** | ✅ **Completo** — [`backend/authz`](backend/authz/) · suite de aislamiento **generada**: 624 intentos entre tenants, 0 fugas · 19 tests |
 | **Integración ReadyMode** (socio de diseño) | 📋 Plan + worklist — [doc 13](docs/13-integracion-readymode.md) |
 | Todo lo demás | No empezado, por diseño |

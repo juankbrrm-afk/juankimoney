@@ -7,7 +7,7 @@ answers), the **compliance engine** (recall > 0.95 on critical rules),
 Pure Python 3.11, zero dependencies.
 
 ```bash
-python3 -m unittest discover -s . -p "test_*.py" -t .   # 146 tests
+python3 -m unittest discover -s . -p "test_*.py" -t .   # 166 tests
 python3 -m eval.run                                     # the exit criterion, measured
 ```
 
@@ -163,6 +163,8 @@ the same failure as a hallucination:
 | `postcall/analysis.py` | The record, and the rule that makes it worth reading |
 | `postcall/extract.py` | Anchoring every extraction to the moment it happened |
 | `gateway/gateway.py` | One door for every model call — and the deadline that belongs to the task |
+| `signals/live.py` | Live signals, and the close probability that cannot be invented |
+| `signals/triage.py` | Which three calls the supervisor needs to be on, right now |
 
 ---
 
@@ -333,3 +335,68 @@ a data leak wearing a performance optimisation's clothes.
 
 **A single-provider task is reported as such.** `has_failover()` puts it on a
 dashboard instead of leaving it to be discovered during an incident.
+
+
+---
+
+# Live signals and supervisor triage
+
+`docs/06` §5, and it ends with the most honest sentence in the spec:
+
+> A generic "close probability" model is **astrology**. Until a tenant has
+> ~2,000 calls with a known outcome, the system shows *"calibrating"*
+> instead of a fake number. I would rather show "not enough data" than an
+> invented 73%. **A supervisor who makes decisions from an invented number
+> leaves us in two months.**
+
+So a probability is not a `float` here. It is a tagged union whose numeric
+arm **cannot be constructed** without the history that earns it. Same device
+as `Suggestion` requiring citations and a post-call `Item` requiring a quote:
+three modules, three different failures, one rule — **a claim with no
+evidence has no representation.**
+
+The readiness check lives in the caller, not the model, and that is
+deliberate: a model asked whether it is ready will always say yes. Readiness
+is a property of the tenant's history, which the model cannot see.
+
+## Smoothing is asymmetric, and that is the design
+
+A bar that flickers on every ASR turn is noise, and a supervisor learns to
+ignore a flickering bar exactly as fast as they learn to ignore a noisy
+compliance panel. So signals are smoothed.
+
+But symmetric smoothing hides the only event that matters. A customer turns
+cold in **one sentence** — *"that's a lot more than I wanted to spend"* — and
+a filter that takes four refreshes to show it has delayed the supervisor by
+eight seconds on the one call they needed to hear.
+
+So deterioration is nearly instant and recovery is slow. The asymmetry reads
+as pessimism and it is: being told a call is going badly when it recovered
+costs a supervisor ten seconds of listening; missing a call that is going
+badly costs the deal.
+
+## The ranking, not the graph
+
+`docs/06` §5: *the floor dashboard sorts by risk, not duration. **That is the
+real value of live analysis — not the pretty graph.***
+
+Sorting by duration is the default every dashboard ships with and it is worse
+than useless: the longest call on the floor is usually the one going well.
+
+Three calls, for the same reason the compliance panel holds three alerts. And
+the weights are ordered by **what a supervisor can still change** — a
+critical compliance violation is happening now and can be corrected by a
+whisper; a low interest score is a call that was probably never going to
+close. Ranking by "how bad is this" instead of "what can still be saved" puts
+the unsalvageable calls at the top of the screen.
+
+| Test | What it prevents |
+|---|---|
+| `a probability cannot be constructed without the history` | An invented 73% that a supervisor plans a week around |
+| `a model does not get to decide it is ready` | The model marking its own homework |
+| `a call turning cold shows up almost immediately` | Eight seconds of delay on the one call that needed a supervisor |
+| `recovery is slow and has to be earned` | One good sentence erasing a call that is still going badly |
+| `duration does not rank a call` | The longest and healthiest call sitting at the top of the screen |
+| `a quiet floor says so instead of finding three worries` | A dashboard that always manufactures urgency |
+| `an acknowledged problem stops competing for attention` | A handled call hiding three unhandled ones behind it |
+| `every ranked call says why` | A ranking supervisors overrule from instinct within a week |
