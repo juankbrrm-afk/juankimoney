@@ -19,6 +19,15 @@ export interface StudioSettings extends EngineSettings {
   /** Compensacion de latencia al alinear tomas, en ms. */
   latencyMs: number;
   flowTemplateId: string;
+  /** Estilo elegido, si hay alguno. */
+  estiloId: string | null;
+  /** Semicorcheas del compas donde cae cada silaba del flow del estilo. */
+  flowSteps: number[];
+  /**
+   * Cuanto se recuesta la voz respecto a la rejilla al cuadrarla, en ms.
+   * Positivo = por detras del beat. Es lo que le da caida al flow.
+   */
+  aireMs: number;
 }
 
 const DEFAULT_SETTINGS: StudioSettings = {
@@ -33,6 +42,9 @@ const DEFAULT_SETTINGS: StudioSettings = {
   guideSteps: [],
   latencyMs: 0,
   flowTemplateId: "recto",
+  estiloId: null,
+  flowSteps: [0, 2, 4, 6, 8, 10, 12, 14],
+  aireMs: 0,
 };
 
 const DEFAULT_SECTIONS: Section[] = [

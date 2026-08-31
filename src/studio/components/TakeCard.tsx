@@ -9,7 +9,7 @@ import { useStudio } from "@/studio/state/useStudio";
 import { engine } from "@/studio/audio/engine";
 import { quantizeVocal } from "@/studio/audio/quantizeVocal";
 import type { QuantizeMode } from "@/studio/audio/quantizeVocal";
-import { FLOW_TEMPLATES } from "@/studio/lyrics/flowMap";
+
 import { Button, Stat } from "./ui";
 import { Waveform } from "./Waveform";
 
@@ -70,7 +70,13 @@ export function TakeCard({ take }: { take: Take }) {
         takeOffset: take.offset,
         strength,
         mode,
-        template: FLOW_TEMPLATES.find((t) => t.id === settings.flowTemplateId),
+        template: {
+          id: settings.estiloId ?? "flow",
+          name: "Flow del estilo",
+          description: "",
+          steps: settings.flowSteps,
+        },
+        aireMs: settings.aireMs,
       });
       if (!result) return;
       addTake({
@@ -240,7 +246,9 @@ export function TakeCard({ take }: { take: Take }) {
         <p className="mt-2 text-xs text-neutral-600">
           {mode === "rejilla"
             ? "Cada sílaba va a la semicorchea más cercana: arregla el timing sin cambiar tu flow."
-            : `Cada sílaba va a un hueco del patrón "${FLOW_TEMPLATES.find((t) => t.id === settings.flowTemplateId)?.name ?? ""}": te impone ese flow.`}
+            : `Cada sílaba va al flow del estilo elegido${
+                settings.aireMs ? `, ${Math.abs(settings.aireMs)} ms ${settings.aireMs > 0 ? "por detrás" : "por delante"} del beat` : ""
+              }.`}
         </p>
       </div>
 

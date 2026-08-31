@@ -46,6 +46,21 @@ the tab. Its module (`src/studio/`) is written and commented in Spanish, because
 its whole subject is Spanish prosody — *sinalefa*, *sílaba tónica*,
 *semicorchea* — and its UI is Spanish too.
 
+### The simple mode is the product
+
+The studio opens on one screen with four numbered steps: paste the lyrics, tap
+how it should sound, sing it, get the song. Everything between the last two —
+slicing the take at its syllables, moving them onto the chosen style's flow with
+that style's feel, mixing against the beat, encoding an m4a — happens on its own
+when recording stops. The singer taps two buttons and hears their track.
+
+While recording, the beat plays with a count-in and the line due in the current
+bar is displayed large, so the screen doubles as a teleprompter.
+
+Everything below is still there behind **Modo avanzado**, which is where the
+pattern editor, the rhyme tools, per-take analysis and the mixer live. The
+simple screen drives the same engine; it just does not ask.
+
 The loop it supports, in the order the tabs run:
 
 0. **Letra** — paste the lyrics in one block and they come out arranged as a
@@ -101,15 +116,30 @@ reconstructed exactly. A steady, unsyncopated pulse train is genuinely
 tempo-ambiguous (a 3:2 reading is as valid as the true one) — the panel reports
 low confidence when that happens, and you can type the BPM instead.
 
-### Styles
+### You describe the sound; it is read, not chosen
 
-The Ritmo tab opens with a style picker — Reggaetón, Trap, Drill, Boom bap,
-Afrobeat, Melódico. One tap sets the tempo, swing, drum pattern, 808 root and,
-crucially, the flow template that **Cuadrar** will impose on the recorded voice,
-so "make it sound like reggaetón" reaches the vocal and not just the drums.
-These are genre patterns, not impressions of particular artists: a dembow is a
-dembow whoever plays it. Cloning someone's voice or reproducing their tracks is
-deliberately not here — the voice in this studio is the user's own.
+Step two is a text box, not a menu. Type "reggaeton lento y oscuro, voz
+arrastrada" and `interpretar` reads out of it a genre, a tempo, how many
+syllables fit in a bar, how far behind or ahead of the beat the voice sits, and
+whether it leans dark or bright — then plays it. What it understood is shown
+back as chips, so a wrong reading is corrected by rewriting the sentence rather
+than by hunting through options. Artist names work as input (typing "tipo Bad
+Bunny" resolves to reggaetón) precisely because the singer typed them; none are
+offered as a menu.
+
+### Styles are flows, not just drum patterns
+
+The genre bases behind that reading — reggaetón, afrobeat, trap, drill,
+bachata, balada, corridos, cumbia, salsa, rap melódico, boom bap, doble tiempo —
+are also exposed directly in Modo avanzado. Picking one sets the tempo, swing, drums and 808, but the part
+that matters is the flow: which sixteenths the syllables land on, and how far
+behind or ahead of the beat they sit. That second number is what separates a
+flow from a metronome — perreo drags 28 ms behind the grid, afro 36 ms, drill
+pushes 14 ms ahead — and it is applied to the singer's own recorded voice by
+**Cuadrar**, so picking a style reaches the vocal rather than only the drums.
+
+No voice is cloned and no track is reproduced — the voice is always the one that
+was recorded.
 
 ### It installs as an app, and it is live at https://juankbrrm-afk.github.io/juankimoney/estudio/
 
