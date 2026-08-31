@@ -7,12 +7,14 @@ import { TransportBar } from "./components/TransportBar";
 import { BeatboxPanel } from "./components/BeatboxPanel";
 import { StepSequencer } from "./components/StepSequencer";
 import { LyricLab } from "./components/LyricLab";
+import { Guion } from "./components/Guion";
 import { RecordPanel } from "./components/RecordPanel";
 import { MixPanel } from "./components/MixPanel";
 
 const TABS = [
   { id: "ritmo", label: "Ritmo", hint: "Saca el beat de tu boca y ajusta el patron." },
-  { id: "letra", label: "Letra", hint: "Silabas, rimas y reparto del flow." },
+  { id: "letra", label: "Letra", hint: "Pega la letra y se ordena como cancion." },
+  { id: "guion", label: "Guion", hint: "Que se canta en cada compas, iluminado al ritmo." },
   { id: "grabar", label: "Grabar", hint: "Tomas de voz sobre el beat, con analisis de timing." },
   { id: "mezcla", label: "Mezcla", hint: "Niveles y exportacion a WAV." },
 ] as const;
@@ -43,9 +45,9 @@ function StudioShell() {
         <header className="mb-6">
           <h1 className="text-2xl font-bold tracking-tight">Estudio</h1>
           <p className="mt-1 max-w-2xl text-sm text-neutral-500">
-            Marca el ritmo con la boca, escribe encima de la rejilla y graba tu voz. El sistema
-            saca el tempo de tus golpes, mide las silabas y te dice cuanto se te adelanta o se te
-            atrasa el flow. Nada sale de tu navegador.
+            Pega la letra y se ordena como cancion. Marca el ritmo con la boca y se convierte en
+            beat. Graba tu voz encima y te la cuadra al compas: tu voz, tu tono, solo cambia cuando
+            entra cada silaba. Nada sale de tu navegador.
           </p>
         </header>
 
@@ -77,6 +79,7 @@ function StudioShell() {
           </div>
         )}
         {tab === "letra" && <LyricLab />}
+        {tab === "guion" && <Guion />}
         {tab === "grabar" && <RecordPanel />}
         {tab === "mezcla" && <MixPanel />}
 

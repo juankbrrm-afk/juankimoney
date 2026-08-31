@@ -40,12 +40,12 @@ export function StepSequencer() {
     >
       <div className="overflow-x-auto pb-2">
         <div className="min-w-max space-y-1">
-          <div className="flex items-center gap-1 pl-24">
+          <div className="flex items-center gap-1 pl-20 sm:pl-24">
             {Array.from({ length: total }, (_, i) => (
               <div
                 key={i}
                 className={clsx(
-                  "w-6 text-center text-[10px] tabular-nums",
+                  "w-7 text-center text-[10px] tabular-nums sm:w-6",
                   i % settings.stepsPerBar === 0 ? "text-neutral-300" : "text-neutral-700"
                 )}
               >
@@ -59,7 +59,7 @@ export function StepSequencer() {
               <button
                 type="button"
                 onClick={() => void engine.audition(voice)}
-                className="w-24 shrink-0 rounded px-1 py-1 text-left text-xs text-neutral-400 hover:bg-neutral-800 hover:text-neutral-100"
+                className="sticky left-0 z-10 w-20 shrink-0 rounded bg-neutral-900 px-1 py-1 text-left text-xs text-neutral-400 sm:w-24 hover:bg-neutral-800 hover:text-neutral-100"
                 title="Escuchar"
               >
                 {VOICE_LABELS[voice]}
@@ -88,7 +88,7 @@ export function StepSequencer() {
                       if (painting.current) paint(voice, index, painting.current);
                     }}
                     className={clsx(
-                      "h-7 w-6 rounded-sm border transition-colors",
+                      "h-9 w-7 rounded-sm border transition-colors sm:h-7 sm:w-6",
                       isBarStart ? "border-l-2 border-l-neutral-600" : "",
                       velocity > 0.6
                         ? "border-lime-300 bg-lime-400"

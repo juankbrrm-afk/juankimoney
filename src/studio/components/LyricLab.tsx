@@ -7,6 +7,7 @@ import { buildBank } from "@/studio/lyrics/rhymeBank";
 import { findRhymes } from "@/studio/lyrics/rhyme";
 import type { RhymeType } from "@/studio/lyrics/rhyme";
 import { FLOW_TEMPLATES, placeSyllables } from "@/studio/lyrics/flowMap";
+import { arrangeSong } from "@/studio/lyrics/arrange";
 import { SECTION_KINDS, SONG_TEMPLATES } from "@/studio/lyrics/structure";
 import { Button, Field, Panel, Stat } from "./ui";
 
@@ -28,6 +29,8 @@ export function LyricLab() {
   const [rhymeWord, setRhymeWord] = useState("");
   const [rhymeType, setRhymeType] = useState<RhymeType>("cercana");
   const [templateId, setTemplateId] = useState(settings.flowTemplateId);
+  const [paste, setPaste] = useState("");
+  const [notes, setNotes] = useState<string[]>([]);
 
   const analyses = useMemo(
     () => new Map(sections.map((section) => [section.id, analyzeLyrics(section.lyrics)])),
@@ -105,9 +108,55 @@ export function LyricLab() {
     engine.stop();
   };
 
+  const ordenar = () => {
+    const result = arrangeSong(paste);
+    if (!result.sections.length) {
+      setNotes(result.notes);
+      return;
+    }
+    const hasLyrics = sections.some((s) => s.lyrics.trim().length > 0);
+    if (hasLyrics && !window.confirm("Esto reemplaza lo que ya hay escrito. ¿Seguimos?")) return;
+    setSections(result.sections);
+    setNotes(result.notes);
+    setPaste("");
+  };
+
   return (
     <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
       <div className="space-y-4">
+        <Panel
+          title="Pega tu letra"
+          hint="Suéltala entera, tal cual la tengas. Se parte en versos y coro, y cada frase cae en su compás."
+        >
+          <textarea
+            value={paste}
+            onChange={(e) => setPaste(e.target.value)}
+            rows={6}
+            placeholder={"Pega aquí la letra entera.\nUna frase por línea."}
+            className="w-full resize-y rounded-lg border border-neutral-800 bg-neutral-900 p-3 text-base leading-6 text-neutral-100 focus:border-neutral-600 focus:outline-none"
+          />
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <Button variant="primary" onClick={ordenar} disabled={!paste.trim()}>
+              Ordenar como canción
+            </Button>
+            {paste.trim() && (
+              <span className="text-sm text-neutral-500">
+                {paste.split("\n").filter((l) => l.trim()).length} frases
+              </span>
+            )}
+          </div>
+          {notes.length > 0 && (
+            <ul className="mt-3 space-y-1 text-sm text-neutral-400">
+              {notes.map((note) => (
+                <li key={note} className="flex gap-2">
+                  <span className="text-lime-500">→</span>
+                  {note}
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
+
         <Panel
           title="Estructura"
           hint={`${totalBars} compases · ${Math.floor(songSeconds / 60)}:${String(Math.round(songSeconds % 60)).padStart(2, "0")} a ${settings.bpm} BPM`}
@@ -180,7 +229,7 @@ export function LyricLab() {
                     }}
                     rows={Math.max(4, section.lyrics.split("\n").length + 1)}
                     placeholder="Escribe aqui. Cada linea es un verso."
-                    className="w-full resize-y rounded-lg border border-neutral-800 bg-neutral-900 p-3 font-mono text-sm leading-7 text-neutral-100 focus:border-neutral-600 focus:outline-none"
+                    className="w-full resize-y rounded-lg border border-neutral-800 bg-neutral-900 p-3 font-mono text-base leading-7 text-neutral-100 focus:border-neutral-600 focus:outline-none"
                   />
 
                   {analysis && analysis.lines.some((l) => l.metrics.count > 0) && (
@@ -252,7 +301,7 @@ export function LyricLab() {
                 value={rhymeWord}
                 onChange={(e) => setRhymeWord(e.target.value)}
                 placeholder="p. ej. camino"
-                className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2 text-base"
               />
             </Field>
             <div className="flex gap-2">

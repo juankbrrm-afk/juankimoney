@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import clsx from "clsx";
 import { engine } from "@/studio/audio/engine";
 import { NOTE_NAMES } from "@/studio/analysis/pitch";
 import { useStudio, useTransport } from "@/studio/state/useStudio";
@@ -25,6 +26,7 @@ export function TransportBar() {
   const { settings, patch, barSeconds } = useStudio();
   const { playing, position } = useTransport();
   const [busy, setBusy] = useState(false);
+  const [showMore, setShowMore] = useState(false);
   const tap = useTapTempo((bpm) => patch({ bpm }));
 
   const toggle = useCallback(async () => {
@@ -83,7 +85,7 @@ export function TransportBar() {
               max={220}
               value={settings.bpm}
               onChange={(e) => patch({ bpm: Number(e.target.value) || settings.bpm })}
-              className="w-20 rounded-lg border border-neutral-700 bg-neutral-900 px-2 py-1.5 text-sm tabular-nums"
+              className="w-20 rounded-lg border border-neutral-700 bg-neutral-900 px-2 py-1.5 text-base tabular-nums"
             />
             <Button onClick={tap} className="px-2 py-1.5" title="Marca el tempo (tecla T)">
               Tap
@@ -91,11 +93,26 @@ export function TransportBar() {
           </div>
         </Field>
 
+        <Button
+          onClick={() => setShowMore((v) => !v)}
+          active={showMore}
+          className="sm:hidden"
+          aria-label="Mas ajustes"
+        >
+          {showMore ? "Menos" : "Mas"}
+        </Button>
+
+        <div
+          className={clsx(
+            "w-full flex-wrap items-end gap-4 sm:flex sm:w-auto",
+            showMore ? "flex" : "hidden"
+          )}
+        >
         <Field label="Compases">
           <select
             value={settings.bars}
             onChange={(e) => patch({ bars: Number(e.target.value) })}
-            className="rounded-lg border border-neutral-700 bg-neutral-900 px-2 py-1.5 text-sm"
+            className="rounded-lg border border-neutral-700 bg-neutral-900 px-2 py-1.5 text-base"
           >
             {[1, 2, 4, 8].map((n) => (
               <option key={n} value={n}>
@@ -121,7 +138,7 @@ export function TransportBar() {
           <select
             value={settings.subMidi}
             onChange={(e) => patch({ subMidi: Number(e.target.value) })}
-            className="rounded-lg border border-neutral-700 bg-neutral-900 px-2 py-1.5 text-sm"
+            className="rounded-lg border border-neutral-700 bg-neutral-900 px-2 py-1.5 text-base"
           >
             {NOTE_NAMES.map((name, index) => (
               <option key={name} value={24 + index}>
@@ -135,7 +152,7 @@ export function TransportBar() {
           <select
             value={settings.countInBars}
             onChange={(e) => patch({ countInBars: Number(e.target.value) })}
-            className="rounded-lg border border-neutral-700 bg-neutral-900 px-2 py-1.5 text-sm"
+            className="rounded-lg border border-neutral-700 bg-neutral-900 px-2 py-1.5 text-base"
           >
             {[0, 1, 2].map((n) => (
               <option key={n} value={n}>
@@ -144,6 +161,8 @@ export function TransportBar() {
             ))}
           </select>
         </Field>
+
+        </div>
 
         <div className="flex gap-2">
           <Button
