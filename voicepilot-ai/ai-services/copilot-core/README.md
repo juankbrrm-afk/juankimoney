@@ -7,7 +7,7 @@ answers), the **compliance engine** (recall > 0.95 on critical rules),
 Pure Python 3.11, zero dependencies.
 
 ```bash
-python3 -m unittest discover -s . -p "test_*.py" -t .   # 183 tests
+python3 -m unittest discover -s . -p "test_*.py" -t .   # 208 tests
 python3 -m eval.run                                     # the exit criterion, measured
 ```
 
@@ -166,6 +166,8 @@ the same failure as a hallucination:
 | `signals/live.py` | Live signals, and the close probability that cannot be invented |
 | `signals/triage.py` | Which three calls the supervisor needs to be on, right now |
 | `script/adherence.py` | Did the agent follow the script, and where did it come apart |
+| `ingest/extract.py` | Text out of DOCX, HTML, CSV — without losing the heading tree |
+| `ingest/publish.py` | Versioning that never overwrites, and the gate that refuses a scan |
 
 ---
 
@@ -441,3 +443,53 @@ listening to.
 matcher compliance uses — so a copilot never offers closing material while
 the agent is still doing discovery, and the panel and the report never
 disagree about the same sentence in front of the same supervisor.
+
+
+---
+
+# Knowledge ingestion
+
+`docs/06` §2. Two rules carry it.
+
+**Extraction must not flatten.** In a call-centre document the structure *is*
+the content, so every extractor emits Markdown headings and `chunking.py`
+rebuilds the tree. If the hierarchy dies at extraction, "Never say:" floats
+free of the objection it belongs to and every downstream guarantee is built
+on rubble.
+
+Zero dependencies covers more formats than people expect — a DOCX is a ZIP of
+XML, and both are in the standard library. Word writes heading styles four
+ways (`Heading1`, `Heading 1`, `heading 1`, and `Ttulo1` in documents
+translated from Spanish); recognising one silently flattens the other three,
+so there is a test for all four.
+
+**A knowledge base that cannot answer anything is refused at upload.** This
+is the failure that is silent, slow and fatal: `docs/06` §2 says old
+call-centre manuals are *always* scans, a scanned PDF yields no text, and
+ingesting it quietly leaves the customer believing their manual is loaded
+while the copilot stays mute on every question it covers. Three months later
+they churn saying "the AI never knew anything."
+
+So publication **refuses** rather than warns — a scan, an empty template, a
+parser that failed while reporting success, and a header/footer dump all look
+identical from the outside, and the moment to catch them is while somebody is
+still looking at the upload screen. One bad file never sinks the batch: the
+other twenty-nine publish, and making somebody re-upload all thirty to fix
+one is how a five-minute onboarding becomes an afternoon.
+
+PDF is refused outright with an explanation rather than half-supported. A PDF
+parser would return an empty page for a scan **while reporting success**,
+which is worse than not having one.
+
+| Test | What it prevents |
+|---|---|
+| `heading levels survive extraction` | The structure dying before chunking ever sees it |
+| `the four ways Word writes a heading all count` | A Spanish-translated manual silently flattening |
+| `a scanned manual is rejected at upload` | Three months of a mute copilot, then churn |
+| `a header footer dump is recognised` | A converter's "success" landing in the corpus as noise |
+| `navigation and footers are discarded` | "Skip to main content" ranking above a price rebuttal |
+| `a row stays one record` | A part number and its price landing in different chunks |
+| `an unknown extension is refused, not read as text` | Container fragments the copilot will one day quote |
+| `a March call still resolves after a December publish` | An audit trail that only reaches the latest material |
+| `chunk ids are stable so citations survive republishing` | Every stored citation breaking on the next upload |
+| `one bad file does not sink the good ones` | A five-minute onboarding becoming an afternoon |
