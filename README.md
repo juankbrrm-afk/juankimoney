@@ -84,7 +84,13 @@ The loop it supports, in the order the tabs run:
    anchored to the bar). A strength slider blends between the two, and the
    original take is kept. Measured on a deliberately sloppy take: pocket 4% →
    100%, timing spread 59 ms → 2 ms.
-4. **Mezcla** — offline render of beat plus takes to a downloadable file.
+4. **Mezcla** — the finished song. The mix is rendered offline, encoded to m4a
+   through `MediaRecorder`, and handed over in two steps rather than one:
+   preparing it takes real time, and iOS only opens its share sheet from a call
+   that traces back to a tap, so the song is built first and shared or saved on
+   a second tap. A player sits between the two so you can hear it before sending
+   it anywhere. An uncompressed WAV download is one tap for when quality matters
+   more than size.
 
 Everything is DSP written from scratch (`src/studio/analysis/`): FFT, onset
 detection, tempo, pitch, key. There are no audio dependencies.
@@ -95,15 +101,24 @@ reconstructed exactly. A steady, unsyncopated pulse train is genuinely
 tempo-ambiguous (a 3:2 reading is as valid as the true one) — the panel reports
 low confidence when that happens, and you can type the BPM instead.
 
-### Running it on a phone
+### It is live at https://juankbrrm-afk.github.io/juankimoney/estudio/
 
 `npm run build:studio` packs the studio into a single self-contained HTML file
-(`dist-studio/estudio.html`, ~310 kB) with no external requests — inline JS and
-CSS, no fonts, no CDN. A copy is committed at `docs/estudio/index.html`, so
-enabling GitHub Pages on `main` + `/docs` serves it at `/estudio/`.
+(`dist-studio/estudio.html`, ~320 kB) with no external requests — inline JS and
+CSS, no fonts, no CDN. `.github/workflows/estudio-pages.yml` rebuilds it on
+every push to the default branch and commits it to the `gh-pages` branch, which
+GitHub Pages serves.
 
-It needs a secure context (HTTPS or `localhost`): a `file://` page cannot reach
-the microphone. Where the microphone is unavailable anyway — an embedding frame
+It publishes through that branch rather than the Pages API on purpose: enabling
+a Pages site is a repository administration call the workflow token cannot make
+(`actions/configure-pages` with `enablement: true` fails with "Resource not
+accessible by integration"), while pushing a branch needs only `contents:
+write` — and GitHub creates the Pages site by itself the first time a
+`gh-pages` branch appears.
+
+A secure context is not optional: a `file://` page cannot reach the microphone,
+and neither can a page inside a frame that does not delegate the permission —
+which is why the studio needs an address of its own. Where the microphone is unavailable anyway — an embedding frame
 that does not delegate permission, most often — every tab still works from an
 imported file: **Importar audio** on both the Ritmo and Grabar panels decodes any
 m4a/mp3/wav (a phone voice memo, say) into a beatbox to analyse or a take to
