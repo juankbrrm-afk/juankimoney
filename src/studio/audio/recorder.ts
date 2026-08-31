@@ -45,6 +45,7 @@ export class MicRecorder {
   private chunks: Float32Array[] = [];
   private recording = false;
   private startTime = 0;
+  private pending: Promise<MediaStream> | null = null;
 
   get armed(): boolean {
     return this.node !== null;
@@ -55,22 +56,48 @@ export class MicRecorder {
   }
 
   /**
-   * Pide el microfono con los procesados del navegador apagados: el eco, el
-   * ruido y el control de ganancia automatico se comen la dinamica de la voz.
+   * Lanza la peticion de microfono y devuelve la promesa sin esperarla.
+   *
+   * Hay que llamarla como PRIMERA instruccion del manejador del toque: Safari
+   * concede el microfono mirando si la peticion nace de un gesto del usuario, y
+   * cualquier `await` por delante rompe esa cadena. Por eso el permiso se pide
+   * aqui y el resto del montaje se hace luego, en `arm`.
+   *
+   * Los procesados del navegador van apagados: el cancelador de eco, el
+   * supresor de ruido y el control de ganancia se comen la dinamica de la voz.
    */
+  requestStream(): Promise<MediaStream> {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      return Promise.reject(
+        new DOMException("El navegador no expone el microfono", "NotSupportedError")
+      );
+    }
+    if (!this.pending) {
+      this.pending = navigator.mediaDevices
+        .getUserMedia({
+          audio: {
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false,
+            channelCount: 1,
+          },
+        })
+        .catch((error: unknown) => {
+          // Un fallo no se cachea: el siguiente toque tiene que volver a pedirlo.
+          this.pending = null;
+          throw error;
+        });
+    }
+    return this.pending;
+  }
+
   async arm(ctx: AudioContext, destination: AudioNode): Promise<void> {
     if (this.node && this.ctx === ctx) return;
+    const stream = await this.requestStream();
     this.dispose();
     this.ctx = ctx;
-
-    this.stream = await navigator.mediaDevices.getUserMedia({
-      audio: {
-        echoCancellation: false,
-        noiseSuppression: false,
-        autoGainControl: false,
-        channelCount: 1,
-      },
-    });
+    this.stream = stream;
+    this.pending = null;
 
     this.source = ctx.createMediaStreamSource(this.stream);
     this.analyser = ctx.createAnalyser();
@@ -149,6 +176,7 @@ export class MicRecorder {
 
   dispose(): void {
     this.recording = false;
+    this.pending = null;
     this.node?.disconnect();
     this.source?.disconnect();
     this.sink?.disconnect();

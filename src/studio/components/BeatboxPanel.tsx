@@ -11,6 +11,7 @@ import { useStudio } from "@/studio/state/useStudio";
 import { useMicLevel } from "@/studio/state/useMicLevel";
 import { Button, Meter, Panel, Stat } from "./ui";
 import { Waveform } from "./Waveform";
+import { MicError } from "./MicError";
 
 const VOICE_COLORS: Record<string, string> = {
   kick: "#f97316",
@@ -35,7 +36,7 @@ export function BeatboxPanel() {
   const { settings, patch, setPattern } = useStudio();
   const [recording, setRecording] = useState(false);
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{ message: string; raw?: unknown } | null>(null);
   const [useOwnTempo, setUseOwnTempo] = useState(true);
   const fileInput = useRef<HTMLInputElement>(null);
   const [withClick, setWithClick] = useState(false);
@@ -46,7 +47,7 @@ export function BeatboxPanel() {
     (buffer: AudioBuffer, anchor: number | null, startTime: number) => {
       const onsets = detectOnsets(buffer, { minGap: 0.06 });
       if (onsets.length < 3) {
-        setError("Se detectaron muy pocos golpes. Marca el ritmo mas fuerte y separado.");
+        setError({ message: "Se detectaron muy pocos golpes. Marca el ritmo mas fuerte y separado." });
         return;
       }
 
@@ -61,7 +62,7 @@ export function BeatboxPanel() {
       } else if (useOwnTempo) {
         const tempo = estimateTempo(onsets, buffer.duration);
         if (!tempo) {
-          setError("No se pudo sacar el tempo. Prueba a marcar el pulso mas regular.");
+          setError({ message: "No se pudo sacar el tempo. Prueba a marcar el pulso mas regular." });
           return;
         }
         bpm = Math.round(tempo.bpm);
@@ -92,7 +93,7 @@ export function BeatboxPanel() {
         const { buffer } = await importAudioFile(ctx, file);
         analizar(buffer, null, 0);
       } catch {
-        setError("No se pudo leer ese archivo de audio. Prueba con un m4a, mp3 o wav.");
+        setError({ message: "No se pudo leer ese archivo de audio. Prueba con un m4a, mp3 o wav." });
       }
     },
     [analizar]
@@ -100,10 +101,12 @@ export function BeatboxPanel() {
 
   const start = useCallback(async () => {
     setError(null);
-    const unlocked = engine.unlock();
+    // Igual que al grabar una toma: el permiso se pide antes de cualquier await.
+    const request = recorder.requestStream();
+    engine.unlock();
     try {
+      await request;
       const ctx = await engine.ensureContext();
-      void unlocked;
       await recorder.arm(ctx, engine.master!);
       if (withClick) {
         engine.update({ beatEnabled: false, metronome: true });
@@ -112,7 +115,7 @@ export function BeatboxPanel() {
       recorder.start();
       setRecording(true);
     } catch (err) {
-      setError(micErrorMessage(err));
+      setError({ message: micErrorMessage(err), raw: err });
     }
   }, [withClick]);
 
@@ -122,7 +125,7 @@ export function BeatboxPanel() {
     const anchor = engine.isPlaying ? engine.anchorTime : null;
     if (withClick) engine.stop();
     if (!recorded) {
-      setError("No llego audio. Revisa el microfono.");
+      setError({ message: "No llego audio. Revisa el microfono." });
       return;
     }
     analizar(recorded.buffer, anchor, recorded.startTime);
@@ -207,9 +210,9 @@ export function BeatboxPanel() {
       </div>
 
       {error && (
-        <p className="mb-3 rounded-lg border border-red-900 bg-red-950/50 px-3 py-2 text-sm text-red-300">
-          {error}
-        </p>
+        <div className="mb-3">
+          <MicError message={error.message} error={error.raw} />
+        </div>
       )}
 
       {analysis && stepSeconds && (

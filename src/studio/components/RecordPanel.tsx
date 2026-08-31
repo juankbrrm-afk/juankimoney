@@ -6,6 +6,7 @@ import { useStudio } from "@/studio/state/useStudio";
 import { useMicLevel } from "@/studio/state/useMicLevel";
 import { Button, Meter, Panel } from "./ui";
 import { TakeCard } from "./TakeCard";
+import { MicError } from "./MicError";
 
 /**
  * Grabacion de tomas sobre el beat. La toma se ancla al compas 1 usando el
@@ -17,7 +18,7 @@ export function RecordPanel() {
   const [armed, setArmed] = useState(false);
   const [recording, setRecording] = useState(false);
   const [monitor, setMonitor] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{ message: string; raw?: unknown } | null>(null);
   /** Offset de la toma en curso: se fija al arrancar y se lee al parar. */
   const pendingOffset = useRef(0);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -25,9 +26,12 @@ export function RecordPanel() {
 
   const arm = useCallback(async () => {
     setError(null);
-    // El desbloqueo va sincrono, antes de cualquier await: es lo que pide iOS.
+    // Orden obligado en iOS: primero se pide el microfono (la peticion tiene que
+    // nacer del gesto), luego se desbloquea el audio, y solo despues se espera.
+    const request = recorder.requestStream();
     const ctx = engine.unlock();
     try {
+      await request;
       await engine.ensureContext();
       await recorder.arm(ctx, engine.master!);
       if (settings.latencyMs === 0) {
@@ -35,7 +39,7 @@ export function RecordPanel() {
       }
       setArmed(true);
     } catch (err) {
-      setError(micErrorMessage(err));
+      setError({ message: micErrorMessage(err), raw: err });
     }
   }, [patch, settings.latencyMs]);
 
@@ -58,7 +62,7 @@ export function RecordPanel() {
           createdAt: Date.now(),
         });
       } catch {
-        setError("No se pudo leer ese archivo de audio. Prueba con un m4a, mp3 o wav.");
+        setError({ message: "No se pudo leer ese archivo de audio. Prueba con un m4a, mp3 o wav." });
       }
     },
     [addTake]
@@ -81,7 +85,7 @@ export function RecordPanel() {
     engine.stop();
     setRecording(false);
     if (!recorded) {
-      setError("La toma salio vacia.");
+      setError({ message: "La toma salio vacia." });
       return;
     }
     addTake({
@@ -170,9 +174,9 @@ export function RecordPanel() {
         )}
 
         {error && (
-          <p className="mt-3 rounded-lg border border-red-900 bg-red-950/50 px-3 py-2 text-sm text-red-300">
-            {error}
-          </p>
+          <div className="mt-3">
+            <MicError message={error.message} error={error.raw} />
+          </div>
         )}
       </Panel>
 

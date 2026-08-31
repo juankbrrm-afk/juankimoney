@@ -52,3 +52,48 @@ export function isFramed(): boolean {
     return true;
   }
 }
+
+/**
+ * Diagnostico del microfono.
+ *
+ * Cuando el permiso falla, el navegador da un nombre de error escueto y poco
+ * mas. Esto reune de una vez todo lo que decide si el microfono puede abrirse
+ * —contexto seguro, marco, estado del permiso, error exacto— para poder pegarlo
+ * y saber que pasa sin ir adivinando.
+ */
+export async function micDiagnostics(error?: unknown): Promise<string> {
+  const lines: string[] = [];
+  const add = (label: string, value: unknown) => lines.push(`${label}: ${String(value)}`);
+
+  add("direccion", typeof location !== "undefined" ? location.href : "?");
+  add("contexto seguro", typeof isSecureContext !== "undefined" ? isSecureContext : "?");
+  add("dentro de un marco", isFramed());
+  add("mediaDevices", Boolean(navigator?.mediaDevices?.getUserMedia));
+
+  try {
+    const status = await navigator.permissions?.query({
+      name: "microphone" as PermissionName,
+    });
+    add("permiso", status?.state ?? "sin dato");
+  } catch {
+    add("permiso", "no consultable");
+  }
+
+  try {
+    const devices = await navigator.mediaDevices?.enumerateDevices();
+    const inputs = devices?.filter((device) => device.kind === "audioinput") ?? [];
+    add("entradas de audio", inputs.length);
+    // Sin permiso concedido los nombres llegan vacios: eso ya es una pista.
+    add("nombres visibles", inputs.filter((device) => device.label).length);
+  } catch {
+    add("entradas de audio", "no consultables");
+  }
+
+  if (error) {
+    const name = (error as { name?: string } | null)?.name;
+    add("error", `${name ?? "?"} — ${error instanceof Error ? error.message : String(error)}`);
+  }
+  add("navegador", navigator?.userAgent ?? "?");
+
+  return lines.join("\n");
+}
