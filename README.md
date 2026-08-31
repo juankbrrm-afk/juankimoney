@@ -101,11 +101,24 @@ reconstructed exactly. A steady, unsyncopated pulse train is genuinely
 tempo-ambiguous (a 3:2 reading is as valid as the true one) — the panel reports
 low confidence when that happens, and you can type the BPM instead.
 
-### It is live at https://juankbrrm-afk.github.io/juankimoney/estudio/
+### Styles
 
-`npm run build:studio` packs the studio into a single self-contained HTML file
-(`dist-studio/estudio.html`, ~320 kB) with no external requests — inline JS and
-CSS, no fonts, no CDN. `.github/workflows/estudio-pages.yml` rebuilds it on
+The Ritmo tab opens with a style picker — Reggaetón, Trap, Drill, Boom bap,
+Afrobeat, Melódico. One tap sets the tempo, swing, drum pattern, 808 root and,
+crucially, the flow template that **Cuadrar** will impose on the recorded voice,
+so "make it sound like reggaetón" reaches the vocal and not just the drums.
+These are genre patterns, not impressions of particular artists: a dembow is a
+dembow whoever plays it. Cloning someone's voice or reproducing their tracks is
+deliberately not here — the voice in this studio is the user's own.
+
+### It installs as an app, and it is live at https://juankbrrm-afk.github.io/juankimoney/estudio/
+
+`npm run build:studio` emits two things: `dist-studio/estudio.html`, one
+self-contained ~320 kB file with no external requests (inline JS and CSS, no
+fonts, no CDN), and `dist-studio/sitio/`, the same page plus a web app manifest,
+icons and a service worker. Opened in Safari and added to the home screen, that
+second one launches full-screen with its own icon and runs offline — which is as
+close to a native app as a browser gets without an Apple developer account. `.github/workflows/estudio-pages.yml` rebuilds it on
 every push to the default branch and commits it to the `gh-pages` branch, which
 GitHub Pages serves.
 

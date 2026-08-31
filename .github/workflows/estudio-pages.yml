@@ -22,6 +22,7 @@ on:
       - 'vite.studio.config.ts'
       - 'studio.html'
       - 'scripts/inline-studio.mjs'
+      - 'pwa/**'
       - '.github/workflows/estudio-pages.yml'
   workflow_dispatch:
 
@@ -49,8 +50,10 @@ jobs:
 
       - name: Montar el sitio
         run: |
-          mkdir -p _site/estudio
-          cp dist-studio/estudio.html _site/estudio/index.html
+          mkdir -p _site
+          # `sitio` es el estudio con lo que hace falta para instalarlo como app:
+          # manifiesto, iconos y trabajador de servicio para que abra sin datos.
+          cp -r dist-studio/sitio _site/estudio
           # La raiz redirige al estudio, que es lo unico que se publica aqui.
           printf '<meta http-equiv="refresh" content="0; url=./estudio/">\n' > _site/index.html
           # Sin esto Pages pasaria el sitio por Jekyll y se comeria algun archivo.

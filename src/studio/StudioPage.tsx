@@ -4,6 +4,7 @@ import { StudioProvider } from "./state/useStudio";
 import { engine } from "./audio/engine";
 import { recorder } from "./audio/recorder";
 import { TransportBar } from "./components/TransportBar";
+import { EstiloPicker } from "./components/EstiloPicker";
 import { BeatboxPanel } from "./components/BeatboxPanel";
 import { StepSequencer } from "./components/StepSequencer";
 import { LyricLab } from "./components/LyricLab";
@@ -12,7 +13,7 @@ import { RecordPanel } from "./components/RecordPanel";
 import { MixPanel } from "./components/MixPanel";
 
 const TABS = [
-  { id: "ritmo", label: "Ritmo", hint: "Saca el beat de tu boca y ajusta el patron." },
+  { id: "ritmo", label: "Ritmo", hint: "Elige el estilo, o saca el beat de tu propia boca." },
   { id: "letra", label: "Letra", hint: "Pega la letra y se ordena como cancion." },
   { id: "guion", label: "Guion", hint: "Que se canta en cada compas, iluminado al ritmo." },
   { id: "grabar", label: "Grabar", hint: "Tomas de voz sobre el beat, con analisis de timing." },
@@ -74,6 +75,7 @@ function StudioShell() {
 
         {tab === "ritmo" && (
           <div className="space-y-4">
+            <EstiloPicker />
             <BeatboxPanel />
             <StepSequencer />
           </div>
