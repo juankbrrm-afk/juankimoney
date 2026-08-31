@@ -13,7 +13,9 @@ import {
   renderMix,
   shareAudio,
 } from "@/studio/audio/mixdown";
-import { ESTILOS, patronDeEstilo } from "@/studio/data/estilos";
+import type { Estilo } from "@/studio/data/estilos";
+import { patronDeEstilo } from "@/studio/data/estilos";
+import { EJEMPLOS, interpretar } from "@/studio/data/interpretar";
 import { useStudio, useTransport } from "@/studio/state/useStudio";
 import { useMicLevel } from "@/studio/state/useMicLevel";
 import { Button, Meter } from "./ui";
@@ -50,6 +52,9 @@ export function HacerCancion() {
   const { playing, position } = useTransport();
 
   const [letra, setLetra] = useState("");
+  const [comoSuena, setComoSuena] = useState("");
+  const [estilo, setEstilo] = useState<Estilo | null>(null);
+  const [entendido, setEntendido] = useState<string[]>([]);
   const [fase, setFase] = useState<Fase>("listo");
   const [paso, setPaso] = useState("");
   const [error, setError] = useState<{ message: string; raw?: unknown } | null>(null);
@@ -63,7 +68,6 @@ export function HacerCancion() {
     () => letra.split("\n").map((l) => l.trim()).filter(Boolean),
     [letra]
   );
-  const estilo = ESTILOS.find((e) => e.id === settings.estiloId) ?? null;
   const sePuedeCompartir = canShareAudio();
 
   useEffect(() => {
@@ -73,23 +77,31 @@ export function HacerCancion() {
     };
   }, [resultado?.url]);
 
-  const elegirEstilo = useCallback(
-    async (id: string) => {
-      const elegido = ESTILOS.find((e) => e.id === id);
-      if (!elegido) return;
+  /** Lee lo que has escrito, monta ese ritmo y lo pone a sonar. */
+  const aplicar = useCallback(
+    async (texto: string) => {
+      if (!texto.trim()) return;
+      const lectura = interpretar(texto);
+      setEstilo(lectura.estilo);
+      setEntendido(lectura.entendido);
       patch({
-        estiloId: elegido.id,
-        bpm: elegido.bpm,
-        swing: elegido.swing,
-        subMidi: elegido.subMidi,
-        flowSteps: elegido.flow.pasos,
-        aireMs: elegido.flow.aire,
+        estiloId: lectura.estilo.id,
+        bpm: lectura.estilo.bpm,
+        swing: lectura.estilo.swing,
+        subMidi: lectura.estilo.subMidi,
+        flowSteps: lectura.estilo.flow.pasos,
+        aireMs: lectura.estilo.flow.aire,
       });
-      setPattern(patronDeEstilo(elegido, settings.stepsPerBar, settings.bars));
-      engine.update({ bpm: elegido.bpm, swing: elegido.swing, subMidi: elegido.subMidi });
-      // Se escucha nada más elegirlo: así se decide de oído, no leyendo.
+      setPattern(patronDeEstilo(lectura.estilo, settings.stepsPerBar, settings.bars));
+      engine.update({
+        bpm: lectura.estilo.bpm,
+        swing: lectura.estilo.swing,
+        subMidi: lectura.estilo.subMidi,
+      });
+      // Suena en cuanto lo escribes: se decide de oído, no leyendo.
       engine.unlock();
-      if (!engine.isPlaying) await engine.play();
+      if (engine.isPlaying) engine.stop();
+      await engine.play();
     },
     [patch, setPattern, settings.stepsPerBar, settings.bars]
   );
@@ -236,8 +248,6 @@ export function HacerCancion() {
 
   const paso1 = versos.length > 0;
   const paso2 = paso1 && estilo !== null;
-  const [eligiendo, setEligiendo] = useState(false);
-  const listaAbierta = eligiendo || !estilo;
 
   return (
     <div className="space-y-4">
@@ -259,58 +269,68 @@ export function HacerCancion() {
 
       {/* 2 — EL ESTILO */}
       <Bloque numero={2} titulo="Cómo quieres que suene" hecho={paso2} apagado={!paso1}>
-        {listaAbierta ? (
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            {ESTILOS.map((e) => {
-              const activo = settings.estiloId === e.id;
-              return (
-                <button
-                  key={e.id}
-                  type="button"
-                  onClick={() => {
-                    setEligiendo(false);
-                    void elegirEstilo(e.id);
-                  }}
-                  className={clsx(
-                    "rounded-lg border px-3 py-3 text-left transition-colors",
-                    activo
-                      ? "border-lime-300 bg-lime-400 text-neutral-950"
-                      : "border-neutral-700 bg-neutral-950/50 text-neutral-200"
-                  )}
-                >
-                  <span className="block text-base font-semibold">{e.nombre}</span>
-                  <span
-                    className={clsx("block text-sm", activo ? "text-neutral-800" : "text-neutral-400")}
-                  >
-                    {e.referencia}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        ) : (
-          estilo && (
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="flex-1">
-                <p className="text-base font-semibold text-lime-300">
-                  {estilo.nombre}{" "}
-                  <span className="font-normal text-neutral-400">{estilo.referencia}</span>
-                </p>
-                <p className="mt-0.5 text-sm text-neutral-500">{estilo.descripcion}</p>
-              </div>
-              <Button onClick={() => setEligiendo(true)} className="px-3 py-1.5 text-sm">
-                Cambiar
+        <p className="mb-2 text-sm text-neutral-400">
+          Escríbelo tú, con tus palabras. El género, el tempo, cómo va la voz.
+        </p>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <input
+            value={comoSuena}
+            onChange={(e) => setComoSuena(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") void aplicar(comoSuena);
+            }}
+            placeholder="reggaeton lento y oscuro, voz arrastrada"
+            className="flex-1 rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-3 text-base text-neutral-100 focus:border-neutral-500 focus:outline-none"
+          />
+          <Button
+            variant="primary"
+            onClick={() => void aplicar(comoSuena)}
+            disabled={!comoSuena.trim()}
+            className="px-5 py-3 text-base"
+          >
+            Escuchar
+          </Button>
+        </div>
+
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {EJEMPLOS.map((ejemplo) => (
+            <button
+              key={ejemplo}
+              type="button"
+              onClick={() => {
+                setComoSuena(ejemplo);
+                void aplicar(ejemplo);
+              }}
+              className="rounded-full border border-neutral-700 px-2.5 py-1 text-xs text-neutral-400 hover:border-neutral-500 hover:text-neutral-200"
+            >
+              {ejemplo}
+            </button>
+          ))}
+        </div>
+
+        {estilo && (
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <span className="text-sm text-neutral-500">Lo he montado así:</span>
+            {entendido.map((cosa) => (
+              <span
+                key={cosa}
+                className="rounded-full border border-lime-700 px-2.5 py-1 text-xs text-lime-300"
+              >
+                {cosa}
+              </span>
+            ))}
+            {playing && fase === "listo" && (
+              <Button onClick={pararPrueba} className="ml-auto px-3 py-1.5 text-sm">
+                Parar
               </Button>
-            </div>
-          )
+            )}
+          </div>
         )}
 
-        {listaAbierta && estilo && <p className="mt-3 text-sm text-neutral-400">{estilo.descripcion}</p>}
-
-        {playing && fase === "listo" && (
-          <Button onClick={pararPrueba} className="mt-3 px-3 py-1.5 text-sm">
-            Parar la prueba
-          </Button>
+        {estilo && (
+          <p className="mt-2 text-xs text-neutral-600">
+            ¿No es eso? Cambia lo que has escrito y vuelve a darle a Escuchar.
+          </p>
         )}
       </Bloque>
 

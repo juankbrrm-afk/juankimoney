@@ -2,7 +2,11 @@ import type { Pattern } from "@/studio/types";
 import { emptyPattern } from "@/studio/types";
 
 /**
- * Estilos: el ritmo y, sobre todo, el FLOW.
+ * Bases de genero: el ritmo y, sobre todo, el FLOW.
+ *
+ * No son un menu para elegir. Son el punto de partida que `interpretar` usa
+ * cuando escribes como quieres que suene: de ahi sale el patron y el flow, y
+ * luego se ajustan con lo demas que hayas dicho.
  *
  * Un estilo no es solo la bateria. Lo que hace que un tema suene a un sitio o a
  * otro es donde caen las silabas y como de recostadas van: el mismo verso, con
@@ -10,9 +14,7 @@ import { emptyPattern } from "@/studio/types";
  * corcheas rectas. Cada estilo trae las dos cosas, y el flow es el que se le
  * aplica a tu voz al cuadrarla.
  *
- * Los nombres de artista son la referencia de la cadencia, nada mas: describen
- * como se reparten las silabas, igual que se dice "un bajo tipo Motown". La voz
- * que suena siempre es la de quien graba.
+ * La voz que suena siempre es la de quien graba.
  */
 
 export interface FlowEstilo {
@@ -44,8 +46,8 @@ export interface Estilo {
 export const ESTILOS: Estilo[] = [
   {
     id: "perreo",
-    nombre: "Perreo lento",
-    referencia: "tipo Bad Bunny",
+    nombre: "Reggaetón",
+    referencia: "dembow, perreo",
     descripcion:
       "Dembow pausado y la voz muy por detras del golpe. Pocas silabas, bien separadas, cayendo tarde a proposito.",
     bpm: 90,
@@ -61,8 +63,8 @@ export const ESTILOS: Estilo[] = [
   },
   {
     id: "afro",
-    nombre: "Melódico afro",
-    referencia: "tipo Beéle",
+    nombre: "Afrobeat",
+    referencia: "melódico, playero",
     descripcion:
       "Muy pocas silabas por compas y todas arrastradas: se canta estirando las palabras mas que marcandolas.",
     bpm: 102,
@@ -79,10 +81,10 @@ export const ESTILOS: Estilo[] = [
   },
   {
     id: "trapmelodico",
-    nombre: "Trap melódico",
-    referencia: "tipo Anuel",
-    descripcion: "Tresillos sobre caja lenta. Cantado, pero con el filo del trap.",
-    bpm: 76,
+    nombre: "Trap",
+    referencia: "808 y caja en el tres",
+    descripcion: "Caja sola en el tres, hats picados y el 808 mandando abajo.",
+    bpm: 140,
     swing: 0,
     subMidi: 24,
     golpes: {
@@ -96,7 +98,7 @@ export const ESTILOS: Estilo[] = [
   {
     id: "drill",
     nombre: "Drill",
-    referencia: "tipo drill español",
+    referencia: "bombo desplazado",
     descripcion: "Bombo desplazado, 808 deslizante y la voz empujando por delante del beat.",
     bpm: 142,
     swing: 0.12,
@@ -112,7 +114,7 @@ export const ESTILOS: Estilo[] = [
   {
     id: "bachata",
     nombre: "Bachata",
-    referencia: "romántica, para cantar",
+    referencia: "romántica",
     descripcion:
       "Pulso de bachata: guira picada y el golpe fuerte en el cuatro. Voz recostada, frases largas.",
     bpm: 126,
@@ -130,7 +132,7 @@ export const ESTILOS: Estilo[] = [
   {
     id: "balada",
     nombre: "Balada",
-    referencia: "tipo Morat",
+    referencia: "lenta, cantada",
     descripcion: "Lenta y abierta. Cuatro sílabas por compás: aquí se canta, no se rapea.",
     bpm: 72,
     swing: 0,
@@ -146,7 +148,7 @@ export const ESTILOS: Estilo[] = [
   {
     id: "corridos",
     nombre: "Corridos",
-    referencia: "tumbado, ritmo de vals",
+    referencia: "tumbado",
     descripcion:
       "El bajo marcando y la voz contando una historia. Pocas sílabas, muy por detrás del golpe.",
     bpm: 84,
@@ -162,7 +164,7 @@ export const ESTILOS: Estilo[] = [
   {
     id: "rapmelodico",
     nombre: "Rap melódico",
-    referencia: "tipo Drake",
+    referencia: "medio tiempo, cantado a medias",
     descripcion: "Medio tiempo, cantado a medias. Cadencia relajada y muy hablada.",
     bpm: 82,
     swing: 0.05,
@@ -174,6 +176,38 @@ export const ESTILOS: Estilo[] = [
       sub: [0, 10],
     },
     flow: { pasos: [0, 2, 5, 8, 10, 13], aire: 20 },
+  },
+  {
+    id: "cumbia",
+    nombre: "Cumbia",
+    referencia: "cumbia",
+    descripcion: "Golpe en el dos y el cuatro con la guira encima. Para cantar paseando.",
+    bpm: 96,
+    swing: 0.1,
+    subMidi: 28,
+    golpes: {
+      kick: [0, 8],
+      snare: [4, 12],
+      hat: [2, 6, 10, 14],
+      sub: [0, 8],
+    },
+    flow: { pasos: [0, 4, 8, 12], aire: 18 },
+  },
+  {
+    id: "salsa",
+    nombre: "Salsa",
+    referencia: "salsa",
+    descripcion: "Clave de tres-dos y percusion picada. Frases largas encima del tumbao.",
+    bpm: 180,
+    swing: 0,
+    subMidi: 31,
+    golpes: {
+      kick: [0, 8],
+      clap: [0, 3, 6, 10, 12],
+      hat: [0, 2, 4, 6, 8, 10, 12, 14],
+      sub: [0, 6, 8, 14],
+    },
+    flow: { pasos: [0, 2, 4, 6, 8, 10, 12, 14], aire: 6 },
   },
   {
     id: "boombap",
@@ -193,7 +227,7 @@ export const ESTILOS: Estilo[] = [
   {
     id: "doble",
     nombre: "Doble tiempo",
-    referencia: "rápido, tipo freestyle",
+    referencia: "rápido, freestyle",
     descripcion: "Semicorchea continua y voz encima del beat. Densidad maxima, exige diccion.",
     bpm: 95,
     swing: 0,

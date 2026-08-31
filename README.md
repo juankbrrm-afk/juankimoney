@@ -116,20 +116,30 @@ reconstructed exactly. A steady, unsyncopated pulse train is genuinely
 tempo-ambiguous (a 3:2 reading is as valid as the true one) — the panel reports
 low confidence when that happens, and you can type the BPM instead.
 
+### You describe the sound; it is read, not chosen
+
+Step two is a text box, not a menu. Type "reggaeton lento y oscuro, voz
+arrastrada" and `interpretar` reads out of it a genre, a tempo, how many
+syllables fit in a bar, how far behind or ahead of the beat the voice sits, and
+whether it leans dark or bright — then plays it. What it understood is shown
+back as chips, so a wrong reading is corrected by rewriting the sentence rather
+than by hunting through options. Artist names work as input (typing "tipo Bad
+Bunny" resolves to reggaetón) precisely because the singer typed them; none are
+offered as a menu.
+
 ### Styles are flows, not just drum patterns
 
-The Ritmo tab opens with a style picker — Perreo lento, Melódico afro, Trap
-melódico, Drill, Boom bap, Doble tiempo — each labelled with the artist whose
-cadence it refers to. One tap sets the tempo, swing, drums and 808, but the part
+The genre bases behind that reading — reggaetón, afrobeat, trap, drill,
+bachata, balada, corridos, cumbia, salsa, rap melódico, boom bap, doble tiempo —
+are also exposed directly in Modo avanzado. Picking one sets the tempo, swing, drums and 808, but the part
 that matters is the flow: which sixteenths the syllables land on, and how far
 behind or ahead of the beat they sit. That second number is what separates a
 flow from a metronome — perreo drags 28 ms behind the grid, afro 36 ms, drill
 pushes 14 ms ahead — and it is applied to the singer's own recorded voice by
 **Cuadrar**, so picking a style reaches the vocal rather than only the drums.
 
-Artist names are cadence references, the way a bassline gets called "Motown":
-they describe how syllables are distributed. No voice is cloned and no track is
-reproduced — the voice is always the one that was recorded.
+No voice is cloned and no track is reproduced — the voice is always the one that
+was recorded.
 
 ### It installs as an app, and it is live at https://juankbrrm-afk.github.io/juankimoney/estudio/
 
