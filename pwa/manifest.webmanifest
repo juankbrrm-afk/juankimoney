@@ -1,0 +1,16 @@
+{
+  "name": "Estudio de Flow",
+  "short_name": "Estudio",
+  "description": "Graba con tu voz, cuadrala al beat y monta la cancion.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
+  "icons": [
+    { "src": "./icono-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "./icono-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "./icono-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

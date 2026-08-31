@@ -4,9 +4,11 @@
 # propia pestaña: dentro de un visor incrustado el navegador lo bloquea. Esto
 # deja el estudio en una direccion propia.
 #
-# `configure-pages` con `enablement: true` activa Pages en el repositorio la
-# primera vez que corre, asi que no hay que tocar nada a mano. El despliegue
-# solo sale desde la rama principal: el entorno `github-pages` no acepta otras.
+# La publicacion va por la rama `gh-pages` y no por la API de Pages. El token
+# del flujo puede escribir en el repositorio, pero no puede *crear* el sitio de
+# Pages —eso pide permisos de administracion que ese token nunca tiene— asi que
+# `actions/configure-pages` con `enablement: true` falla. Empujando a `gh-pages`
+# el sitio se crea solo y luego se actualiza en cada cambio.
 name: Publicar el estudio
 
 on:
@@ -20,24 +22,20 @@ on:
       - 'vite.studio.config.ts'
       - 'studio.html'
       - 'scripts/inline-studio.mjs'
+      - 'pwa/**'
       - '.github/workflows/estudio-pages.yml'
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: publicar-estudio
+  cancel-in-progress: true
 
 jobs:
   publicar:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.despliegue.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
 
@@ -52,18 +50,29 @@ jobs:
 
       - name: Montar el sitio
         run: |
-          mkdir -p _site/estudio
-          cp dist-studio/estudio.html _site/estudio/index.html
+          mkdir -p _site
+          # `sitio` es el estudio con lo que hace falta para instalarlo como app:
+          # manifiesto, iconos y trabajador de servicio para que abra sin datos.
+          cp -r dist-studio/sitio _site/estudio
           # La raiz redirige al estudio, que es lo unico que se publica aqui.
           printf '<meta http-equiv="refresh" content="0; url=./estudio/">\n' > _site/index.html
+          # Sin esto Pages pasaria el sitio por Jekyll y se comeria algun archivo.
+          touch _site/.nojekyll
 
-      - uses: actions/configure-pages@v5
-        with:
-          enablement: true
-
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: _site
-
-      - id: despliegue
-        uses: actions/deploy-pages@v4
+      - name: Publicar en gh-pages
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch --depth=1 origin gh-pages
+          git worktree add ../publicacion -B gh-pages origin/gh-pages
+          # El sitio se reemplaza entero, pero conservando el historial de la rama.
+          find ../publicacion -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp -r _site/. ../publicacion/
+          cd ../publicacion
+          git add -A
+          if git diff --cached --quiet; then
+            echo 'El sitio no ha cambiado.'
+            exit 0
+          fi
+          git commit -m "Publicar el estudio (${GITHUB_SHA::7})"
+          git push origin gh-pages
