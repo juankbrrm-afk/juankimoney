@@ -46,6 +46,21 @@ the tab. Its module (`src/studio/`) is written and commented in Spanish, because
 its whole subject is Spanish prosody — *sinalefa*, *sílaba tónica*,
 *semicorchea* — and its UI is Spanish too.
 
+### The voice is tuned, not just timed
+
+Quantising fixes *when* a syllable lands. On its own that leaves a person
+talking over a beat, which is not a song. `entonar` fixes *what note* it lands
+on: the take is cut at its syllable attacks, each one's pitch is measured with
+YIN, and TD-PSOLA shifts it onto a note from a melody composed over the genre's
+chord progression — grains cut at the glottal pulses and respaced, so duration
+and timbre survive and the singer still sounds like themselves. It is the hard
+auto-tune of any urban record, except it snaps to a written melody rather than
+to the nearest note. Measured: flat speech spanning one semitone comes out
+spanning twenty, on the chords.
+
+The beat gained the harmony to go with it — a bass following each bar's root and
+a filtered chord above it — because drums alone are a drum machine, not a track.
+
 ### The simple mode is the product
 
 The studio opens on one screen with four numbered steps: paste the lyrics, tap

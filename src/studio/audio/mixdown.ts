@@ -1,6 +1,7 @@
 import type { Pattern, Take } from "@/studio/types";
 import { DRUM_VOICES } from "@/studio/types";
 import { triggerVoice } from "./drums";
+import { notasAcorde, triggerAcorde, triggerBajo } from "./instrumentos";
 import type { EngineSettings } from "./engine";
 
 export interface MixOptions {
@@ -50,9 +51,26 @@ export async function renderMix({
       const swing = step % 2 === 1 ? settings.swing * 0.5 * stepSeconds : 0;
       const time = step * stepSeconds + swing;
       const index = step % loopSteps;
+      const compas = Math.floor(step / settings.stepsPerBar);
+      const acordes = settings.acordes;
+      const grado = acordes.length ? acordes[compas % acordes.length] : 0;
+
+      if (acordes.length && step % settings.stepsPerBar === 0) {
+        triggerAcorde(
+          ctx,
+          beatBus,
+          notasAcorde(settings.subMidi + grado + 24, settings.modo),
+          time,
+          barSeconds * 0.95
+        );
+      }
+
       for (const voice of DRUM_VOICES) {
         const velocity = pattern[voice]?.[index] ?? 0;
-        if (velocity > 0) {
+        if (velocity === 0) continue;
+        if (voice === "sub") {
+          triggerBajo(ctx, beatBus, settings.subMidi + grado, time, stepSeconds * 3, velocity);
+        } else {
           triggerVoice(ctx, beatBus, voice, time, { velocity, subMidi: settings.subMidi });
         }
       }
@@ -163,12 +181,15 @@ export async function shareAudio(blob: Blob, filename: string, title: string): P
 /**
  * Codifica la mezcla a un formato comprimido pasandola por MediaRecorder.
  *
+ * El contexto se recibe prestado a proposito (ver dentro).
+ *
  * Hace falta cuando la pagina corre dentro de un visor que solo acepta ciertos
  * formatos: el WAV crudo no esta en esa lista, pero el m4a y el webm si. El
  * inconveniente es que MediaRecorder graba en tiempo real, asi que codificar un
  * tema de dos minutos tarda dos minutos.
  */
 export async function encodeCompressed(
+  ctx: AudioContext,
   buffer: AudioBuffer,
   onProgress?: (ratio: number) => void
 ): Promise<{ blob: Blob; extension: "mp4" | "webm"; audioExtension: "m4a" | "webm" } | null> {
@@ -185,9 +206,12 @@ export async function encodeCompressed(
   if (!picked) return null;
   const [mimeType, extension, audioExtension] = picked;
 
-  const ctx = new AudioContext();
+  // Se reutiliza el contexto que ya está sonando en vez de abrir otro. Abrir un
+  // segundo AudioContext mientras el micrófono sigue capturando deja el nuevo
+  // sin arrancar en algunos navegadores: su reloj no avanza y la codificación
+  // se queda esperando para siempre.
+  if (ctx.state === "suspended") await ctx.resume();
   try {
-    if (ctx.state === "suspended") await ctx.resume();
     const destination = ctx.createMediaStreamDestination();
     const source = ctx.createBufferSource();
     source.buffer = buffer;
@@ -220,9 +244,11 @@ export async function encodeCompressed(
     recorder.stop();
     await stopped;
 
+    source.disconnect();
+    destination.disconnect();
     return { blob: new Blob(chunks, { type: mimeType }), extension, audioExtension };
   } finally {
-    await ctx.close();
+    // El contexto es prestado: no se cierra aquí.
   }
 }
 

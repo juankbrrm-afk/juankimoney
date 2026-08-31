@@ -5,6 +5,9 @@ import { recorder } from "@/studio/audio/recorder";
 import { importAudioFile, isFramed, micErrorMessage } from "@/studio/audio/importAudio";
 import { detectOnsets } from "@/studio/analysis/onsets";
 import { quantizeVocal } from "@/studio/audio/quantizeVocal";
+import { entonar } from "@/studio/audio/entonar";
+import type { Armonia } from "@/studio/audio/melodia";
+import { armoniaDe } from "@/studio/audio/melodia";
 import {
   canShareAudio,
   downloadBlob,
@@ -55,6 +58,7 @@ export function HacerCancion() {
   const [comoSuena, setComoSuena] = useState("");
   const [estilo, setEstilo] = useState<Estilo | null>(null);
   const [entendido, setEntendido] = useState<string[]>([]);
+  const [armonia, setArmonia] = useState<Armonia>(armoniaDe("perreo"));
   const [fase, setFase] = useState<Fase>("listo");
   const [paso, setPaso] = useState("");
   const [error, setError] = useState<{ message: string; raw?: unknown } | null>(null);
@@ -84,7 +88,10 @@ export function HacerCancion() {
       const lectura = interpretar(texto);
       setEstilo(lectura.estilo);
       setEntendido(lectura.entendido);
+      setArmonia(lectura.armonia);
       patch({
+        acordes: lectura.armonia.acordes,
+        modo: lectura.armonia.modo,
         estiloId: lectura.estilo.id,
         bpm: lectura.estilo.bpm,
         swing: lectura.estilo.swing,
@@ -97,6 +104,8 @@ export function HacerCancion() {
         bpm: lectura.estilo.bpm,
         swing: lectura.estilo.swing,
         subMidi: lectura.estilo.subMidi,
+        acordes: lectura.armonia.acordes,
+        modo: lectura.armonia.modo,
       });
       // Suena en cuanto lo escribes: se decide de oído, no leyendo.
       engine.unlock();
@@ -136,11 +145,16 @@ export function HacerCancion() {
    */
   const montar = useCallback(
     async (voz: AudioBuffer, offset: number) => {
+      const avisar = async (texto: string) => {
+        setPaso(texto);
+        // Cede un frame para que el aviso se pinte antes de bloquear el hilo.
+        await new Promise((listo) => setTimeout(listo, 30));
+      };
       setFase("montando");
       try {
         const ctx = await engine.ensureContext();
 
-        setPaso("Cuadrando tu voz al flow…");
+        await avisar("Cuadrando tu voz al flow…");
         const onsets = detectOnsets(voz, { minGap: 0.07 });
         const cuadrada =
           onsets.length >= 3
@@ -160,7 +174,20 @@ export function HacerCancion() {
               })
             : null;
 
-        setPaso("Montando la mezcla…");
+        await avisar("Poniéndole entonación…");
+        // Cuadrar arregla cuándo dices cada sílaba; esto arregla en qué nota.
+        const base = cuadrada?.buffer ?? voz;
+        const paraEntonar = cuadrada ? detectOnsets(base, { minGap: 0.07 }) : onsets;
+        const cantada = entonar(ctx, base, paraEntonar, {
+          bpm: settings.bpm,
+          stepsPerBar: settings.stepsPerBar,
+          takeOffset: offset,
+          tonica: settings.subMidi,
+          armonia,
+          fuerza: 1,
+        });
+
+        await avisar("Montando la mezcla…");
         const mezcla = await renderMix({
           pattern,
           settings,
@@ -169,7 +196,7 @@ export function HacerCancion() {
             {
               id: "voz",
               name: "voz",
-              buffer: cuadrada?.buffer ?? voz,
+              buffer: cantada?.buffer ?? cuadrada?.buffer ?? voz,
               offset,
               baseOffset: offset,
               gain: 1,
@@ -180,12 +207,12 @@ export function HacerCancion() {
           ],
         });
 
-        setPaso("Preparando el archivo…");
+        await avisar("Preparando el archivo…");
         const nombre =
           limpio(versos[0] ?? "mi tema")
             .slice(0, 28)
             .replace(/-+$/, "") || "mi-tema";
-        const codificada = await encodeCompressed(mezcla, setProgreso);
+        const codificada = await encodeCompressed(ctx, mezcla, setProgreso);
         const blob = codificada?.blob ?? encodeWav(mezcla);
         const extension = codificada?.audioExtension ?? "wav";
         setResultado({
@@ -204,7 +231,7 @@ export function HacerCancion() {
         setProgreso(0);
       }
     },
-    [pattern, settings, versos]
+    [pattern, settings, versos, armonia]
   );
 
   const parar = useCallback(() => {

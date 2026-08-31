@@ -90,7 +90,7 @@ export function MixPanel() {
     try {
       const buffer = await render(soloBeat);
       setBusy("codificar");
-      const encoded = await encodeCompressed(buffer, setProgress);
+      const encoded = await encodeCompressed(await engine.ensureContext(), buffer, setProgress);
       if (!encoded) {
         // Sin codificador queda el WAV, que pesa mas pero sale al instante.
         const blob = encodeWav(buffer);
@@ -130,7 +130,7 @@ export function MixPanel() {
       const downloads = await viewerDownloads();
       if (downloads) {
         setBusy("codificar");
-        const encoded = await encodeCompressed(buffer, setProgress);
+        const encoded = await encodeCompressed(await engine.ensureContext(), buffer, setProgress);
         if (!encoded) {
           setError("Este navegador no sabe codificar audio.");
           return;

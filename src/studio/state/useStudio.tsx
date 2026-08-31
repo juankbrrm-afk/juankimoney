@@ -40,6 +40,8 @@ const DEFAULT_SETTINGS: StudioSettings = {
   beatEnabled: true,
   countInBars: 1,
   guideSteps: [],
+  acordes: [0, 8, 3, 10],
+  modo: "menor",
   latencyMs: 0,
   flowTemplateId: "recto",
   estiloId: null,

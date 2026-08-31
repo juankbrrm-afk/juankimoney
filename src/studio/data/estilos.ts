@@ -221,6 +221,7 @@ export const ESTILOS: Estilo[] = [
       kick: [0, 10],
       snare: [4, 12],
       hat: [0, 2, 4, 6, 8, 10, 12, 14],
+      sub: [0, 10],
     },
     flow: { pasos: [0, 2, 4, 6, 8, 10, 12, 14], aire: 0 },
   },
