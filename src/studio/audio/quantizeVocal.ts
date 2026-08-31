@@ -23,6 +23,12 @@ export interface QuantizeVocalOptions {
   mode: QuantizeMode;
   /** Solo en modo "flow": los pasos permitidos dentro del compas. */
   template?: FlowTemplate;
+  /**
+   * Cuanto se deja la voz por detras (positivo) o por delante (negativo) de la
+   * rejilla, en milisegundos. Clavar todo al milimetro suena a maquina; el aire
+   * es lo que hace que un flow tenga caida.
+   */
+  aireMs?: number;
 }
 
 export interface QuantizeVocalResult {
@@ -71,7 +77,7 @@ export function quantizeVocal(
   ctx: BaseAudioContext,
   buffer: AudioBuffer,
   onsets: Onset[],
-  { bpm, stepsPerBar, takeOffset, strength, mode, template }: QuantizeVocalOptions
+  { bpm, stepsPerBar, takeOffset, strength, mode, template, aireMs = 0 }: QuantizeVocalOptions
 ): QuantizeVocalResult | null {
   if (!onsets.length || bpm <= 0) return null;
 
@@ -90,8 +96,10 @@ export function quantizeVocal(
     targets = songTimes.map((time) => Math.round(time / stepSeconds) * stepSeconds);
   }
 
-  // Desplazamiento de cada trozo, ya con la fuerza aplicada.
-  const deltas = songTimes.map((time, i) => (targets[i] - time) * strength);
+  // El aire se suma al objetivo, asi que la voz cae junto a la rejilla y no
+  // encima: es la diferencia entre un flow y un metronomo.
+  const aire = aireMs / 1000;
+  const deltas = songTimes.map((time, i) => (targets[i] + aire - time) * strength);
 
   // Limites de los trozos: del ataque (con su pre-roll) al siguiente.
   const bounds: number[] = [];
