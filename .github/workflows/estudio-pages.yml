@@ -5,12 +5,14 @@
 # deja el estudio en una direccion propia.
 #
 # `configure-pages` con `enablement: true` activa Pages en el repositorio la
-# primera vez que corre, asi que no hay que tocar nada a mano.
+# primera vez que corre, asi que no hay que tocar nada a mano. El despliegue
+# solo sale desde la rama principal: el entorno `github-pages` no acepta otras.
 name: Publicar el estudio
 
 on:
   push:
-    branches: [main]
+    # La rama principal de este repositorio, que no es main.
+    branches: [claude/brand-identity-visual-language-6i9w55]
     paths:
       - 'src/**'
       - 'package.json'
