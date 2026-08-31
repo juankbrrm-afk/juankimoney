@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:studio": "vite build --config vite.studio.config.ts && node scripts/inline-studio.mjs"
   },
   "dependencies": {
     "@fontsource/inter-tight": "^5.3.0",

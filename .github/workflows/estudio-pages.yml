@@ -1,0 +1,69 @@
+# Publica el estudio en GitHub Pages.
+#
+# El microfono solo se puede abrir desde una pagina servida por HTTPS y en su
+# propia pestaña: dentro de un visor incrustado el navegador lo bloquea. Esto
+# deja el estudio en una direccion propia.
+#
+# `configure-pages` con `enablement: true` activa Pages en el repositorio la
+# primera vez que corre, asi que no hay que tocar nada a mano. El despliegue
+# solo sale desde la rama principal: el entorno `github-pages` no acepta otras.
+name: Publicar el estudio
+
+on:
+  push:
+    # La rama principal de este repositorio, que no es main.
+    branches: [claude/brand-identity-visual-language-6i9w55]
+    paths:
+      - 'src/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'vite.studio.config.ts'
+      - 'studio.html'
+      - 'scripts/inline-studio.mjs'
+      - '.github/workflows/estudio-pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.despliegue.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run build:studio
+
+      - name: Montar el sitio
+        run: |
+          mkdir -p _site/estudio
+          cp dist-studio/estudio.html _site/estudio/index.html
+          # La raiz redirige al estudio, que es lo unico que se publica aqui.
+          printf '<meta http-equiv="refresh" content="0; url=./estudio/">\n' > _site/index.html
+
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - id: despliegue
+        uses: actions/deploy-pages@v4
