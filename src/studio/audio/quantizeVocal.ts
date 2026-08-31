@@ -42,35 +42,60 @@ const PRE_ROLL = 0.014; // Un pelin antes del ataque, para no cortarle la conson
 const FADE = 0.005;
 
 /**
- * En modo "flow" las silabas no van al hueco mas cercano sino a los huecos del
- * patron, uno detras de otro. Eso es lo que impone un flow de verdad: no
- * corrige lo que cantaste, lo redistribuye.
+ * En modo "flow" cada silaba se pega al hueco del patron que le pilla mas
+ * cerca, mirando tambien los compases vecinos.
+ *
+ * Dos reglas la sujetan, y las dos importan:
+ *
+ * - Si cantas mas denso de lo que el patron admite, la rejilla se subdivide.
+ *   Un patron de seis huecos por compas no puede sostener veinte silabas por
+ *   compas; empeñarse en meterlas en huecos distintos estiraria la toma a lo
+ *   largo de compases que nunca cantaste.
+ * - El movimiento se limita a la mitad de lo que separa dos huecos del patron.
+ *   Asi cualquier silaba llega a su hueco mas cercano —el flow se impone de
+ *   verdad— pero nunca puede arrastrarse mas alla, que es lo que estiraba la
+ *   toma. La duracion se mantiene y sigue sonando a como lo dijiste.
  */
 function flowTargets(
-  count: number,
+  songTimes: number[],
   template: FlowTemplate,
   stepSeconds: number,
-  stepsPerBar: number,
-  firstStep: number
+  stepsPerBar: number
 ): number[] {
-  const slots = template.steps;
-  // El patron se ancla al compas, no a la primera silaba: un tresillo tiene que
-  // caer donde cae el tresillo. Se entra por el primer hueco libre a partir de
-  // donde empezaste, para respetar una anacrusa.
-  const firstBar = Math.floor(firstStep / stepsPerBar);
-  let slot = slots.findIndex((step) => firstBar * stepsPerBar + step >= firstStep);
-  let bar = firstBar;
-  if (slot < 0) {
-    bar = firstBar + 1;
-    slot = 0;
+  let slots = [...new Set(template.steps)].sort((a, b) => a - b);
+  if (!slots.length) slots = [0];
+
+  // Densidad real de la interpretacion frente a la que aguanta el patron.
+  const duracion = (songTimes[songTimes.length - 1] ?? 0) - (songTimes[0] ?? 0);
+  const compases = Math.max(1, duracion / (stepSeconds * stepsPerBar));
+  const silabasPorCompas = songTimes.length / compases;
+  if (silabasPorCompas > slots.length * 1.25) {
+    slots = Array.from({ length: stepsPerBar }, (_, i) => i);
   }
-  const targets: number[] = [];
-  for (let i = 0; i < count; i++) {
-    const index = slot + i;
-    const at = bar + Math.floor(index / slots.length);
-    targets.push((at * stepsPerBar + slots[index % slots.length]) * stepSeconds);
-  }
-  return targets;
+
+  // Medio hueco: lo justo para que cada silaba alcance el suyo y ni un paso mas.
+  const espaciado = stepsPerBar / slots.length;
+  const tope = espaciado * 0.5 * stepSeconds;
+
+  return songTimes.map((tiempo) => {
+    const exacto = tiempo / stepSeconds;
+    const compas = Math.floor(exacto / stepsPerBar);
+    let mejor = exacto;
+    let distancia = Infinity;
+    for (const vecino of [compas - 1, compas, compas + 1]) {
+      for (const slot of slots) {
+        const paso = vecino * stepsPerBar + slot;
+        const d = Math.abs(paso - exacto);
+        if (d < distancia) {
+          distancia = d;
+          mejor = paso;
+        }
+      }
+    }
+    const objetivo = mejor * stepSeconds;
+    const movimiento = Math.max(-tope, Math.min(tope, objetivo - tiempo));
+    return tiempo + movimiento;
+  });
 }
 
 export function quantizeVocal(
@@ -89,9 +114,7 @@ export function quantizeVocal(
 
   let targets: number[];
   if (mode === "flow" && template) {
-    const firstStep = Math.max(0, Math.round(songTimes[0] / stepSeconds));
-    targets = flowTargets(onsets.length, template, stepSeconds, stepsPerBar, firstStep);
-    // Los objetivos estan en tiempo de cancion; el resto del calculo tambien.
+    targets = flowTargets(songTimes, template, stepSeconds, stepsPerBar);
   } else {
     targets = songTimes.map((time) => Math.round(time / stepSeconds) * stepSeconds);
   }

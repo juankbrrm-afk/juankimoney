@@ -1,5 +1,7 @@
 import type { Estilo } from "./estilos";
 import { ESTILOS } from "./estilos";
+import type { Armonia } from "@/studio/audio/melodia";
+import { armoniaDe } from "@/studio/audio/melodia";
 
 /**
  * Leer con palabras cómo quieres la canción.
@@ -12,6 +14,8 @@ import { ESTILOS } from "./estilos";
 
 export interface Interpretacion {
   estilo: Estilo;
+  /** Progresion de acordes del genero: la usan el beat y la melodia de la voz. */
+  armonia: Armonia;
   /** Lo que se ha reconocido del texto, para enseñarlo tal cual. */
   entendido: string[];
   /** true si el texto no dijo ningún género y se ha tirado de uno por defecto. */
@@ -143,7 +147,11 @@ export function interpretar(texto: string): Interpretacion {
     entendido.push("luminoso");
   }
 
+  const armonia = armoniaDe(base.id);
+  entendido.push(armonia.modo);
+
   return {
+    armonia,
     estilo: {
       ...base,
       id: `${base.id}-a-medida`,

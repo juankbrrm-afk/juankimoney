@@ -1,6 +1,7 @@
 import type { DrumVoice, Pattern, Take } from "@/studio/types";
 import { DRUM_VOICES } from "@/studio/types";
 import { triggerClick, triggerGuide, triggerVoice } from "./drums";
+import { notasAcorde, triggerAcorde, triggerBajo } from "./instrumentos";
 
 export interface EngineSettings {
   bpm: number;
@@ -13,6 +14,9 @@ export interface EngineSettings {
   countInBars: number;
   /** Pasos del bucle donde suena el blip de guia al ensayar un flow. */
   guideSteps: number[];
+  /** Semitonos desde la tonica, un acorde por compas. Vacio = sin armonia. */
+  acordes: number[];
+  modo: "menor" | "mayor";
 }
 
 export interface EngineTick {
@@ -48,6 +52,8 @@ export class StudioEngine {
     beatEnabled: true,
     countInBars: 1,
     guideSteps: [],
+    acordes: [0, 8, 3, 10],
+    modo: "menor",
   };
 
   private pattern: Pattern | null = null;
@@ -211,9 +217,29 @@ export class StudioEngine {
 
       if (beatEnabled && step >= 0 && this.pattern) {
         const index = ((step % totalSteps) + totalSteps) % totalSteps;
+        // El acorde de este compas: mueve el bajo y rellena por arriba.
+        const compas = Math.floor(step / stepsPerBar);
+        const acordes = this.settings.acordes;
+        const grado = acordes.length ? acordes[compas % acordes.length] : 0;
+        const segundosPorCompas = this.stepSeconds * stepsPerBar;
+
+        if (acordes.length && step % stepsPerBar === 0) {
+          triggerAcorde(
+            ctx,
+            this.beatBus!,
+            notasAcorde(subMidi + grado + 24, this.settings.modo),
+            time,
+            segundosPorCompas * 0.95
+          );
+        }
+
         for (const voice of DRUM_VOICES) {
           const velocity = this.pattern[voice]?.[index] ?? 0;
-          if (velocity > 0) {
+          if (velocity === 0) continue;
+          if (voice === "sub") {
+            // El 808 sigue la fundamental del acorde, no una nota fija.
+            triggerBajo(ctx, this.beatBus!, subMidi + grado, time, this.stepSeconds * 3, velocity);
+          } else {
             triggerVoice(ctx, this.beatBus!, voice as DrumVoice, time, { velocity, subMidi });
           }
         }
