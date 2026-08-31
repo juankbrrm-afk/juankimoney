@@ -21,6 +21,9 @@ const Contact = lazy(() =>
 const NotFound = lazy(() =>
   import("@/pages/NotFound").then((m) => ({ default: m.NotFound }))
 );
+const StudioPage = lazy(() =>
+  import("@/studio/StudioPage").then((m) => ({ default: m.StudioPage }))
+);
 
 function App() {
   return (
@@ -30,6 +33,8 @@ function App() {
           <LoadingScreen />
           <Suspense fallback={null}>
             <Routes>
+              {/* El estudio va fuera del Layout de la tienda: es pantalla completa. */}
+              <Route path="studio" element={<StudioPage />} />
               <Route element={<Layout />}>
                 <Route index element={<Home />} />
                 <Route path="collection" element={<Shop />} />
