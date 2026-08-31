@@ -1,6 +1,7 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { engine } from "@/studio/audio/engine";
 import { recorder } from "@/studio/audio/recorder";
+import { importAudioFile, isFramed, micErrorMessage } from "@/studio/audio/importAudio";
 import { detectOnsets } from "@/studio/analysis/onsets";
 import { estimateTempo, findPhase } from "@/studio/analysis/tempo";
 import { beatboxToPattern } from "@/studio/analysis/beatbox";
@@ -36,13 +37,73 @@ export function BeatboxPanel() {
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [useOwnTempo, setUseOwnTempo] = useState(true);
+  const fileInput = useRef<HTMLInputElement>(null);
   const [withClick, setWithClick] = useState(false);
   const level = useMicLevel(recording);
 
+  /** Analiza un beatbox, venga del microfono o de un archivo. */
+  const analizar = useCallback(
+    (buffer: AudioBuffer, anchor: number | null, startTime: number) => {
+      const onsets = detectOnsets(buffer, { minGap: 0.06 });
+      if (onsets.length < 3) {
+        setError("Se detectaron muy pocos golpes. Marca el ritmo mas fuerte y separado.");
+        return;
+      }
+
+      let bpm = settings.bpm;
+      let offset: number;
+      let confidence: number | null = null;
+
+      if (anchor !== null && !useOwnTempo) {
+        // Grabado contra el click: el compas 1 ya se sabe donde cae.
+        offset = anchor - startTime;
+        while (offset < 0) offset += (60 / bpm) * 4;
+      } else if (useOwnTempo) {
+        const tempo = estimateTempo(onsets, buffer.duration);
+        if (!tempo) {
+          setError("No se pudo sacar el tempo. Prueba a marcar el pulso mas regular.");
+          return;
+        }
+        bpm = Math.round(tempo.bpm);
+        confidence = tempo.confidence;
+        offset = tempo.offset;
+      } else {
+        offset = findPhase(onsets, 60 / bpm, buffer.duration);
+      }
+
+      const result = beatboxToPattern(onsets, buffer.duration, {
+        bpm,
+        offset,
+        stepsPerBar: settings.stepsPerBar,
+        bars: settings.bars,
+      });
+
+      setAnalysis({ buffer, result, bpm, offset: result.downbeat, confidence });
+      setError(null);
+    },
+    [settings.bpm, settings.stepsPerBar, settings.bars, useOwnTempo]
+  );
+
+  const importar = useCallback(
+    async (file: File) => {
+      setError(null);
+      try {
+        const ctx = await engine.ensureContext();
+        const { buffer } = await importAudioFile(ctx, file);
+        analizar(buffer, null, 0);
+      } catch {
+        setError("No se pudo leer ese archivo de audio. Prueba con un m4a, mp3 o wav.");
+      }
+    },
+    [analizar]
+  );
+
   const start = useCallback(async () => {
     setError(null);
+    const unlocked = engine.unlock();
     try {
       const ctx = await engine.ensureContext();
+      void unlocked;
       await recorder.arm(ctx, engine.master!);
       if (withClick) {
         engine.update({ beatEnabled: false, metronome: true });
@@ -51,7 +112,7 @@ export function BeatboxPanel() {
       recorder.start();
       setRecording(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo abrir el microfono");
+      setError(micErrorMessage(err));
     }
   }, [withClick]);
 
@@ -64,45 +125,8 @@ export function BeatboxPanel() {
       setError("No llego audio. Revisa el microfono.");
       return;
     }
-
-    const { buffer, startTime } = recorded;
-    const onsets = detectOnsets(buffer, { minGap: 0.06 });
-    if (onsets.length < 3) {
-      setError("Se detectaron muy pocos golpes. Marca el ritmo mas fuerte y separado.");
-      return;
-    }
-
-    let bpm = settings.bpm;
-    let offset: number;
-    let confidence: number | null = null;
-
-    if (anchor !== null && !useOwnTempo) {
-      // Grabado contra el click: el compas 1 ya se sabe donde cae.
-      offset = anchor - startTime;
-      while (offset < 0) offset += (60 / bpm) * 4;
-    } else if (useOwnTempo) {
-      const tempo = estimateTempo(onsets, buffer.duration);
-      if (!tempo) {
-        setError("No se pudo sacar el tempo. Prueba a marcar el pulso mas regular.");
-        return;
-      }
-      bpm = Math.round(tempo.bpm);
-      confidence = tempo.confidence;
-      offset = tempo.offset;
-    } else {
-      offset = findPhase(onsets, 60 / bpm, buffer.duration);
-    }
-
-    const result = beatboxToPattern(onsets, buffer.duration, {
-      bpm,
-      offset,
-      stepsPerBar: settings.stepsPerBar,
-      bars: settings.bars,
-    });
-
-    setAnalysis({ buffer, result, bpm, offset: result.downbeat, confidence });
-    setError(null);
-  }, [settings.bpm, settings.stepsPerBar, settings.bars, useOwnTempo, withClick]);
+    analizar(recorded.buffer, anchor, recorded.startTime);
+  }, [withClick, analizar]);
 
   const apply = useCallback(() => {
     if (!analysis) return;
@@ -131,12 +155,30 @@ export function BeatboxPanel() {
   return (
     <Panel
       title="Ritmo con tu voz"
-      hint="Haz el beat con la boca — 'b' para el bombo, 'ts/pf' para la caja, 'ts' corto para el hi-hat — y se convierte en patron. Repite el mismo compas varias veces: cuantas mas vueltas, mas limpio sale."
+      hint={
+        isFramed()
+          ? "Haz el beat con la boca — 'b' para el bombo, 'ts/pf' para la caja, 'ts' corto para el hi-hat — y se convierte en patron. Si el navegador no te deja abrir el microfono aqui, grabalo con la app de notas de voz e importa el archivo."
+          : "Haz el beat con la boca — 'b' para el bombo, 'ts/pf' para la caja, 'ts' corto para el hi-hat — y se convierte en patron. Repite el mismo compas varias veces: cuantas mas vueltas, mas limpio sale."
+      }
     >
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <Button variant={recording ? "danger" : "record"} onClick={recording ? stop : start}>
           {recording ? "Parar y analizar" : "Grabar beatbox"}
         </Button>
+        <Button onClick={() => fileInput.current?.click()} disabled={recording}>
+          Importar audio
+        </Button>
+        <input
+          ref={fileInput}
+          type="file"
+          accept="audio/*"
+          className="hidden"
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            event.target.value = "";
+            if (file) void importar(file);
+          }}
+        />
         <label className="flex items-center gap-2 text-sm text-neutral-400">
           <input
             type="checkbox"

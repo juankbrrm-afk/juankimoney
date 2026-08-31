@@ -103,7 +103,12 @@ CSS, no fonts, no CDN. A copy is committed at `docs/estudio/index.html`, so
 enabling GitHub Pages on `main` + `/docs` serves it at `/estudio/`.
 
 It needs a secure context (HTTPS or `localhost`): a `file://` page cannot reach
-the microphone. When the page runs inside the Claude artifact viewer, which does
+the microphone. Where the microphone is unavailable anyway — an embedding frame
+that does not delegate permission, most often — every tab still works from an
+imported file: **Importar audio** on both the Ritmo and Grabar panels decodes any
+m4a/mp3/wav (a phone voice memo, say) into a beatbox to analyse or a take to
+quantise. The microphone error names the actual cause and both ways out rather
+than failing blank. When the page runs inside the Claude artifact viewer, which does
 not admit WAV, the mix is encoded to m4a/webm through `MediaRecorder` and handed
 over via the viewer's download bridge; hosted anywhere else it downloads the WAV
 directly.

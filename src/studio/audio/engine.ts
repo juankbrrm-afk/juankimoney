@@ -59,8 +59,13 @@ export class StudioEngine {
   private sources: AudioBufferSourceNode[] = [];
   private listeners = new Set<(tick: EngineTick) => void>();
 
-  /** Crea (o reanuda) el contexto de audio. Debe llamarse desde un gesto real. */
-  async ensureContext(): Promise<AudioContext> {
+  /**
+   * Desbloquea el audio. Tiene que llamarse DE FORMA SINCRONA dentro del
+   * manejador del gesto: iOS solo concede el permiso de sonido en ese instante,
+   * y si antes hay un `await` la ventana ya se ha cerrado y el estudio se queda
+   * mudo. Por eso no devuelve una promesa.
+   */
+  unlock(): AudioContext {
     if (!this.ctx) {
       const ctx = new AudioContext({ latencyHint: "interactive" });
       const master = ctx.createGain();
@@ -81,8 +86,20 @@ export class StudioEngine {
       this.clickBus = clickBus;
       this.takeBus = takeBus;
     }
-    if (this.ctx.state === "suspended") await this.ctx.resume();
+    void this.ctx.resume();
+    // Un pulso mudo: en iOS es lo que despierta de verdad la salida de audio.
+    const wake = this.ctx.createBufferSource();
+    wake.buffer = this.ctx.createBuffer(1, 1, this.ctx.sampleRate);
+    wake.connect(this.ctx.destination);
+    wake.start(0);
     return this.ctx;
+  }
+
+  /** Igual que `unlock`, pero esperando a que el contexto este corriendo. */
+  async ensureContext(): Promise<AudioContext> {
+    const ctx = this.unlock();
+    if (ctx.state === "suspended") await ctx.resume();
+    return ctx;
   }
 
   subscribe(listener: (tick: EngineTick) => void): () => void {

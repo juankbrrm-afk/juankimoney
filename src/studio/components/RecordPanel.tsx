@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 import { engine } from "@/studio/audio/engine";
 import { recorder } from "@/studio/audio/recorder";
+import { importAudioFile, isFramed, micErrorMessage } from "@/studio/audio/importAudio";
 import { useStudio } from "@/studio/state/useStudio";
 import { useMicLevel } from "@/studio/state/useMicLevel";
 import { Button, Meter, Panel } from "./ui";
@@ -19,23 +20,52 @@ export function RecordPanel() {
   const [error, setError] = useState<string | null>(null);
   /** Offset de la toma en curso: se fija al arrancar y se lee al parar. */
   const pendingOffset = useRef(0);
+  const fileInput = useRef<HTMLInputElement>(null);
   const level = useMicLevel(armed);
 
   const arm = useCallback(async () => {
     setError(null);
+    // El desbloqueo va sincrono, antes de cualquier await: es lo que pide iOS.
+    const ctx = engine.unlock();
     try {
-      const ctx = await engine.ensureContext();
+      await engine.ensureContext();
       await recorder.arm(ctx, engine.master!);
       if (settings.latencyMs === 0) {
         patch({ latencyMs: Math.round(engine.outputLatencyMs) });
       }
       setArmed(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo abrir el microfono");
+      setError(micErrorMessage(err));
     }
   }, [patch, settings.latencyMs]);
 
+  /** Trae una nota de voz o cualquier archivo de audio como una toma mas. */
+  const importar = useCallback(
+    async (file: File) => {
+      setError(null);
+      try {
+        const ctx = await engine.ensureContext();
+        const { buffer, name } = await importAudioFile(ctx, file);
+        addTake({
+          id: `t${Date.now()}`,
+          name,
+          buffer,
+          offset: 0,
+          baseOffset: 0,
+          gain: 1,
+          muted: false,
+          soloed: false,
+          createdAt: Date.now(),
+        });
+      } catch {
+        setError("No se pudo leer ese archivo de audio. Prueba con un m4a, mp3 o wav.");
+      }
+    },
+    [addTake]
+  );
+
   const start = useCallback(async () => {
+    engine.unlock();
     if (!armed) await arm();
     if (!recorder.armed) return;
     await engine.play();
@@ -77,7 +107,11 @@ export function RecordPanel() {
     <div className="space-y-4">
       <Panel
         title="Grabar tu voz"
-        hint="Suena el beat con la cuenta de entrada y tu cantas encima. Cada toma se alinea sola con el compas 1; si notas que va corrida, ajusta la latencia."
+        hint={
+          isFramed()
+            ? "Suena el beat con la cuenta de entrada y tu cantas encima. Si el navegador no te deja abrir el microfono aqui, graba con la app de notas de voz del movil e importa el archivo: todo lo demas funciona igual."
+            : "Suena el beat con la cuenta de entrada y tu cantas encima. Cada toma se alinea sola con el compas 1; si notas que va corrida, ajusta la latencia."
+        }
       >
         <div className="flex flex-wrap items-center gap-3">
           {!armed ? (
@@ -100,6 +134,19 @@ export function RecordPanel() {
               </Button>
             </>
           )}
+
+          <Button onClick={() => fileInput.current?.click()}>Importar audio</Button>
+          <input
+            ref={fileInput}
+            type="file"
+            accept="audio/*"
+            className="hidden"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              event.target.value = "";
+              if (file) void importar(file);
+            }}
+          />
 
           <label className="flex flex-col gap-1 text-[10px] tracking-[0.16em] text-neutral-500 uppercase">
             Latencia {settings.latencyMs} ms
@@ -131,7 +178,8 @@ export function RecordPanel() {
 
       {takes.length === 0 ? (
         <p className="rounded-xl border border-dashed border-neutral-800 px-4 py-8 text-center text-sm text-neutral-600">
-          Todavia no hay tomas. Dale a grabar y suelta un verso encima del beat.
+          Todavia no hay tomas. Dale a grabar y suelta un verso encima del beat, o importa una
+          nota de voz que ya tengas.
         </p>
       ) : (
         <div className="space-y-4">
