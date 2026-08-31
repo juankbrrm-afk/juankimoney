@@ -124,7 +124,40 @@ export function downloadBlob(blob: Blob, filename: string): void {
   document.body.append(link);
   link.click();
   link.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  // Margen largo antes de soltar la URL: en el movil una descarga grande sigue
+  // leyendo del blob un rato despues del clic, y revocarla antes la aborta.
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+
+/** true si el sistema puede abrir su menu de compartir con un archivo de audio. */
+export function canShareAudio(): boolean {
+  if (typeof navigator === "undefined" || !navigator.share || !navigator.canShare) return false;
+  try {
+    const probe = new File([new Uint8Array([0])], "prueba.m4a", { type: "audio/mp4" });
+    return navigator.canShare({ files: [probe] });
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Abre el menu de compartir del sistema con la cancion.
+ *
+ * Tiene que llamarse desde el toque, sin nada esperando por delante: iOS exige
+ * que `share` nazca de un gesto. Por eso la cancion se prepara en un paso y se
+ * comparte en otro, en vez de hacerlo todo de una.
+ */
+export async function shareAudio(blob: Blob, filename: string, title: string): Promise<boolean> {
+  const file = new File([blob], filename, { type: blob.type || "audio/mp4" });
+  if (!navigator.canShare?.({ files: [file] })) return false;
+  try {
+    await navigator.share({ files: [file], title });
+    return true;
+  } catch (error) {
+    // Cancelar el menu tambien llega aqui, y no es un fallo.
+    if ((error as { name?: string } | null)?.name === "AbortError") return true;
+    throw error;
+  }
 }
 
 /**
@@ -138,16 +171,19 @@ export function downloadBlob(blob: Blob, filename: string): void {
 export async function encodeCompressed(
   buffer: AudioBuffer,
   onProgress?: (ratio: number) => void
-): Promise<{ blob: Blob; extension: "mp4" | "webm" } | null> {
+): Promise<{ blob: Blob; extension: "mp4" | "webm"; audioExtension: "m4a" | "webm" } | null> {
   if (typeof MediaRecorder === "undefined") return null;
-  const candidates: [string, "mp4" | "webm"][] = [
-    ["audio/mp4", "mp4"],
-    ["audio/webm;codecs=opus", "webm"],
-    ["audio/webm", "webm"],
+  // `extension` es la que admite el puente de descargas del visor; `audioExtension`
+  // es la que quieres en el movil, donde un .m4a se reconoce como cancion y un
+  // .mp4 se abre esperando video.
+  const candidates: [string, "mp4" | "webm", "m4a" | "webm"][] = [
+    ["audio/mp4", "mp4", "m4a"],
+    ["audio/webm;codecs=opus", "webm", "webm"],
+    ["audio/webm", "webm", "webm"],
   ];
   const picked = candidates.find(([type]) => MediaRecorder.isTypeSupported(type));
   if (!picked) return null;
-  const [mimeType, extension] = picked;
+  const [mimeType, extension, audioExtension] = picked;
 
   const ctx = new AudioContext();
   try {
@@ -184,7 +220,7 @@ export async function encodeCompressed(
     recorder.stop();
     await stopped;
 
-    return { blob: new Blob(chunks, { type: mimeType }), extension };
+    return { blob: new Blob(chunks, { type: mimeType }), extension, audioExtension };
   } finally {
     await ctx.close();
   }
