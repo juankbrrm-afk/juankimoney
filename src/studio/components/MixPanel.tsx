@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { engine } from "@/studio/audio/engine";
-import { downloadBlob, encodeWav, renderMix } from "@/studio/audio/mixdown";
+import {
+  downloadBlob,
+  encodeCompressed,
+  encodeWav,
+  renderMix,
+  viewerDownloads,
+} from "@/studio/audio/mixdown";
 import { useStudio } from "@/studio/state/useStudio";
 import { Button, Panel, Stat } from "./ui";
 
@@ -17,6 +23,7 @@ function slug(text: string): string {
 export function MixPanel() {
   const { settings, pattern, takes, sections } = useStudio();
   const [busy, setBusy] = useState<string | null>(null);
+  const [progress, setProgress] = useState(0);
   const [title, setTitle] = useState("tema");
   const [error, setError] = useState<string | null>(null);
 
@@ -29,7 +36,9 @@ export function MixPanel() {
 
   const exportMix = async (includeBeat: boolean, onlyBeat: boolean) => {
     setError(null);
+    setProgress(0);
     setBusy(onlyBeat ? "beat" : "mix");
+    const name = `${slug(title) || "tema"}-${onlyBeat ? "beat" : "mezcla"}`;
     try {
       await engine.ensureContext();
       const buffer = await renderMix({
@@ -38,11 +47,36 @@ export function MixPanel() {
         settings,
         includeBeat,
       });
-      downloadBlob(encodeWav(buffer), `${slug(title) || "tema"}-${onlyBeat ? "beat" : "mezcla"}.wav`);
+
+      // Alojada en cualquier sitio, el WAV se baja por un enlace normal. Dentro
+      // del visor de Claude las descargas pasan por su puente, que ademas no
+      // acepta WAV: ahi se codifica a m4a (o webm) antes de entregarlo.
+      const downloads = await viewerDownloads();
+      if (!downloads) {
+        downloadBlob(encodeWav(buffer), `${name}.wav`);
+        return;
+      }
+
+      setBusy("encode");
+      const encoded = await encodeCompressed(buffer, setProgress);
+      if (!encoded) {
+        setError("Este navegador no sabe codificar audio. Abre el estudio fuera del visor para bajar el WAV.");
+        return;
+      }
+      await downloads.save({ filename: `${name}.${encoded.extension}`, data: encoded.blob });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo renderizar la mezcla");
+      const code = (err as { code?: string } | null)?.code;
+      if (code === "declined") return;
+      setError(
+        code
+          ? `No se pudo guardar el archivo (${code}).`
+          : err instanceof Error
+            ? err.message
+            : "No se pudo renderizar la mezcla"
+      );
     } finally {
       setBusy(null);
+      setProgress(0);
     }
   };
 
@@ -79,12 +113,19 @@ export function MixPanel() {
             disabled={busy !== null || takes.length === 0}
             onClick={() => exportMix(true, false)}
           >
-            {busy === "mix" ? "Renderizando…" : "Exportar mezcla WAV"}
+            {busy === "mix" ? "Renderizando…" : "Exportar la mezcla"}
           </Button>
           <Button disabled={busy !== null} onClick={() => exportMix(true, true)}>
             {busy === "beat" ? "Renderizando…" : "Solo el beat"}
           </Button>
         </div>
+
+        {busy === "encode" && (
+          <p className="mb-3 text-sm text-neutral-400">
+            Codificando el audio a tiempo real: {Math.round(progress * 100)}%. Tarda lo que dura
+            el tema.
+          </p>
+        )}
 
         {takes.length === 0 && (
           <p className="text-sm text-neutral-600">
@@ -131,7 +172,7 @@ export function MixPanel() {
       <Panel title="Aviso" hint="">
         <p className="text-sm text-neutral-400">
           Las tomas viven en memoria mientras la pestaña este abierta. El tempo, el patron y la
-          letra si se guardan solos en este navegador. Exporta el WAV antes de cerrar si quieres
+          letra si se guardan solos en este navegador. Exporta el tema antes de cerrar si quieres
           conservar la voz.
         </p>
       </Panel>

@@ -3,6 +3,12 @@
 @import "tailwindcss";
 
 @layer base {
+  :root {
+    /* El estudio vive siempre en oscuro: es una cabina, no un documento. Sin
+       esto los controles nativos (sliders, selects) saldrian en claro. */
+    color-scheme: dark;
+  }
+
   html {
     -webkit-text-size-adjust: 100%;
   }

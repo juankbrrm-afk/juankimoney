@@ -18,7 +18,7 @@ const styles = css ? readFileSync(join(dir, 'assets', css), 'utf8') : ''
 // El charset va el primero: sin el, un navegador que sirva el archivo suelto
 // interpreta los bytes UTF-8 como latin-1 y el bundle deja de parsear.
 const html = `<meta charset="utf-8" />
-<title>Estudio</title>
+<title>Estudio de Flow</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#0a0a0a" />
 <style>${styles}</style>

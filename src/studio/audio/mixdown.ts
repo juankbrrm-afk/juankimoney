@@ -126,3 +126,75 @@ export function downloadBlob(blob: Blob, filename: string): void {
   link.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+
+/**
+ * Codifica la mezcla a un formato comprimido pasandola por MediaRecorder.
+ *
+ * Hace falta cuando la pagina corre dentro de un visor que solo acepta ciertos
+ * formatos: el WAV crudo no esta en esa lista, pero el m4a y el webm si. El
+ * inconveniente es que MediaRecorder graba en tiempo real, asi que codificar un
+ * tema de dos minutos tarda dos minutos.
+ */
+export async function encodeCompressed(
+  buffer: AudioBuffer,
+  onProgress?: (ratio: number) => void
+): Promise<{ blob: Blob; extension: "mp4" | "webm" } | null> {
+  if (typeof MediaRecorder === "undefined") return null;
+  const candidates: [string, "mp4" | "webm"][] = [
+    ["audio/mp4", "mp4"],
+    ["audio/webm;codecs=opus", "webm"],
+    ["audio/webm", "webm"],
+  ];
+  const picked = candidates.find(([type]) => MediaRecorder.isTypeSupported(type));
+  if (!picked) return null;
+  const [mimeType, extension] = picked;
+
+  const ctx = new AudioContext();
+  try {
+    if (ctx.state === "suspended") await ctx.resume();
+    const destination = ctx.createMediaStreamDestination();
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(destination);
+
+    const recorder = new MediaRecorder(destination.stream, { mimeType, audioBitsPerSecond: 192000 });
+    const chunks: Blob[] = [];
+    recorder.ondataavailable = (event) => {
+      if (event.data.size) chunks.push(event.data);
+    };
+    const stopped = new Promise<void>((resolve) => {
+      recorder.onstop = () => resolve();
+    });
+
+    recorder.start();
+    const startedAt = ctx.currentTime;
+    source.start();
+
+    await new Promise<void>((resolve) => {
+      const tick = () => {
+        const ratio = Math.min(1, (ctx.currentTime - startedAt) / buffer.duration);
+        onProgress?.(ratio);
+        if (ratio >= 1) resolve();
+        else setTimeout(tick, 200);
+      };
+      tick();
+    });
+    // Un respiro para que entre la ultima cola antes de cerrar.
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    recorder.stop();
+    await stopped;
+
+    return { blob: new Blob(chunks, { type: mimeType }), extension };
+  } finally {
+    await ctx.close();
+  }
+}
+
+/** El puente de descarga del visor, si lo hay. Fuera de el, null. */
+export async function viewerDownloads() {
+  try {
+    return (await window.claude?.use("downloads")) ?? null;
+  } catch {
+    return null;
+  }
+}
