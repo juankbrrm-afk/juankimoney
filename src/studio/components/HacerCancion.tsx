@@ -4,6 +4,7 @@ import { engine } from "@/studio/audio/engine";
 import { recorder } from "@/studio/audio/recorder";
 import { importAudioFile, isFramed, micErrorMessage } from "@/studio/audio/importAudio";
 import { detectOnsets } from "@/studio/analysis/onsets";
+import { estimateTempo } from "@/studio/analysis/tempo";
 import { quantizeVocal } from "@/studio/audio/quantizeVocal";
 import { entonar } from "@/studio/audio/entonar";
 import type { Armonia } from "@/studio/audio/melodia";
@@ -59,6 +60,13 @@ export function HacerCancion() {
   const [estilo, setEstilo] = useState<Estilo | null>(null);
   const [entendido, setEntendido] = useState<string[]>([]);
   const [armonia, setArmonia] = useState<Armonia>(armoniaDe("perreo"));
+  const [beatPropio, setBeatPropio] = useState<{
+    buffer: AudioBuffer;
+    offset: number;
+    nombre: string;
+    bpm: number;
+  } | null>(null);
+  const archivoBeat = useRef<HTMLInputElement>(null);
   const [fase, setFase] = useState<Fase>("listo");
   const [paso, setPaso] = useState("");
   const [error, setError] = useState<{ message: string; raw?: unknown } | null>(null);
@@ -86,6 +94,8 @@ export function HacerCancion() {
     async (texto: string) => {
       if (!texto.trim()) return;
       const lectura = interpretar(texto);
+      setBeatPropio(null);
+      engine.setBeatPropio(null);
       setEstilo(lectura.estilo);
       setEntendido(lectura.entendido);
       setArmonia(lectura.armonia);
@@ -113,6 +123,49 @@ export function HacerCancion() {
       await engine.play();
     },
     [patch, setPattern, settings.stepsPerBar, settings.bars]
+  );
+
+  /**
+   * Traer un instrumental de fuera. Se le saca el tempo y dónde cae su compás 1,
+   * y a partir de ahí manda él: la voz se cuadra y se entona contra ese beat.
+   */
+  const subirBeat = useCallback(
+    async (file: File) => {
+      setError(null);
+      try {
+        const ctx = await engine.ensureContext();
+        const { buffer } = await importAudioFile(ctx, file);
+        const onsets = detectOnsets(buffer, { minGap: 0.06 });
+        const tempo = estimateTempo(onsets, buffer.duration);
+        if (!tempo) {
+          setError({ message: "No he podido sacarle el tempo a ese beat. Prueba con otro." });
+          return;
+        }
+        const bpm = Math.round(tempo.bpm);
+        const beat = {
+          buffer,
+          offset: tempo.offset,
+          nombre: file.name.replace(/\.[^.]+$/, ""),
+          bpm,
+        };
+        setBeatPropio(beat);
+        setEstilo(null);
+        setEntendido([
+          beat.nombre,
+          `${bpm} BPM detectados`,
+          `fiabilidad ${Math.round(tempo.confidence * 100)}%`,
+        ]);
+        patch({ bpm, estiloId: "propio" });
+        engine.update({ bpm });
+        engine.setBeatPropio({ buffer, offset: tempo.offset });
+        engine.unlock();
+        if (engine.isPlaying) engine.stop();
+        await engine.play();
+      } catch {
+        setError({ message: "No se pudo leer ese archivo. Prueba con un mp3, m4a o wav." });
+      }
+    },
+    [patch]
   );
 
   const pararPrueba = () => engine.stop();
@@ -192,6 +245,7 @@ export function HacerCancion() {
           pattern,
           settings,
           includeBeat: true,
+          beatPropio: beatPropio && { buffer: beatPropio.buffer, offset: beatPropio.offset },
           takes: [
             {
               id: "voz",
@@ -231,7 +285,7 @@ export function HacerCancion() {
         setProgreso(0);
       }
     },
-    [pattern, settings, versos, armonia]
+    [pattern, settings, versos, armonia, beatPropio]
   );
 
   const parar = useCallback(() => {
@@ -274,7 +328,7 @@ export function HacerCancion() {
   const cuentaAtras = playing && position < 0 ? Math.ceil(-position / (barSeconds / 4)) : 0;
 
   const paso1 = versos.length > 0;
-  const paso2 = paso1 && estilo !== null;
+  const paso2 = paso1 && (estilo !== null || beatPropio !== null);
 
   return (
     <div className="space-y-4">
@@ -319,7 +373,36 @@ export function HacerCancion() {
           </Button>
         </div>
 
-        <div className="mt-2 flex flex-wrap gap-1.5">
+        <div className="mt-3 rounded-lg border border-neutral-800 bg-neutral-950/50 p-3">
+          <p className="text-sm font-semibold text-neutral-200">
+            ¿Ya tienes un beat que te gusta?
+          </p>
+          <p className="mt-0.5 text-sm text-neutral-500">
+            Súbelo y mando yo el resto: le saco el tempo y te pongo tu voz encima, cuadrada y
+            afinada. Cualquier instrumental vale.
+          </p>
+          <Button onClick={() => archivoBeat.current?.click()} className="mt-2">
+            Subir mi beat
+          </Button>
+          <input
+            ref={archivoBeat}
+            type="file"
+            accept="audio/*"
+            className="hidden"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              event.target.value = "";
+              if (file) void subirBeat(file);
+            }}
+          />
+          {beatPropio && (
+            <p className="mt-2 text-sm text-lime-300">
+              Usando «{beatPropio.nombre}» · {beatPropio.bpm} BPM
+            </p>
+          )}
+        </div>
+
+        <div className="mt-3 flex flex-wrap gap-1.5">
           {EJEMPLOS.map((ejemplo) => (
             <button
               key={ejemplo}
@@ -335,7 +418,7 @@ export function HacerCancion() {
           ))}
         </div>
 
-        {estilo && (
+        {(estilo || beatPropio) && (
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <span className="text-sm text-neutral-500">Lo he montado así:</span>
             {entendido.map((cosa) => (
@@ -357,6 +440,12 @@ export function HacerCancion() {
         {estilo && (
           <p className="mt-2 text-xs text-neutral-600">
             ¿No es eso? Cambia lo que has escrito y vuelve a darle a Escuchar.
+          </p>
+        )}
+        {beatPropio && (
+          <p className="mt-2 text-xs text-neutral-600">
+            Con tu beat manda él: el ritmo y el tempo salen del archivo, y tu voz se cuadra
+            encima. Escribe un estilo arriba si quieres volver al beat del estudio.
           </p>
         )}
       </Bloque>

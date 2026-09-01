@@ -2,6 +2,7 @@ import type { Pattern, Take } from "@/studio/types";
 import { DRUM_VOICES } from "@/studio/types";
 import { triggerVoice } from "./drums";
 import { notasAcorde, triggerAcorde, triggerBajo } from "./instrumentos";
+import { crearCadenaBeat } from "./cadena";
 import type { EngineSettings } from "./engine";
 
 export interface MixOptions {
@@ -9,6 +10,8 @@ export interface MixOptions {
   takes: Take[];
   settings: EngineSettings;
   includeBeat: boolean;
+  /** Instrumental propio; si viene, sustituye al beat sintetizado. */
+  beatPropio?: { buffer: AudioBuffer; offset: number } | null;
   /** Cola de silencio al final, en segundos. */
   tail?: number;
 }
@@ -19,6 +22,7 @@ export async function renderMix({
   takes,
   settings,
   includeBeat,
+  beatPropio = null,
   tail = 1.5,
 }: MixOptions): Promise<AudioBuffer> {
   const sampleRate = takes[0]?.buffer.sampleRate ?? 48000;
@@ -44,7 +48,18 @@ export async function renderMix({
   takeBus.gain.value = 1;
   takeBus.connect(master);
 
-  if (includeBeat) {
+  const cadena = crearCadenaBeat(ctx, beatBus);
+
+  if (includeBeat && beatPropio) {
+    // El instrumental se repite hasta cubrir el tema entero.
+    const util = beatPropio.buffer.duration - beatPropio.offset;
+    for (let inicio = 0; inicio < duration && util > 0.5; inicio += util) {
+      const source = ctx.createBufferSource();
+      source.buffer = beatPropio.buffer;
+      source.connect(beatBus);
+      source.start(inicio, beatPropio.offset, Math.min(util, duration - inicio));
+    }
+  } else if (includeBeat) {
     const loopSteps = settings.stepsPerBar * settings.bars;
     const totalSteps = settings.stepsPerBar * bars;
     for (let step = 0; step < totalSteps; step++) {
@@ -58,7 +73,7 @@ export async function renderMix({
       if (acordes.length && step % settings.stepsPerBar === 0) {
         triggerAcorde(
           ctx,
-          beatBus,
+          cadena.music,
           notasAcorde(settings.subMidi + grado + 24, settings.modo),
           time,
           barSeconds * 0.95
@@ -69,9 +84,10 @@ export async function renderMix({
         const velocity = pattern[voice]?.[index] ?? 0;
         if (velocity === 0) continue;
         if (voice === "sub") {
-          triggerBajo(ctx, beatBus, settings.subMidi + grado, time, stepSeconds * 3, velocity);
+          triggerBajo(ctx, cadena.music, settings.subMidi + grado, time, stepSeconds * 3, velocity);
         } else {
-          triggerVoice(ctx, beatBus, voice, time, { velocity, subMidi: settings.subMidi });
+          triggerVoice(ctx, cadena.drums, voice, time, { velocity, subMidi: settings.subMidi });
+          if (voice === "kick") cadena.duck(time);
         }
       }
     }

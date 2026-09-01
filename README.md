@@ -46,6 +46,21 @@ the tab. Its module (`src/studio/`) is written and commented in Spanish, because
 its whole subject is Spanish prosody — *sinalefa*, *sílaba tónica*,
 *semicorchea* — and its UI is Spanish too.
 
+### Bring your own beat
+
+A beat written from oscillators is a drum machine, not a record — there is no
+honest way around that with hand-written DSP, and no music model is available
+here to generate one. So the studio takes an instrumental instead: upload any
+mp3/m4a/wav, its tempo and downbeat are detected from its own transients, and
+the voice is quantised and tuned against *that*. The synthesised beat stays as
+the fallback for when there is nothing to upload.
+
+That fallback got the two things that separate a drum machine from a
+production, neither of which is about which hits play: the music bus ducks under
+every kick (measured: energy halves 60 ms after the kick and recovers by 300 ms
+— the pump), and a convolution send puts the snare and chords behind the kick
+instead of flat against the listener's face.
+
 ### The voice is tuned, not just timed
 
 Quantising fixes *when* a syllable lands. On its own that leaves a person
