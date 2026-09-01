@@ -2,6 +2,8 @@ import type { DrumVoice, Pattern, Take } from "@/studio/types";
 import { DRUM_VOICES } from "@/studio/types";
 import { triggerClick, triggerGuide, triggerVoice } from "./drums";
 import { notasAcorde, triggerAcorde, triggerBajo } from "./instrumentos";
+import type { CadenaBeat } from "./cadena";
+import { crearCadenaBeat } from "./cadena";
 
 export interface EngineSettings {
   bpm: number;
@@ -39,6 +41,7 @@ export class StudioEngine {
   ctx: AudioContext | null = null;
   master: GainNode | null = null;
   beatBus: GainNode | null = null;
+  private cadena: CadenaBeat | null = null;
   clickBus: GainNode | null = null;
   takeBus: GainNode | null = null;
 
@@ -57,6 +60,8 @@ export class StudioEngine {
   };
 
   private pattern: Pattern | null = null;
+  /** Instrumental propio. Si lo hay, manda sobre el beat sintetizado. */
+  private beatPropio: { buffer: AudioBuffer; offset: number } | null = null;
   private takes: Take[] = [];
   private timer: number | null = null;
   private nextStep = 0;
@@ -89,6 +94,7 @@ export class StudioEngine {
       this.ctx = ctx;
       this.master = master;
       this.beatBus = beatBus;
+      this.cadena = crearCadenaBeat(ctx, beatBus);
       this.clickBus = clickBus;
       this.takeBus = takeBus;
     }
@@ -119,6 +125,15 @@ export class StudioEngine {
 
   setPattern(pattern: Pattern): void {
     this.pattern = pattern;
+  }
+
+  /**
+   * Instrumental traido por el usuario. `offset` son los segundos que hay desde
+   * el principio del archivo hasta su primer compas, para que el compas 1 del
+   * estudio caiga sobre el compas 1 del beat.
+   */
+  setBeatPropio(beat: { buffer: AudioBuffer; offset: number } | null): void {
+    this.beatPropio = beat;
   }
 
   setTakes(takes: Take[]): void {
@@ -158,6 +173,7 @@ export class StudioEngine {
     this.startTime = ctx.currentTime + 0.15 + countIn;
     this.nextStep = -this.settings.countInBars * this.settings.stepsPerBar;
     this.playing = true;
+    this.scheduleBeatPropio();
     this.scheduleTakes();
     this.timer = window.setInterval(() => this.tick(), LOOKAHEAD_MS);
     this.tick();
@@ -215,7 +231,8 @@ export class StudioEngine {
         }
       }
 
-      if (beatEnabled && step >= 0 && this.pattern) {
+      // Con un beat propio sonando, la bateria sintetizada se calla.
+      if (beatEnabled && !this.beatPropio && step >= 0 && this.pattern) {
         const index = ((step % totalSteps) + totalSteps) % totalSteps;
         // El acorde de este compas: mueve el bajo y rellena por arriba.
         const compas = Math.floor(step / stepsPerBar);
@@ -226,7 +243,7 @@ export class StudioEngine {
         if (acordes.length && step % stepsPerBar === 0) {
           triggerAcorde(
             ctx,
-            this.beatBus!,
+            this.cadena!.music,
             notasAcorde(subMidi + grado + 24, this.settings.modo),
             time,
             segundosPorCompas * 0.95
@@ -238,9 +255,11 @@ export class StudioEngine {
           if (velocity === 0) continue;
           if (voice === "sub") {
             // El 808 sigue la fundamental del acorde, no una nota fija.
-            triggerBajo(ctx, this.beatBus!, subMidi + grado, time, this.stepSeconds * 3, velocity);
+            triggerBajo(ctx, this.cadena!.music, subMidi + grado, time, this.stepSeconds * 3, velocity);
           } else {
-            triggerVoice(ctx, this.beatBus!, voice as DrumVoice, time, { velocity, subMidi });
+            triggerVoice(ctx, this.cadena!.drums, voice as DrumVoice, time, { velocity, subMidi });
+            // Cada bombo agacha la musica un instante: de ahi sale el bombeo.
+            if (voice === "kick") this.cadena!.duck(time);
           }
         }
       }
@@ -249,6 +268,20 @@ export class StudioEngine {
     }
 
     this.emit();
+  }
+
+  /** Arranca el instrumental propio en bucle, cuadrado con el compas 1. */
+  private scheduleBeatPropio(): void {
+    const ctx = this.ctx;
+    if (!ctx || !this.beatPropio || !this.settings.beatEnabled) return;
+    const source = ctx.createBufferSource();
+    source.buffer = this.beatPropio.buffer;
+    source.loop = true;
+    source.loopStart = this.beatPropio.offset;
+    source.loopEnd = this.beatPropio.buffer.duration;
+    source.connect(this.beatBus!);
+    source.start(this.startTime, this.beatPropio.offset);
+    this.sources.push(source);
   }
 
   /** Coloca cada toma en su sitio del tema, recortando lo que ya haya pasado. */
