@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Reproductor de llamada · VoicePilot AI</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230e1011'/%3E%3Cpath d='M13 10.5l9 5.5-9 5.5z' fill='%234c8dff'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="../console/tokens.css" />
+    <link rel="stylesheet" href="player.css" />
+  </head>
+  <body>
+    <!--
+      The same call the console replays, seen afterwards. One fixture, one set
+      of engine outputs, two screens — which is the point: if the player and
+      the console ever disagree about what happened on a call, a supervisor
+      has to decide which screen is lying, and they will stop trusting both.
+    -->
+    <div class="wrap">
+      <header class="head">
+        <h1 id="title">Llamada</h1>
+        <span class="head__meta" id="meta"></span>
+        <div class="verdicts" id="verdicts"></div>
+      </header>
+
+      <section class="player">
+        <div class="controls">
+          <button id="play" type="button">▶ Reproducir</button>
+
+          <!--
+            docs/07 §7, non-negotiable. The supervisor needs both: the raw
+            track shows the real agent, the processed one shows what the
+            customer lived through. In Mode B they are different languages.
+          -->
+          <div class="tracks" role="group" aria-label="Pista de audio">
+            <button id="track-processed" type="button" aria-pressed="true">
+              Procesada · lo que oyó el cliente
+            </button>
+            <button id="track-raw" type="button" aria-pressed="false">
+              Original del agente
+            </button>
+          </div>
+
+          <span class="timecode" id="clock">0:00 / 0:00</span>
+        </div>
+
+        <div class="timeline" id="timeline">
+          <svg id="ribbon" viewBox="0 0 1000 76" preserveAspectRatio="none" aria-hidden="true">
+            <path class="timeline__area" id="ribbon-area" />
+            <line class="timeline__mid" x1="0" y1="38" x2="1000" y2="38" />
+            <path class="timeline__line" id="ribbon-line" />
+          </svg>
+          <div class="marks" id="marks"></div>
+          <div class="playhead" id="playhead" style="left: 0"></div>
+        </div>
+
+        <div class="legend">
+          <span><i style="background: var(--critical)"></i> violación crítica</span>
+          <span><i style="background: var(--attention)"></i> advertencia</span>
+          <span><i style="background: var(--ai)"></i> sugerencia del copilot</span>
+          <span>La línea es el sentimiento del cliente a lo largo de la llamada.</span>
+        </div>
+
+        <!--
+          There is no recording attached to this call. Said plainly rather
+          than drawn as a plausible waveform over silence — docs/12 §8: when
+          something is degraded, say what does not work; never fake normality.
+        -->
+        <p class="notice" id="notice" hidden>
+          <span aria-hidden="true">ⓘ</span>
+          <span id="notice-text"></span>
+        </p>
+      </section>
+
+      <section class="transcript" id="transcript"></section>
+    </div>
+
+    <script type="module" src="player.js"></script>
+  </body>
+</html>

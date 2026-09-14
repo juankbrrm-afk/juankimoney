@@ -36,6 +36,7 @@ from copilot.text import sentences  # noqa: E402
 from copilot.types import Draft  # noqa: E402
 from eval.corpus import CORPUS  # noqa: E402
 from eval.embedder import ConceptEmbedder  # noqa: E402
+from postcall.adoption import report as postcall_report  # noqa: E402
 from script import Script, Step, current_stage, evaluate  # noqa: E402
 from signals import ActiveCall, LiveSignals, Signal, triage  # noqa: E402
 
@@ -236,6 +237,19 @@ def main() -> None:
                    critical_violations=monitor.critical_count()),
     ])
 
+    # Did the agent actually use what the panel offered? `docs/07` §7 asks
+    # the call player to mark this, and it is measured rather than assumed:
+    # `postcall/adoption.py` counts the distinctive words the suggestion
+    # contributed and that the agent had not already used.
+    offered = [(f"s{i}", e["text"], int(e["t"] * 1000))
+               for i, e in enumerate(events) if e["type"] == "suggestion"]
+    adoption = postcall_report(offered, segments)
+    uses = [{
+        "suggestion_id": u.suggestion_id, "outcome": u.outcome.value,
+        "at": None if u.at_ms is None else round(u.at_ms / 1000, 1),
+        "share": round(u.share, 3), "terms": list(u.terms),
+    } for u in adoption.uses]
+
     # The script rail, with the verdict the report will carry. The console
     # renders the steps in script order and marks them as the call moves; the
     # outcomes are what `evaluate()` decided, not what the UI inferred from
@@ -261,6 +275,11 @@ def main() -> None:
             "id": SCRIPT.id, "name": SCRIPT.name, "steps": steps,
             "score": round(adherence.score, 3),
             "coaching": adherence.coaching_notes(),
+        },
+        "adoption": {
+            "uses": uses,
+            "rate": adoption.rate,
+            "summary": adoption.summary(),
         },
         "floor": [{"call_id": r.call.call_id, "score": round(r.score, 2),
                    "why": r.why} for r in floor],

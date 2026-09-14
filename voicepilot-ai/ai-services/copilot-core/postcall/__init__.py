@@ -6,6 +6,16 @@ invention structurally impossible, since a fabricated event has no quote and
 a quote that is not in the transcript resolves to no moment.
 """
 
+from .adoption import (
+    ADOPTED_SHARE,
+    Adoption,
+    AdoptionReport,
+    ECHOED_SHARE,
+    Use,
+    WINDOW_MS,
+    measure,
+    report,
+)
 from .analysis import CallAnalysis, Disposition, Item, Kind, TalkMetrics
 from .extract import (
     MIN_QUOTE_WORDS,
@@ -19,6 +29,8 @@ from .extract import (
 )
 
 __all__ = [
+    "ADOPTED_SHARE", "Adoption", "AdoptionReport", "ECHOED_SHARE",
+    "Use", "WINDOW_MS", "measure", "report",
     "CallAnalysis", "CrmWrite", "Disposition", "Draft", "Extraction", "Item",
     "Kind", "MIN_QUOTE_WORDS", "Summariser", "TalkMetrics", "analyse",
     "crm_writes", "talk_metrics",

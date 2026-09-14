@@ -1,0 +1,489 @@
+/**
+ * The call player.
+ *
+ * `docs/07` §7 says what this screen is for, and it is the only place in the
+ * documentation that asks for extra polish by name:
+ *
+ * > This is the screen where the supervisor understands, in 30 seconds, what
+ * > they are buying. It deserves more polish than any other screen in the
+ * > product.
+ *
+ * Four non-negotiables from that section:
+ *
+ *   - synchronised transcript, click to jump
+ *   - a **track selector** — the agent's raw voice vs the processed one the
+ *     customer actually heard. Coaching needs both: the raw track shows the
+ *     real agent, the processed one shows the customer's experience
+ *   - event markers on the timeline: objections, compliance alerts,
+ *     suggestions
+ *   - an indicator of which suggestions the agent used
+ *
+ * Unlike the console, this screen is read at a desk by somebody who is not
+ * mid-call, so it can afford density, motion and a chart. The console's
+ * restraint is a response to the agent's situation, not a house style —
+ * applying it here would produce a worse screen.
+ */
+
+* {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+body {
+  margin: 0;
+  background: var(--base);
+  color: var(--primary);
+  font: 14px/1.5 var(--ui);
+  -webkit-font-smoothing: antialiased;
+}
+
+.num,
+.timecode {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+.timecode {
+  font-family: var(--mono);
+}
+
+.wrap {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: var(--s5) var(--s4) var(--s6);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Header                                                                  */
+/* ---------------------------------------------------------------------- */
+
+.head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s3);
+  flex-wrap: wrap;
+  margin-bottom: var(--s4);
+}
+
+.head h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.head__meta {
+  color: var(--tertiary);
+  font-size: 13px;
+}
+
+.verdicts {
+  display: flex;
+  gap: var(--s2);
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+.chip {
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  padding: 2px var(--s3);
+  font-size: 12px;
+  color: var(--secondary);
+  white-space: nowrap;
+}
+
+.chip[data-tone="critical"] {
+  border-color: var(--critical);
+  color: var(--critical);
+}
+
+.chip[data-tone="positive"] {
+  border-color: var(--positive);
+  color: var(--positive);
+}
+
+.chip[data-tone="ai"] {
+  border-color: var(--ai);
+  color: var(--ai);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Transport + timeline                                                    */
+/* ---------------------------------------------------------------------- */
+
+.player {
+  background: var(--raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--s4);
+  margin-bottom: var(--s5);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  margin-bottom: var(--s3);
+}
+
+.controls button {
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--primary);
+  border-radius: var(--radius-sm);
+  padding: var(--s2) var(--s3);
+  font: inherit;
+  cursor: pointer;
+}
+
+.controls button:hover {
+  border-color: var(--info);
+}
+
+.controls .timecode {
+  color: var(--secondary);
+  font-size: 13px;
+  margin-left: auto;
+}
+
+/**
+ * The track selector.
+ *
+ * Not a nice-to-have. A supervisor coaching an agent on a call that went
+ * wrong needs to hear what the agent actually said *and* what the customer
+ * actually heard, and in Mode B those are different languages. Showing only
+ * the processed track hides the agent from their own coaching; showing only
+ * the raw one hides the product.
+ */
+.tracks {
+  display: flex;
+  gap: var(--s1);
+  background: var(--base);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+}
+
+.tracks button {
+  border: 0;
+  background: transparent;
+  color: var(--secondary);
+  padding: var(--s1) var(--s3);
+  border-radius: 4px;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.tracks button[aria-pressed="true"] {
+  background: var(--raised-2);
+  color: var(--primary);
+}
+
+/* A track the recording does not contain. Disabled and labelled, never
+   hidden: a missing raw track is a retention-policy fact the supervisor
+   should see, not an absence they have to infer. */
+.tracks button:disabled {
+  color: var(--tertiary);
+  cursor: not-allowed;
+}
+
+/* ---------------------------------------------------------------------- */
+/* The sentiment ribbon                                                    */
+/* ---------------------------------------------------------------------- */
+
+.timeline {
+  position: relative;
+  height: 76px;
+  background: var(--base);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.timeline svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.timeline__mid {
+  stroke: var(--border-strong);
+  stroke-width: 1;
+  stroke-dasharray: 3 4;
+}
+
+.timeline__line {
+  fill: none;
+  stroke: var(--secondary);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.timeline__area {
+  fill: var(--raised-2);
+}
+
+.playhead {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--primary);
+  pointer-events: none;
+}
+
+/**
+ * Event markers.
+ *
+ * On the timeline rather than only in the transcript, because the supervisor
+ * scrubbing a six-minute call is looking for *where it went wrong* before
+ * they are looking for what was said. Colour carries the same meaning as
+ * everywhere else: red is a critical violation, violet is AI.
+ */
+.marks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.mark {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  pointer-events: auto;
+  cursor: pointer;
+  transform: translateX(-1px);
+}
+
+.mark::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: -3px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.mark[data-kind="compliance_critical"] {
+  background: var(--critical);
+}
+.mark[data-kind="compliance_critical"]::after {
+  background: var(--critical);
+}
+
+.mark[data-kind="compliance_warning"] {
+  background: var(--attention);
+}
+.mark[data-kind="compliance_warning"]::after {
+  background: var(--attention);
+}
+
+.mark[data-kind="suggestion"] {
+  background: var(--ai);
+}
+.mark[data-kind="suggestion"]::after {
+  background: var(--ai);
+}
+
+.mark[data-kind="objection"] {
+  background: var(--border-strong);
+}
+.mark[data-kind="objection"]::after {
+  background: var(--border-strong);
+}
+
+.legend {
+  display: flex;
+  gap: var(--s4);
+  flex-wrap: wrap;
+  margin-top: var(--s2);
+  font-size: 12px;
+  color: var(--tertiary);
+}
+
+.legend span {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+}
+
+.legend i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Transcript                                                              */
+/* ---------------------------------------------------------------------- */
+
+.transcript {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+}
+
+.line {
+  display: grid;
+  grid-template-columns: 58px 76px minmax(0, 1fr);
+  gap: var(--s3);
+  padding: var(--s2) var(--s3);
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  align-items: baseline;
+  line-height: 1.35;
+}
+
+.line:hover {
+  background: var(--raised);
+}
+
+/* The turn under the playhead. A left rule rather than a fill, so scrubbing
+   does not strobe a block of background across the page. */
+.line[data-current="yes"] {
+  border-color: var(--border-strong);
+  background: var(--raised);
+}
+
+.line__t {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--tertiary);
+}
+
+.line__who {
+  font-size: 12px;
+  color: var(--tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.line[data-speaker="customer"] .line__who {
+  color: var(--secondary);
+}
+
+.line[data-speaker="customer"] .line__text {
+  color: var(--primary);
+}
+
+.line__text {
+  color: var(--secondary);
+}
+
+/* Attached under the turn that caused it. */
+.annot {
+  grid-column: 3;
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+  font-size: 13px;
+  margin-top: var(--s1);
+  padding-left: var(--s3);
+  border-left: 2px solid var(--border-strong);
+}
+
+.annot[data-kind="compliance_critical"] {
+  border-left-color: var(--critical);
+  color: var(--critical);
+}
+
+.annot[data-kind="compliance_warning"] {
+  border-left-color: var(--attention);
+  color: var(--attention);
+}
+
+.annot[data-kind="suggestion"] {
+  border-left-color: var(--ai);
+  color: var(--ai);
+}
+
+.annot__body {
+  color: var(--secondary);
+}
+
+/**
+ * "The agent used this one."
+ *
+ * `docs/07` §7 asks for it, and `postcall/adoption.py` measures it rather
+ * than assuming it. The share and the words it matched on are shown in the
+ * title, because the first supervisor to disagree with an "adopted" verdict
+ * needs to see what it rested on — the same rule the copilot's citations
+ * follow.
+ */
+.used {
+  color: var(--positive);
+  border: 1px solid var(--positive);
+  border-radius: 999px;
+  padding: 0 var(--s2);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.used[data-outcome="echoed"] {
+  color: var(--attention);
+  border-color: var(--attention);
+}
+
+.used[data-outcome="ignored"] {
+  color: var(--tertiary);
+  border-color: var(--border-strong);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Honest absence                                                          */
+/* ---------------------------------------------------------------------- */
+
+/**
+ * `docs/12` §8: when something is degraded, say what does not work. Never
+ * fake normality.
+ *
+ * There is no recording attached to this call, so there is no waveform and
+ * no audio. Drawing a plausible waveform over silence would be the single
+ * most tempting lie on this screen and it would be discovered in the demo,
+ * by the customer, when they press play.
+ */
+.notice {
+  display: flex;
+  gap: var(--s2);
+  align-items: baseline;
+  background: var(--raised-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: var(--s2) var(--s3);
+  font-size: 12px;
+  color: var(--tertiary);
+  margin-top: var(--s3);
+}
+
+@media (max-width: 700px) {
+  .line {
+    grid-template-columns: 52px minmax(0, 1fr);
+  }
+  .line__who {
+    display: none;
+  }
+  .annot {
+    grid-column: 2;
+  }
+  .controls {
+    flex-wrap: wrap;
+  }
+  .controls .timecode {
+    margin-left: 0;
+  }
+  .player {
+    position: static;
+  }
+}

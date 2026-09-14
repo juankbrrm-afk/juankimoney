@@ -317,11 +317,32 @@
   "score": 1.0,
   "coaching": []
  },
+ "adoption": {
+  "uses": [
+   {
+    "suggestion_id": "s18",
+    "outcome": "adopted",
+    "at": 48.0,
+    "share": 0.5,
+    "terms": [
+     "24",
+     "front",
+     "interest",
+     "nobody",
+     "pay",
+     "split",
+     "zero"
+    ]
+   }
+  ],
+  "rate": 1.0,
+  "summary": "1/1 sugerencias usadas"
+ },
  "floor": [
   {
    "call_id": "c-1",
    "score": 1.0,
-   "why": "1 alerta(s) crítica(s) de compliance"
+   "why": "1 alerta crítica de compliance"
   }
  ],
  "turns": {
