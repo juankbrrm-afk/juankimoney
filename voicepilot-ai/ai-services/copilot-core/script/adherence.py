@@ -216,21 +216,31 @@ def evaluate(
 
 
 def current_stage(script: Script, segments: Sequence[Segment]) -> Step | None:
-    """The furthest step reached so far.
+    """The furthest step reached so far, measured by script position.
 
     Feeds the copilot's `STAGE_CHANGE` trigger, so the two modules agree on
     where the call is. A copilot offering closing material while the agent is
     still doing discovery is worse than a silent one.
+
+    "Furthest" is deliberately not "most recently said". Agents circle back —
+    they take the current bill, then remember they never confirmed the address,
+    and say it four turns later. Returning the last step matched makes the
+    stage travel backwards on a call that is going perfectly well, and the
+    copilot follows it: the customer is asking about price and the panel
+    rewinds to verification material.
+
+    Read against a real call fixture, where the agent did discovery at 0:14
+    and verification at 0:26, this reported `verify` — two steps behind where
+    the call actually was.
     """
     reached: Step | None = None
-    seen: set[str] = set()
+    best = -1
     for seg in segments:
-        for step in script.steps:
-            if step.id in seen:
-                continue
+        for position, step in enumerate(script.steps):
+            if position <= best:
+                continue  # already at or past this step
             if step.speaker is not Speaker.ANY and step.speaker is not seg.speaker:
                 continue
             if phrase_hit(seg.text, step.phrases) is not None:
-                seen.add(step.id)
-                reached = step
+                best, reached = position, step
     return reached

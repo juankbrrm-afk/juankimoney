@@ -1,0 +1,334 @@
+{
+ "call": {
+  "id": "c-1",
+  "customer": "Michael Reed",
+  "phone": "+1 305 555 0142",
+  "campaign": "Solar Q3",
+  "agent": "Andrés M.",
+  "mode": "A",
+  "hangup_ms": 93000
+ },
+ "events": [
+  {
+   "t": 1.0,
+   "type": "transcript",
+   "speaker": "agent",
+   "text": "Hi Michael, this is Andrew with Solaris Energy — how's your afternoon going?"
+  },
+  {
+   "t": 1.0,
+   "type": "stage",
+   "stage": "greet",
+   "name": "Saludo e identificación",
+   "coaching": "Preséntate en los primeros 15 s."
+  },
+  {
+   "t": 6.5,
+   "type": "transcript",
+   "speaker": "customer",
+   "text": "It's fine. What's this about?"
+  },
+  {
+   "t": 6.5,
+   "type": "silence",
+   "reason": "below_threshold",
+   "detail": "nothing in the material answers: \"It's fine. What's this about?\""
+  },
+  {
+   "t": 6.5,
+   "type": "signal",
+   "signal": "sentiment",
+   "value": -0.05
+  },
+  {
+   "t": 9.0,
+   "type": "transcript",
+   "speaker": "agent",
+   "text": "I'll be quick. This call is being recorded, by the way."
+  },
+  {
+   "t": 14.0,
+   "type": "transcript",
+   "speaker": "agent",
+   "text": "We're finishing installs on your street this month and I wanted to check what you're paying the utility right now."
+  },
+  {
+   "t": 14.0,
+   "type": "stage",
+   "stage": "discover",
+   "name": "Descubrimiento",
+   "coaching": "Pregunta la factura actual antes de dar un número."
+  },
+  {
+   "t": 21.0,
+   "type": "transcript",
+   "speaker": "customer",
+   "text": "Somewhere around two-forty a month, I think."
+  },
+  {
+   "t": 21.0,
+   "type": "silence",
+   "reason": "no_trigger",
+   "detail": ""
+  },
+  {
+   "t": 21.0,
+   "type": "signal",
+   "signal": "sentiment",
+   "value": 0.0
+  },
+  {
+   "t": 26.0,
+   "type": "transcript",
+   "speaker": "agent",
+   "text": "That tracks. Can you confirm the service address ends in Palmetto Drive?"
+  },
+  {
+   "t": 32.0,
+   "type": "transcript",
+   "speaker": "customer",
+   "text": "That's right."
+  },
+  {
+   "t": 32.0,
+   "type": "silence",
+   "reason": "no_trigger",
+   "detail": ""
+  },
+  {
+   "t": 32.0,
+   "type": "signal",
+   "signal": "sentiment",
+   "value": 0.037
+  },
+  {
+   "t": 36.0,
+   "type": "transcript",
+   "speaker": "agent",
+   "text": "Perfect. So the system for a home your size runs about 28,000 installed."
+  },
+  {
+   "t": 36.0,
+   "type": "stage",
+   "stage": "price",
+   "name": "Presentar precio",
+   "coaching": "Da el precio completo, no por partes."
+  },
+  {
+   "t": 43.0,
+   "type": "transcript",
+   "speaker": "customer",
+   "text": "Whoa. That's a lot more than I wanted to spend."
+  },
+  {
+   "t": 43.0,
+   "type": "suggestion",
+   "text": "Nobody pays the full amount up front. The installation is split over 24 months at zero interest, which for a typical home works out to about $198 per month.",
+   "trigger": "objection",
+   "grounding": 1.0,
+   "citations": [
+    {
+     "doc": "Objection Handling v4",
+     "heading": "Objection Handling v4 › 5. OBJECTIONS › 5.3 It is too expensive",
+     "page": null,
+     "kb_version": 3
+    }
+   ]
+  },
+  {
+   "t": 43.0,
+   "type": "signal",
+   "signal": "sentiment",
+   "value": -0.521
+  },
+  {
+   "t": 48.0,
+   "type": "transcript",
+   "speaker": "agent",
+   "text": "I hear you — nobody pays that up front. We split it over 24 months at zero interest."
+  },
+  {
+   "t": 48.0,
+   "type": "stage",
+   "stage": "terms",
+   "name": "Financiamiento",
+   "coaching": "Menciona los 24 meses justo después del precio."
+  },
+  {
+   "t": 56.0,
+   "type": "transcript",
+   "speaker": "agent",
+   "text": "That puts you around a hundred ninety-eight a month, below what you're handing the utility today."
+  },
+  {
+   "t": 63.0,
+   "type": "transcript",
+   "speaker": "customer",
+   "text": "Okay… that's actually not what I expected. What's the catch?"
+  },
+  {
+   "t": 63.0,
+   "type": "silence",
+   "reason": "below_threshold",
+   "detail": "nothing in the material answers: \"Okay… that's actually not what I expected. What's the catch?\""
+  },
+  {
+   "t": 63.0,
+   "type": "signal",
+   "signal": "sentiment",
+   "value": -0.379
+  },
+  {
+   "t": 68.0,
+   "type": "transcript",
+   "speaker": "agent",
+   "text": "No catch. I guarantee you'll get every penny back if you're not happy."
+  },
+  {
+   "t": 68.0,
+   "type": "compliance",
+   "severity": "critical",
+   "title": "No prometer garantías inexistentes",
+   "remedy": "Retráctate ahora: «para ser preciso, la garantía cubre…».",
+   "authority": "FTC Act §5 · publicidad engañosa",
+   "evidence": "No catch. I guarantee you'll get every penny back if you're not happy.",
+   "layer": "deterministic"
+  },
+  {
+   "t": 75.0,
+   "type": "transcript",
+   "speaker": "agent",
+   "text": "Sorry — to be precise: the panels carry a 25 year production warranty."
+  },
+  {
+   "t": 82.0,
+   "type": "transcript",
+   "speaker": "customer",
+   "text": "Send me something in writing and I'll look at it this week."
+  },
+  {
+   "t": 82.0,
+   "type": "silence",
+   "reason": "no_trigger",
+   "detail": ""
+  },
+  {
+   "t": 82.0,
+   "type": "signal",
+   "signal": "sentiment",
+   "value": -0.139
+  },
+  {
+   "t": 87.0,
+   "type": "transcript",
+   "speaker": "agent",
+   "text": "Done. I'll send you the written proposal within the hour."
+  },
+  {
+   "t": 87.0,
+   "type": "stage",
+   "stage": "close",
+   "name": "Cierre",
+   "coaching": "Cierra con un compromiso concreto y una fecha."
+  }
+ ],
+ "health": [
+  {
+   "t": 0.0,
+   "state": "ok",
+   "ms": 292
+  },
+  {
+   "t": 64.0,
+   "state": "degraded",
+   "ms": 418
+  },
+  {
+   "t": 67.0,
+   "state": "bypass",
+   "ms": 0
+  },
+  {
+   "t": 74.0,
+   "state": "ok",
+   "ms": 296
+  }
+ ],
+ "compliance_live": [
+  {
+   "title": "No prometer garantías inexistentes",
+   "severity": "critical"
+  }
+ ],
+ "compliance_deferred": 0,
+ "script": {
+  "id": "solar-q3",
+  "name": "Solar Q3",
+  "steps": [
+   {
+    "id": "greet",
+    "name": "Saludo e identificación",
+    "outcome": "met",
+    "at": 1.0,
+    "required": true,
+    "coaching": "Preséntate en los primeros 15 s."
+   },
+   {
+    "id": "verify",
+    "name": "Verificar dirección",
+    "outcome": "met",
+    "at": 26.0,
+    "required": true,
+    "coaching": "Confirma la dirección ANTES del precio."
+   },
+   {
+    "id": "discover",
+    "name": "Descubrimiento",
+    "outcome": "met",
+    "at": 14.0,
+    "required": true,
+    "coaching": "Pregunta la factura actual antes de dar un número."
+   },
+   {
+    "id": "price",
+    "name": "Presentar precio",
+    "outcome": "met",
+    "at": 36.0,
+    "required": true,
+    "coaching": "Da el precio completo, no por partes."
+   },
+   {
+    "id": "terms",
+    "name": "Financiamiento",
+    "outcome": "met",
+    "at": 48.0,
+    "required": true,
+    "coaching": "Menciona los 24 meses justo después del precio."
+   },
+   {
+    "id": "close",
+    "name": "Cierre",
+    "outcome": "met",
+    "at": 87.0,
+    "required": true,
+    "coaching": "Cierra con un compromiso concreto y una fecha."
+   }
+  ],
+  "score": 1.0,
+  "coaching": []
+ },
+ "floor": [
+  {
+   "call_id": "c-1",
+   "score": 1.0,
+   "why": "1 alerta(s) crítica(s) de compliance"
+  }
+ ],
+ "turns": {
+  "customer": 6,
+  "no_trigger": 3,
+  "answered": 1,
+  "withheld": 2
+ },
+ "generated_by": "frontend/console/generate_fixture.py — real engines"
+}

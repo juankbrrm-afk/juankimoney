@@ -1,0 +1,107 @@
+/**
+ * The design system, as variables.
+ *
+ * `docs/12` §2 defines these. They live in one file because the rule that
+ * matters most about the palette is not a value, it is a discipline:
+ *
+ *   **One colour, one meaning, everywhere.**
+ *
+ * Violet means "an AI wrote this" — a suggestion, a summary, an automatic
+ * note — in the console, the CRM and the extension alike. The agent learns
+ * once what to read with their own judgement. That only survives contact
+ * with a second developer if the value has a name and the name says what it
+ * is for, so there is no `--violet-500` here. There is `--ai`.
+ *
+ * The second rule is `docs/12` §2: **colour is earned**. A screen at rest is
+ * monochrome. When red appears it is because something is actually wrong. A
+ * dashboard where everything is coloured is a dashboard where nothing stands
+ * out, and it is the single most common way a console like this becomes
+ * wallpaper the agent stops seeing.
+ */
+
+:root {
+  /* Background */
+  --base: #08090a;
+  --raised: #0e1011;
+  --raised-2: #16181a;
+  --border: #1f2225;
+  --border-strong: #2c3033;
+
+  /* Text. Contrast against --base: primary 16.8:1, secondary 7.3:1.
+     docs/12 §2 asks AAA (7:1) in the agent console specifically, because
+     this is a screen somebody reads out of the corner of their eye for
+     eight hours. --tertiary is 3.9:1 and is therefore restricted to
+     timestamps and metadata that nobody has to read to do their job. */
+  --primary: #f2f4f5;
+  --secondary: #9ba3ab;
+  --tertiary: #5f676e;
+
+  /* Semantic — the only colour in the interface */
+  --positive: #3ecf8e;
+  --attention: #e8b339;
+  --critical: #f05252;
+  --info: #4c8dff;
+  --ai: #a78bfa;
+
+  /* Tinted backgrounds, for bands and chips. Kept as explicit values rather
+     than colour-mix() so they render identically everywhere, including in
+     the Chrome extension's isolated world. */
+  --critical-bg: #2a1113;
+  --attention-bg: #241c0c;
+  --ai-bg: #191630;
+  --positive-bg: #0d2119;
+
+  /* Type */
+  --ui: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* Spacing: 4px base */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 24px;
+  --s6: 32px;
+
+  --radius: 8px;
+  --radius-sm: 5px;
+
+  /* Motion. See `[data-live="yes"]` below — during a call every one of
+     these collapses to zero. */
+  --fast: 120ms;
+  --normal: 200ms;
+  --slow: 320ms;
+  --curve: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/**
+ * The hard rule from `docs/12` §5, expressed once instead of being
+ * remembered at every call site.
+ *
+ * > During an active call, the duration of every animation is 0 ms.
+ *
+ * A suggestion that fades in over 200 ms is a suggestion that arrives 200 ms
+ * late and steals the agent's eye on the way. Setting the tokens to zero
+ * means a component author cannot get this wrong by writing ordinary CSS —
+ * they would have to hard-code a duration to break it, which is reviewable.
+ *
+ * `!important` because this has to beat a component's own declaration. It is
+ * the one place in the stylesheet where overriding an author's intent is the
+ * intent.
+ */
+[data-live="yes"] * {
+  animation-duration: 0ms !important;
+  transition-duration: 0ms !important;
+  animation-delay: 0ms !important;
+}
+
+/**
+ * The same, for anyone who has asked their OS to stop moving things.
+ * Unconditional: it is not limited to `[data-live]`.
+ */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0ms !important;
+    transition-duration: 0ms !important;
+  }
+}

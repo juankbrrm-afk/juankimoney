@@ -203,6 +203,35 @@ class Stage(unittest.TestCase):
         a silent one."""
         self.assertEqual(current_stage(SCRIPT, GOOD_CALL[:4]).id, "discover")
 
+    def test_the_stage_does_not_travel_backwards_when_the_agent_circles_back(self):
+        """Found by the console fixture, on a call that was going fine.
+
+        The agent asked for the current bill, then remembered four turns later
+        that they had never confirmed the address. Both steps are met, the
+        call is at discovery, and an implementation that returns the
+        most-recently-matched step reports `verify` — two steps behind. The
+        copilot follows the stage, so the panel would rewind to verification
+        material while the customer is asking about price.
+        """
+        out_of_order = [
+            seg(A, "Hi Michael, this is Andrew with Solaris.", 1),
+            seg(A, "I wanted to check what you're paying the utility.", 14),
+            seg(A, "Can you confirm the service address, by the way?", 26),
+        ]
+        self.assertEqual(current_stage(SCRIPT, out_of_order).id, "discover")
+
+    def test_a_step_said_twice_does_not_pull_the_stage_back(self):
+        """The same failure by a different route: repetition, not reordering.
+
+        Agents re-confirm. "Just to confirm the service address one more
+        time" at the end of a call is good practice, and it must not report
+        that the call has returned to verification.
+        """
+        repeated = GOOD_CALL[:6] + [
+            seg(A, "And just to confirm the service address once more —", 300),
+        ]
+        self.assertEqual(current_stage(SCRIPT, repeated).id, "price")
+
 
 if __name__ == "__main__":
     unittest.main()

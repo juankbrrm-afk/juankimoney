@@ -1,0 +1,672 @@
+/**
+ * The agent console.
+ *
+ * `docs/12` §1 is the whole brief and it is worth restating before any rule
+ * below, because every one of them descends from it:
+ *
+ * > The agent is talking to a customer. The interface cannot ask them for
+ * > anything.
+ *
+ * No modals. No entry animations. One suggestion at a time, never a list.
+ * Nothing blinks except a critical compliance violation. Legible at 70 cm
+ * out of the corner of the eye — which is a type-size and contrast budget,
+ * not a figure of speech.
+ *
+ * Layout: three columns. The transcript is the spine, the copilot sits to
+ * its right at eye level, and the call's state lives left where it can be
+ * glanced at without reading. Compliance owns the top edge across all three,
+ * because a critical violation has to interrupt a column layout, not live
+ * inside one of them.
+ */
+
+* {
+  box-sizing: border-box;
+}
+
+/* Any rule that sets `display` beats the UA sheet's `[hidden]{display:none}`,
+   and several below do. Without this, hiding a panel from JavaScript does
+   nothing at all — the element stays on screen with its layout display. */
+[hidden] {
+  display: none !important;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--base);
+  color: var(--primary);
+  font: 14px/1.5 var(--ui);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Metrics, durations, money and timestamps. docs/12 §3: without this a
+   duration counter shifts horizontally every second and the eye follows it.
+   On a screen watched sideways for hours that is constant noise. */
+.num,
+time,
+.ms,
+.timecode {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Shell                                                                   */
+/* ---------------------------------------------------------------------- */
+
+.console {
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  grid-template-columns: 260px minmax(0, 1fr) 360px;
+  grid-template-areas:
+    "band   band    band"
+    "top    top     top"
+    "state  script  copilot";
+  height: 100vh;
+  gap: 0;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Critical band — the most important element in the interface             */
+/* ---------------------------------------------------------------------- */
+
+/**
+ * `docs/12` §6: a critical violation gets a red band at the top, a short
+ * sound, and **requires acknowledgement**.
+ *
+ * The acknowledgement is not ceremony. A critical alert says the agent has
+ * just created legal exposure for the company and has seconds to retract it.
+ * A banner that fades on its own is a banner that gets missed while the
+ * agent is mid-sentence, and there would then be no record of whether they
+ * ever saw it. Esc dismisses it — one key, no mouse, no modal.
+ *
+ * This is also the only thing on the screen permitted to blink.
+ */
+.band {
+  grid-area: band;
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  padding: var(--s3) var(--s4);
+  background: var(--critical-bg);
+  border-bottom: 1px solid var(--critical);
+  color: var(--primary);
+}
+
+.band__mark {
+  color: var(--critical);
+  font-size: 16px;
+  animation: pulse 1s steps(1, end) infinite;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+.band__title {
+  font-weight: 600;
+}
+
+.band__remedy {
+  color: var(--primary);
+}
+
+.band__authority {
+  color: var(--secondary);
+  font-size: 12px;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.band__ack {
+  background: transparent;
+  border: 1px solid var(--critical);
+  color: var(--primary);
+  padding: var(--s1) var(--s3);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.band__ack:hover {
+  background: var(--critical);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Top bar                                                                 */
+/* ---------------------------------------------------------------------- */
+
+.top {
+  grid-area: top;
+  display: flex;
+  align-items: center;
+  gap: var(--s4);
+  padding: var(--s3) var(--s4);
+  background: var(--raised);
+  border-bottom: 1px solid var(--border);
+}
+
+.who {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.who__name {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.who__meta {
+  color: var(--tertiary);
+  font-size: 12px;
+}
+
+.elapsed {
+  margin-left: auto;
+  font-size: 20px;
+  color: var(--secondary);
+}
+
+/**
+ * Voice health. Permanently visible, per `docs/12` §6.
+ *
+ * The red state is described there as the most important state in the whole
+ * interface: it means the customer is hearing the agent's **real, unconverted
+ * voice**. Hiding that to avoid alarming them would be a betrayal of the
+ * user — the agent can compensate in a second if they know, and cannot if
+ * they don't.
+ */
+.health {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: var(--s2) var(--s3);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background: var(--raised-2);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.health__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--positive);
+  flex: none;
+}
+
+.health__ms {
+  color: var(--secondary);
+}
+
+.health[data-state="degraded"] {
+  border-color: var(--attention);
+  background: var(--attention-bg);
+}
+
+.health[data-state="degraded"] .health__dot {
+  background: var(--attention);
+}
+
+.health[data-state="bypass"] {
+  border-color: var(--critical);
+  background: var(--critical-bg);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.health[data-state="bypass"] .health__dot {
+  background: var(--critical);
+  animation: pulse 1s steps(1, end) infinite;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Left column — call state                                                */
+/* ---------------------------------------------------------------------- */
+
+.state {
+  grid-area: state;
+  border-right: 1px solid var(--border);
+  padding: var(--s4);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s5);
+}
+
+.block__label {
+  color: var(--tertiary);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: 0 0 var(--s3);
+}
+
+/* The sentiment track. A bar, not a sparkline: the agent needs the current
+   value and its direction, and a chart asks to be studied. */
+.meter {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--raised-2);
+  overflow: hidden;
+  position: relative;
+}
+
+.meter__fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  background: var(--secondary);
+  transition: width var(--fast) var(--curve), left var(--fast) var(--curve);
+}
+
+.meter__fill[data-tone="positive"] {
+  background: var(--positive);
+}
+
+.meter__fill[data-tone="negative"] {
+  background: var(--critical);
+}
+
+.meter__value {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--secondary);
+  margin-top: var(--s2);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Script rail                                                             */
+/* ---------------------------------------------------------------------- */
+
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.step {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+  font-size: 13px;
+  color: var(--tertiary);
+}
+
+.step__mark {
+  width: 14px;
+  flex: none;
+  text-align: center;
+  color: var(--border-strong);
+}
+
+.step[data-state="done"] {
+  color: var(--secondary);
+}
+
+.step[data-state="done"] .step__mark {
+  color: var(--positive);
+}
+
+/* The step the agent is on. The only element in the left column with full
+   contrast, so it is findable without reading the others. */
+.step[data-state="current"] {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.step[data-state="current"] .step__mark {
+  color: var(--info);
+}
+
+.step__at {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--tertiary);
+  font-weight: 400;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Centre — transcript                                                     */
+/* ---------------------------------------------------------------------- */
+
+.transcript {
+  grid-area: script;
+  overflow-y: auto;
+  padding: var(--s4) var(--s5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+  scroll-behavior: smooth;
+}
+
+.turn {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: var(--s3);
+  line-height: 1.35; /* docs/12 §3: tighter in the transcript */
+}
+
+.turn__time {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--tertiary);
+  padding-top: 3px;
+}
+
+.turn__text {
+  font-size: 15px;
+}
+
+/* The agent's own words are secondary — they already know what they said.
+   The customer is what they are trying to hear. */
+.turn[data-speaker="agent"] .turn__text {
+  color: var(--secondary);
+}
+
+.turn[data-speaker="customer"] .turn__text {
+  color: var(--primary);
+}
+
+/* A warning-level violation: amber text, no sound, fades after 15 s
+   (docs/12 §6). Rendered inline against the line that caused it, because a
+   compliance note detached from its sentence is a note the agent cannot act
+   on. */
+.inline-alert {
+  grid-column: 2;
+  display: flex;
+  gap: var(--s2);
+  align-items: baseline;
+  padding: var(--s2) var(--s3);
+  border-left: 2px solid var(--attention);
+  background: var(--attention-bg);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-size: 13px;
+  color: var(--attention);
+}
+
+.inline-alert[data-severity="critical"] {
+  border-left-color: var(--critical);
+  background: var(--critical-bg);
+  color: var(--critical);
+}
+
+.inline-alert__remedy {
+  color: var(--primary);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Right — copilot                                                         */
+/* ---------------------------------------------------------------------- */
+
+.copilot {
+  grid-area: copilot;
+  border-left: 1px solid var(--border);
+  padding: var(--s4);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+}
+
+/**
+ * The suggestion card. `docs/12` §6 fixes four things about it and none are
+ * negotiable: the citation is always visible, the text streams token by
+ * token, it never exceeds 45 words, and no suggestion beats a doubtful one.
+ *
+ * Violet, because violet means "generated by an AI" across the entire
+ * product. The agent should read this with their own judgement engaged, and
+ * the colour is what tells them to.
+ */
+.suggestion {
+  border: 1px solid var(--border-strong);
+  border-left: 2px solid var(--ai);
+  background: var(--raised);
+  border-radius: var(--radius);
+  padding: var(--s4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+.suggestion__head {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ai);
+}
+
+.suggestion__age {
+  margin-left: auto;
+  color: var(--tertiary);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.suggestion__text {
+  font-size: 20px;
+  line-height: 1.4;
+  color: var(--primary);
+  margin: 0;
+}
+
+/* The caret, while the text is still streaming in. Steps rather than a
+   fade, so it cannot read as motion in the agent's periphery. */
+.suggestion__text[data-streaming="yes"]::after {
+  content: "▌";
+  color: var(--ai);
+  animation: pulse 900ms steps(1, end) infinite;
+}
+
+/**
+ * The citation. Never collapsed, never behind a hover, never in a tooltip.
+ *
+ * `docs/12` §6: *without it the agent does not trust the suggestion and does
+ * not say it, and the entire module is worth zero.* This is also the visible
+ * end of the guarantee enforced all the way down in `copilot/types.py`,
+ * where a `Suggestion` with no citations cannot be constructed at all. The
+ * UI does not check for citations — it cannot receive a suggestion lacking
+ * them.
+ */
+.cite {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+  font-size: 12px;
+  color: var(--secondary);
+  border-top: 1px solid var(--border);
+  padding-top: var(--s3);
+}
+
+.cite__doc {
+  color: var(--primary);
+}
+
+.cite__where {
+  color: var(--tertiary);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.feedback {
+  display: flex;
+  gap: var(--s2);
+  margin-left: auto;
+}
+
+.feedback button {
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--secondary);
+  border-radius: var(--radius-sm);
+  padding: 2px var(--s2);
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+}
+
+.feedback button:hover {
+  border-color: var(--secondary);
+  color: var(--primary);
+}
+
+.feedback button[aria-pressed="true"] {
+  border-color: var(--positive);
+  color: var(--positive);
+}
+
+/**
+ * The empty state, and the reason this file spends design effort on it.
+ *
+ * `docs/12` §8: an empty state explains what will appear there and how to
+ * get it — never just "no data". And §6: *no suggestion beats a doubtful
+ * one.* An empty panel does not distract; a bad suggestion does, and it
+ * breaks trust permanently.
+ *
+ * So silence is a designed state here, not an absence. When the pipeline
+ * declines, the panel says so and says why, quietly and in low contrast. It
+ * must never look like a loading state or a failure — it is the product
+ * working.
+ */
+.quiet {
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+  padding: var(--s4);
+  color: var(--tertiary);
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.quiet__reason {
+  color: var(--secondary);
+}
+
+.quiet code {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--tertiary);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Deferred / budget note                                                  */
+/* ---------------------------------------------------------------------- */
+
+.budget {
+  font-size: 12px;
+  color: var(--tertiary);
+  border-top: 1px solid var(--border);
+  padding-top: var(--s3);
+  margin-top: auto;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Transport — demo only, never shipped to an agent                        */
+/* ---------------------------------------------------------------------- */
+
+/**
+ * Playback controls for the fixture. Marked as demo scaffolding in the
+ * markup as well, because a real console has no scrubber: the call happens
+ * at the speed it happens.
+ */
+.transport {
+  position: fixed;
+  bottom: var(--s4);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  background: var(--raised-2);
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  padding: var(--s2) var(--s4);
+  font-size: 13px;
+  color: var(--secondary);
+  z-index: 10;
+}
+
+.transport button {
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--primary);
+  border-radius: var(--radius-sm);
+  padding: var(--s1) var(--s3);
+  font: inherit;
+  cursor: pointer;
+}
+
+.transport button:hover {
+  border-color: var(--info);
+}
+
+.transport__scrub {
+  width: 220px;
+  accent-color: var(--info);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Narrow screens                                                          */
+/* ---------------------------------------------------------------------- */
+
+@media (max-width: 1100px) {
+  .console {
+    grid-template-columns: minmax(0, 1fr) 320px;
+    grid-template-areas:
+      "band    band"
+      "top     top"
+      "script  copilot"
+      "state   state";
+  }
+  .state {
+    border-right: 0;
+    border-top: 1px solid var(--border);
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: var(--s5);
+  }
+  .state > * {
+    flex: 1 1 220px;
+  }
+}
+
+@media (max-width: 760px) {
+  .console {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "band"
+      "top"
+      "copilot"
+      "script"
+      "state";
+    height: auto;
+  }
+  .copilot {
+    border-left: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .transcript {
+    padding: var(--s4);
+  }
+}
