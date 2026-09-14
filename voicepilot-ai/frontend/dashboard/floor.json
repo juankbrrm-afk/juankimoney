@@ -1,0 +1,200 @@
+{
+ "attention": [
+  {
+   "call_id": "c-1041",
+   "agent": "Andrés M.",
+   "customer": "Michael Reed",
+   "campaign": "Solar Q3",
+   "duration_s": 93,
+   "note": "Prometió devolución total del dinero. Alerta crítica activa.",
+   "score": 1.364,
+   "acknowledged": false,
+   "factors": [
+    {
+     "name": "compliance",
+     "weight": 1.0,
+     "detail": "1 alerta crítica de compliance"
+    },
+    {
+     "name": "sentiment",
+     "weight": 0.364,
+     "detail": "sentimiento en -0.52"
+    }
+   ]
+  },
+  {
+   "call_id": "c-1052",
+   "agent": "Paola R.",
+   "customer": "Denise Fowler",
+   "campaign": "Solar Q3",
+   "duration_s": 412,
+   "note": "Cliente enfadado desde el minuto 2. El agente se está bloqueando.",
+   "score": 1.167,
+   "acknowledged": false,
+   "factors": [
+    {
+     "name": "sentiment",
+     "weight": 0.497,
+     "detail": "sentimiento en -0.71"
+    },
+    {
+     "name": "stress",
+     "weight": 0.37,
+     "detail": "estrés del agente en 74%"
+    },
+    {
+     "name": "warnings",
+     "weight": 0.3,
+     "detail": "2 advertencias"
+    }
+   ]
+  },
+  {
+   "call_id": "c-1048",
+   "agent": "Luis T.",
+   "customer": "Harold Nguyen",
+   "campaign": "Seguros Auto",
+   "duration_s": 208,
+   "note": "14 s de silencio. El agente no encuentra la respuesta.",
+   "score": 0.94,
+   "acknowledged": false,
+   "factors": [
+    {
+     "name": "stress",
+     "weight": 0.34,
+     "detail": "estrés del agente en 68%"
+    },
+    {
+     "name": "silence",
+     "weight": 0.6,
+     "detail": "14 s de silencio"
+    }
+   ]
+  }
+ ],
+ "rest": [
+  {
+   "call_id": "c-1027",
+   "agent": "Marcela D.",
+   "customer": "Trent Okafor",
+   "campaign": "Solar Q3",
+   "duration_s": 884,
+   "note": "Cierre en marcha. No interrumpir.",
+   "score": 0,
+   "acknowledged": false,
+   "factors": []
+  },
+  {
+   "call_id": "c-1033",
+   "agent": "Diego V.",
+   "customer": "Mary-Ann Petit",
+   "campaign": "Seguros Auto",
+   "duration_s": 631,
+   "note": "Va lento pero no se está rompiendo.",
+   "score": 0.196,
+   "acknowledged": false,
+   "factors": [
+    {
+     "name": "sentiment",
+     "weight": 0.196,
+     "detail": "sentimiento en -0.28"
+    }
+   ]
+  },
+  {
+   "call_id": "c-1039",
+   "agent": "Karina S.",
+   "customer": "Bob Alvarez",
+   "campaign": "Solar Q3",
+   "duration_s": 505,
+   "note": "Supervisora ya está escuchando.",
+   "score": 0.327,
+   "acknowledged": true,
+   "factors": [
+    {
+     "name": "sentiment",
+     "weight": 0.462,
+     "detail": "sentimiento en -0.66"
+    },
+    {
+     "name": "stress",
+     "weight": 0.355,
+     "detail": "estrés del agente en 71%"
+    }
+   ]
+  },
+  {
+   "call_id": "c-1060",
+   "agent": "Sofía E.",
+   "customer": "Marcus Hale",
+   "campaign": "Seguros Auto",
+   "duration_s": 265,
+   "note": "",
+   "score": 0,
+   "acknowledged": false,
+   "factors": []
+  },
+  {
+   "call_id": "c-1058",
+   "agent": "Beatriz L.",
+   "customer": "Ahmed Rahimi",
+   "campaign": "Seguros Auto",
+   "duration_s": 190,
+   "note": "",
+   "score": 0,
+   "acknowledged": false,
+   "factors": []
+  },
+  {
+   "call_id": "c-1056",
+   "agent": "Nuria A.",
+   "customer": "Sam Whitfield",
+   "campaign": "Seguros Auto",
+   "duration_s": 122,
+   "note": "",
+   "score": 0,
+   "acknowledged": false,
+   "factors": []
+  },
+  {
+   "call_id": "c-1057",
+   "agent": "Tomás G.",
+   "customer": "Erica Downs",
+   "campaign": "Solar Q3",
+   "duration_s": 76,
+   "note": "",
+   "score": 0,
+   "acknowledged": false,
+   "factors": []
+  },
+  {
+   "call_id": "c-1055",
+   "agent": "Jorge P.",
+   "customer": "Lena Brooks",
+   "campaign": "Solar Q3",
+   "duration_s": 47,
+   "note": "",
+   "score": 0,
+   "acknowledged": false,
+   "factors": []
+  },
+  {
+   "call_id": "c-1059",
+   "agent": "Ricardo N.",
+   "customer": "Joyce Tan",
+   "campaign": "Solar Q3",
+   "duration_s": 35,
+   "note": "",
+   "score": 0,
+   "acknowledged": false,
+   "factors": []
+  }
+ ],
+ "budget": 3,
+ "totals": {
+  "active": 12,
+  "at_risk": 5,
+  "agents": 12
+ },
+ "generated_by": "frontend/dashboard/generate_fixture.py — real triage engine"
+}

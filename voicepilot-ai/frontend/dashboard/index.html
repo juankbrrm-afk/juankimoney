@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Piso · VoicePilot AI</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230e1011'/%3E%3Crect x='7' y='16' width='4' height='9' rx='1.5' fill='%233ecf8e'/%3E%3Crect x='14' y='11' width='4' height='14' rx='1.5' fill='%23e8b339'/%3E%3Crect x='21' y='7' width='4' height='18' rx='1.5' fill='%23f05252'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="../console/tokens.css" />
+    <link rel="stylesheet" href="dashboard.css" />
+  </head>
+  <body>
+    <!--
+      Every number and every ordering on this page comes from `floor.json`,
+      which `generate_fixture.py` produces by running twelve described calls
+      through the real `triage()`. The ranking is the product; a ranking
+      hand-written into a fixture would be the one thing on the screen that
+      is guaranteed correct and guarantees nothing.
+    -->
+    <div class="wrap">
+      <header class="masthead">
+        <h1>Piso · en vivo</h1>
+        <div class="totals">
+          <div class="total">
+            <span class="total__n num" id="t-active">—</span>
+            <span class="total__label">llamadas</span>
+          </div>
+          <div class="total">
+            <span class="total__n num" id="t-risk">—</span>
+            <span class="total__label">con riesgo</span>
+          </div>
+          <div class="total">
+            <span class="total__n num" id="t-agents">—</span>
+            <span class="total__label">agentes</span>
+          </div>
+        </div>
+      </header>
+
+      <h2 class="section-label" id="attention-label">Necesitan atención ahora</h2>
+
+      <!-- Up to three. The limit is ATTENTION_BUDGET in signals/triage.py and
+           it is not configurable upward: a ranked list of forty is a list
+           nobody reads, which is the same outcome as no list. -->
+      <div class="attention" id="attention"></div>
+
+      <!-- Shown when triage() returns nothing, which is the common case and
+           a genuinely valuable answer. -->
+      <div class="allclear" id="allclear" hidden>
+        <strong>El piso está bien.</strong>
+        Ninguna llamada activa tiene señales de riesgo. Cuando una lo tenga
+        — sentimiento en caída, silencio prolongado, estrés del agente o una
+        violación crítica — aparecerá aquí con el motivo.
+      </div>
+
+      <h2 class="section-label">Resto del piso</h2>
+      <table class="floor">
+        <thead>
+          <tr>
+            <th>Agente</th>
+            <th>Cliente</th>
+            <th>Campaña</th>
+            <th class="dur">Duración</th>
+            <th class="score">Riesgo</th>
+          </tr>
+        </thead>
+        <tbody id="rest"></tbody>
+      </table>
+    </div>
+
+    <script type="module" src="dashboard.js"></script>
+  </body>
+</html>

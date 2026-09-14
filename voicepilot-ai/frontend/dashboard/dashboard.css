@@ -1,0 +1,358 @@
+/**
+ * The floor dashboard.
+ *
+ * `docs/06` §5 is the whole design brief and it is a sentence about sorting:
+ *
+ * > The floor dashboard sorts active calls by **risk**, not duration. The
+ * > supervisor sees the three calls that need intervention *now* at the top.
+ * > **That is the real value of live analysis — not the pretty graph.**
+ *
+ * Which makes the visual problem unusual: the job is to stop this screen
+ * from becoming a wall of tiles. A dashboard that lists calls is a monitor;
+ * one that prioritises them is a tool, and the difference is almost entirely
+ * about what is *not* given visual weight.
+ *
+ * So the layout is asymmetric on purpose. Three cards get the top of the
+ * screen, colour, and room to state their reasons in words. The other nine
+ * calls get one dense monochrome row each, below the fold of attention. A
+ * grid of twelve equal tiles would be the honest-looking choice and it would
+ * destroy the product: the supervisor would scan all twelve, every time,
+ * and the ranking would be decoration.
+ *
+ * Density is `docs/12` §4's "medium" — this is a screen for comparing
+ * blocks, not for reading sideways (the console) and not for scanning 500
+ * rows (the CRM tables).
+ */
+
+* {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+body {
+  margin: 0;
+  background: var(--base);
+  color: var(--primary);
+  font: 14px/1.5 var(--ui);
+  -webkit-font-smoothing: antialiased;
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+.wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--s5) var(--s4) var(--s6);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Header                                                                  */
+/* ---------------------------------------------------------------------- */
+
+.masthead {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s5);
+  flex-wrap: wrap;
+  padding-bottom: var(--s4);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: var(--s5);
+}
+
+.masthead h1 {
+  font-size: 20px;
+  margin: 0;
+  font-weight: 600;
+}
+
+.totals {
+  display: flex;
+  gap: var(--s5);
+  margin-left: auto;
+}
+
+.total {
+  display: flex;
+  flex-direction: column;
+}
+
+.total__n {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.total__label {
+  font-size: 12px;
+  color: var(--tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.section-label {
+  font-size: 12px;
+  color: var(--tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 var(--s3);
+}
+
+/* ---------------------------------------------------------------------- */
+/* The three                                                               */
+/* ---------------------------------------------------------------------- */
+
+.attention {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--s4);
+  margin-bottom: var(--s6);
+}
+
+.card {
+  background: var(--raised);
+  border: 1px solid var(--border-strong);
+  border-left: 3px solid var(--attention);
+  border-radius: var(--radius);
+  padding: var(--s4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+/* Red is reserved for a call with a live critical compliance violation.
+   docs/12 §2: colour is earned. If every card at the top of the screen were
+   red, the one that is actually a legal exposure would look like the others. */
+.card[data-critical="yes"] {
+  border-left-color: var(--critical);
+  background: linear-gradient(var(--critical-bg), var(--raised) 60%);
+}
+
+/* An acknowledged call the supervisor is already on. Drained of colour,
+   because it is no longer asking for anything. */
+.card[data-acknowledged="yes"] {
+  border-left-color: var(--border-strong);
+  opacity: 0.72;
+}
+
+.card__top {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+}
+
+.card__agent {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.card__dur {
+  margin-left: auto;
+  color: var(--secondary);
+  font-size: 13px;
+}
+
+.card__meta {
+  color: var(--tertiary);
+  font-size: 12px;
+  margin: -8px 0 0;
+}
+
+/**
+ * The reasons, in words, one per line.
+ *
+ * `signals/triage.py` keeps every `Factor` rather than collapsing them into
+ * a score, and this is why: *a ranking a supervisor cannot interrogate is a
+ * ranking they will overrule from instinct within a week.* "Sentiment at
+ * −0.52, one critical compliance alert" is a reason to click. "Risk 1.36" is
+ * a number they learn to ignore.
+ */
+.factors {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+}
+
+.factor {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+  font-size: 13px;
+  color: var(--secondary);
+}
+
+.factor__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--secondary);
+  flex: none;
+  transform: translateY(-2px);
+}
+
+.factor[data-name="compliance"] {
+  color: var(--critical);
+  font-weight: 600;
+}
+
+.factor[data-name="compliance"] .factor__dot {
+  background: var(--critical);
+}
+
+.factor[data-name="sentiment"] .factor__dot,
+.factor[data-name="stress"] .factor__dot {
+  background: var(--attention);
+}
+
+.card__note {
+  font-size: 13px;
+  color: var(--secondary);
+  border-top: 1px solid var(--border);
+  padding-top: var(--s3);
+  margin: 0;
+}
+
+.card__actions {
+  display: flex;
+  gap: var(--s2);
+}
+
+.card__actions button {
+  flex: 1;
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--primary);
+  border-radius: var(--radius-sm);
+  padding: var(--s2);
+  font: inherit;
+  cursor: pointer;
+}
+
+.card__actions button:hover {
+  border-color: var(--info);
+}
+
+.card__actions button[data-primary] {
+  border-color: var(--info);
+  color: var(--info);
+}
+
+/**
+ * The quiet floor. `docs/12` §8: never just "no data".
+ *
+ * `triage()` excludes calls with no risk factors rather than ranking them
+ * last, so an empty list here is the correct and common output — it means
+ * the floor is fine. A dashboard that always finds three things to worry
+ * about trains the supervisor to discount all three.
+ */
+.allclear {
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+  padding: var(--s5);
+  text-align: center;
+  color: var(--secondary);
+  margin-bottom: var(--s6);
+}
+
+.allclear strong {
+  display: block;
+  color: var(--positive);
+  font-size: 16px;
+  margin-bottom: var(--s2);
+}
+
+/* ---------------------------------------------------------------------- */
+/* The rest of the floor — compact, monochrome, deliberately boring        */
+/* ---------------------------------------------------------------------- */
+
+.floor {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.floor th {
+  text-align: left;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--tertiary);
+  font-weight: 500;
+  padding: 0 var(--s3) var(--s2);
+  border-bottom: 1px solid var(--border);
+}
+
+.floor td {
+  padding: var(--s2) var(--s3);
+  border-bottom: 1px solid var(--border);
+  color: var(--secondary);
+}
+
+.floor tr:hover td {
+  background: var(--raised);
+}
+
+.floor .agent {
+  color: var(--primary);
+}
+
+.floor .score {
+  text-align: right;
+  width: 64px;
+}
+
+/* A zero score is the good outcome, and it should read as calm rather than
+   as a missing value. */
+.floor .score[data-zero="yes"] {
+  color: var(--tertiary);
+}
+
+.floor .why {
+  color: var(--tertiary);
+}
+
+.floor .dur {
+  text-align: right;
+  width: 72px;
+}
+
+/**
+ * The explanation for the row a supervisor will ask about.
+ *
+ * The longest call on the floor is usually going well, and it is the one
+ * whose absence from the top three looks like a bug. Saying so on the row
+ * is cheaper than the conversation.
+ */
+.floor tr[data-longest] .why {
+  color: var(--positive);
+}
+
+@media (max-width: 720px) {
+  .floor thead {
+    display: none;
+  }
+  .floor tr {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    padding: var(--s2) 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .floor td {
+    border: 0;
+    padding: 1px var(--s2);
+  }
+  .floor .why {
+    grid-column: 1 / -1;
+  }
+  .totals {
+    margin-left: 0;
+    width: 100%;
+  }
+}

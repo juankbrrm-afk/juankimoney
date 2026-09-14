@@ -84,9 +84,11 @@ def risk(call: ActiveCall) -> tuple[float, tuple[Factor, ...]]:
     factors: list[Factor] = []
 
     if call.critical_violations:
+        n = call.critical_violations
         factors.append(Factor(
             "compliance", 1.0,
-            f"{call.critical_violations} alerta(s) crítica(s) de compliance",
+            f"{n} alerta crítica de compliance" if n == 1
+            else f"{n} alertas críticas de compliance",
         ))
 
     if call.signals.has(Signal.SENTIMENT):
@@ -110,8 +112,12 @@ def risk(call: ActiveCall) -> tuple[float, tuple[Factor, ...]]:
         ))
 
     if call.warning_violations:
-        factors.append(Factor("warnings", 0.15 * call.warning_violations,
-                              f"{call.warning_violations} advertencia(s)"))
+        n = call.warning_violations
+        # Written out rather than "advertencia(s)". This string is rendered
+        # on the supervisor's screen, and a parenthesised plural is the
+        # visible edge of a product that was translated by a developer.
+        factors.append(Factor("warnings", 0.15 * n,
+                              f"{n} advertencia" if n == 1 else f"{n} advertencias"))
 
     score = sum(f.weight for f in factors)
 
