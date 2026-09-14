@@ -338,6 +338,128 @@
   "rate": 1.0,
   "summary": "1/1 sugerencias usadas"
  },
+ "analysis": {
+  "summary": "Michael Reed paga unos $240/mes a la eléctrica. Se le presentó el sistema a 28.000 instalado y reaccionó al precio; se reencuadró a 24 meses sin interés, ~$198/mes. El agente prometió una devolución total que la empresa no ofrece y se retractó en la siguiente frase. Pidió la propuesta por escrito esta semana.",
+  "summary_quotes": [
+   "That's a lot more than I wanted to spend",
+   "Send me something in writing and I'll look at it this week"
+  ],
+  "items": [
+   {
+    "kind": "key_point",
+    "text": "Factura actual ~$240/mes",
+    "quote": "Somewhere around two-forty a month, I think",
+    "at": 21.0,
+    "speaker": "customer"
+   },
+   {
+    "kind": "objection",
+    "text": "Precio: 28.000 está por encima de lo que esperaba",
+    "quote": "That's a lot more than I wanted to spend",
+    "at": 43.0,
+    "speaker": "customer"
+   },
+   {
+    "kind": "key_point",
+    "text": "Dirección de servicio confirmada (Palmetto Drive)",
+    "quote": "Can you confirm the service address ends in Palmetto Drive",
+    "at": 26.0,
+    "speaker": "agent"
+   },
+   {
+    "kind": "commitment",
+    "text": "Enviar la propuesta por escrito dentro de la hora",
+    "quote": "I'll send you the written proposal within the hour",
+    "at": 87.0,
+    "speaker": "agent"
+   },
+   {
+    "kind": "next_step",
+    "text": "El cliente la revisa esta semana",
+    "quote": "Send me something in writing and I'll look at it this week",
+    "at": 82.0,
+    "speaker": "customer"
+   }
+  ],
+  "metrics": {
+   "agent_ms": 65500,
+   "customer_ms": 26500,
+   "longest_agent_monologue_ms": 15000,
+   "silence_ms": 0,
+   "interruptions": 0,
+   "talk_ratio": 0.712
+  },
+  "disposition": {
+   "value": "interested",
+   "quote": "Send me something in writing and I'll look at it this week",
+   "at": 82.0,
+   "confirmed": false
+  },
+  "compliance_rule_ids": [
+   "noguar"
+  ],
+  "rejected": 1
+ },
+ "crm_writes": [
+  {
+   "entity": "note",
+   "operation": "create",
+   "payload": {
+    "body": "Michael Reed paga unos $240/mes a la eléctrica. Se le presentó el sistema a 28.000 instalado y reaccionó al precio; se reencuadró a 24 meses sin interés, ~$198/mes. El agente prometió una devolución total que la empresa no ofrece y se retractó en la siguiente frase. Pidió la propuesta por escrito esta semana.",
+    "source": "ai_post_call",
+    "call_id": "c-1",
+    "anchors": [
+     {
+      "at_ms": 21000,
+      "kind": "key_point",
+      "quote": "Somewhere around two-forty a month, I think"
+     },
+     {
+      "at_ms": 43000,
+      "kind": "objection",
+      "quote": "That's a lot more than I wanted to spend"
+     },
+     {
+      "at_ms": 26000,
+      "kind": "key_point",
+      "quote": "Can you confirm the service address ends in Palmetto Drive"
+     },
+     {
+      "at_ms": 87000,
+      "kind": "commitment",
+      "quote": "I'll send you the written proposal within the hour"
+     },
+     {
+      "at_ms": 82000,
+      "kind": "next_step",
+      "quote": "Send me something in writing and I'll look at it this week"
+     }
+    ]
+   }
+  },
+  {
+   "entity": "task",
+   "operation": "create",
+   "payload": {
+    "title": "El cliente la revisa esta semana",
+    "source": "ai_post_call",
+    "call_id": "c-1",
+    "at_ms": 82000,
+    "evidence": "Send me something in writing and I'll look at it this week"
+   }
+  },
+  {
+   "entity": "task",
+   "operation": "create",
+   "payload": {
+    "title": "Enviar la propuesta por escrito dentro de la hora",
+    "source": "ai_post_call",
+    "call_id": "c-1",
+    "at_ms": 87000,
+    "evidence": "I'll send you the written proposal within the hour"
+   }
+  }
+ ],
  "floor": [
   {
    "call_id": "c-1",

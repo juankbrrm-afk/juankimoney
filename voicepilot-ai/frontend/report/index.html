@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Reporte post-llamada · VoicePilot AI</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230e1011'/%3E%3Crect x='9' y='7' width='14' height='18' rx='2' fill='none' stroke='%23a78bfa' stroke-width='2'/%3E%3Cpath d='M12.5 13h7M12.5 17h7M12.5 21h4' stroke='%23a78bfa' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="../console/tokens.css" />
+    <link rel="stylesheet" href="report.css" />
+  </head>
+  <body>
+    <!--
+      The third screen reading the same fixture. The console showed this call
+      live, the player shows it back, and this is what the call left behind.
+
+      Everything here came out of `postcall/`: the summary and its anchoring
+      quotes, the extracted items with their verbatim evidence, the
+      deterministic talk metrics, the disposition proposal, and the count of
+      extractions the pipeline threw away because their quote was not in the
+      transcript.
+    -->
+    <div class="wrap">
+      <header class="head">
+        <h1 id="title">Reporte</h1>
+        <span class="head__meta" id="meta"></span>
+        <a id="to-player" href="../player/index.html">Abrir la grabación →</a>
+      </header>
+
+      <section class="section">
+        <h2 class="section__label">Resumen · generado por IA</h2>
+        <div class="summary">
+          <p id="summary"></p>
+          <!--
+            postcall/extract.py raises rather than writing a summary whose
+            quotes cannot be found in the transcript. These are that
+            guarantee, made visible and clickable.
+          -->
+          <div class="anchors" id="anchors"></div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2 class="section__label">Qué se dijo</h2>
+        <div class="items" id="items"></div>
+        <p class="rejected" id="rejected">
+          <span aria-hidden="true">⌫</span>
+          <span id="rejected-text"></span>
+        </p>
+      </section>
+
+      <section class="section">
+        <h2 class="section__label">Disposición · propuesta</h2>
+        <!--
+          The AI proposes, the human disposes. This sits unapplied until
+          somebody clicks — an auto-applied disposition is how a pipeline
+          fills with outcomes nobody chose, and how a forecast built on those
+          outcomes becomes fiction.
+        -->
+        <div class="disposition" id="disposition" data-confirmed="no">
+          <div class="disposition__row">
+            <span class="disposition__value" id="disp-value"></span>
+            <span class="disposition__state" id="disp-state">Sin confirmar</span>
+            <div class="disposition__actions" id="disp-actions">
+              <button id="disp-confirm" type="button" data-primary>Confirmar</button>
+              <button id="disp-reject" type="button">Otra</button>
+            </div>
+          </div>
+          <button class="anchor" id="disp-anchor" type="button">
+            <span class="anchor__t" id="disp-t"></span>
+            <span class="anchor__quote" id="disp-quote"></span>
+          </button>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2 class="section__label">Métricas de conversación · sin modelo</h2>
+        <div class="metrics" id="metrics"></div>
+      </section>
+
+      <section class="section">
+        <h2 class="section__label">
+          Se escribirá en el CRM <span id="writes-count"></span>
+        </h2>
+        <div class="writes" id="writes"></div>
+      </section>
+    </div>
+
+    <script type="module" src="report.js"></script>
+  </body>
+</html>

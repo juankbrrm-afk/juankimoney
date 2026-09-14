@@ -33,10 +33,18 @@ from compliance import (  # noqa: E402
 from copilot import CallContext, Declined, Index, Mode, Scope  # noqa: E402
 from copilot.pipeline import Copilot  # noqa: E402
 from copilot.text import sentences  # noqa: E402
-from copilot.types import Draft  # noqa: E402
+# Two different `Draft`s live in this codebase and both are needed here:
+# the copilot's (a suggestion plus its chunk ids) and the post-call one
+# (a summary plus its extractions). Aliased rather than imported bare,
+# because the collision is silent — the later import simply wins, and the
+# failure surfaces as a constructor complaining about a field the caller
+# has never heard of.
+from copilot.types import Draft as SuggestionDraft  # noqa: E402
 from eval.corpus import CORPUS  # noqa: E402
 from eval.embedder import ConceptEmbedder  # noqa: E402
+from postcall import Kind, analyse, crm_writes  # noqa: E402
 from postcall.adoption import report as postcall_report  # noqa: E402
+from postcall.extract import Draft as SummaryDraft, Extraction  # noqa: E402
 from script import Script, Step, current_stage, evaluate  # noqa: E402
 from signals import ActiveCall, LiveSignals, Signal, triage  # noqa: E402
 
@@ -122,7 +130,7 @@ class QuotingGenerator:
     #: say. Quoting it verbatim puts "Primary response:" in the agent's mouth.
     _LABELS = ("primary response:", "if they insist:", "response:", "say:")
 
-    def generate(self, *, question, chunks, language, context) -> Draft:
+    def generate(self, *, question, chunks, language, context) -> SuggestionDraft:
         text = chunks[0].text.strip()
 
         lowered = text.lower()
@@ -144,7 +152,67 @@ class QuotingGenerator:
             if len(" ".join(kept + [sentence]).split()) > 40 and kept:
                 break
             kept.append(sentence)
-        return Draft(" ".join(kept), (chunks[0].id,))
+        return SuggestionDraft(" ".join(kept), (chunks[0].id,))
+
+
+class QuotingSummariser:
+    """The post-call model, stood in for by something that cannot invent.
+
+    Every `text` here is a reading and every `quote` is verbatim from
+    `TRANSCRIPT` — except one, deliberately.
+
+    `postcall/extract.py` drops any extraction whose quote cannot be located
+    in the transcript, and counts the drops, because *a rising count is the
+    earliest signal that the summarising model has drifted*. A fixture where
+    nothing is ever rejected shows a screen that has never exercised its own
+    guarantee, and the number that matters most on it would be a hard-coded
+    zero.
+
+    So `_INVENTED` is a plausible, useful, entirely fabricated commitment —
+    the kind a real model produces when it pattern-matches a sales call
+    instead of reading one. It gets thrown away, and the report says so.
+    """
+
+    _INVENTED = "I'll waive the installation fee for you"
+
+    def summarise(self, *, segments, compliance_rule_ids) -> SummaryDraft:
+        return SummaryDraft(
+            summary=(
+                "Michael Reed paga unos $240/mes a la eléctrica. Se le "
+                "presentó el sistema a 28.000 instalado y reaccionó al "
+                "precio; se reencuadró a 24 meses sin interés, ~$198/mes. "
+                "El agente prometió una devolución total que la empresa no "
+                "ofrece y se retractó en la siguiente frase. Pidió la "
+                "propuesta por escrito esta semana."
+            ),
+            summary_quotes=(
+                "That's a lot more than I wanted to spend",
+                "Send me something in writing and I'll look at it this week",
+            ),
+            extractions=(
+                Extraction(Kind.KEY_POINT,
+                           "Factura actual ~$240/mes",
+                           "Somewhere around two-forty a month, I think"),
+                Extraction(Kind.OBJECTION,
+                           "Precio: 28.000 está por encima de lo que esperaba",
+                           "That's a lot more than I wanted to spend"),
+                Extraction(Kind.KEY_POINT,
+                           "Dirección de servicio confirmada (Palmetto Drive)",
+                           "Can you confirm the service address ends in Palmetto Drive"),
+                Extraction(Kind.COMMITMENT,
+                           "Enviar la propuesta por escrito dentro de la hora",
+                           "I'll send you the written proposal within the hour"),
+                Extraction(Kind.NEXT_STEP,
+                           "El cliente la revisa esta semana",
+                           "Send me something in writing and I'll look at it this week"),
+                # Never said. Dropped by the pipeline, counted on the report.
+                Extraction(Kind.COMMITMENT,
+                           "Exonerar el costo de instalación",
+                           self._INVENTED),
+            ),
+            disposition="interested",
+            disposition_quote="Send me something in writing and I'll look at it this week",
+        )
 
 
 def main() -> None:
@@ -250,6 +318,18 @@ def main() -> None:
         "share": round(u.share, 3), "terms": list(u.terms),
     } for u in adoption.uses]
 
+    # The post-call record, from the real pipeline. Nothing here is
+    # recomputed: the compliance rule ids come from the live engine, because
+    # a report that quietly disagrees with what the agent was told during the
+    # call destroys trust in both faster than either being wrong alone.
+    analysis = analyse(
+        call_id="c-1", tenant_id="solaris", segments=segments,
+        summariser=QuotingSummariser(),
+        compliance_rule_ids=[v.rule_id for v in monitor.report()],
+        hangup_ms=HANGUP_MS,
+    )
+    m = analysis.metrics
+
     # The script rail, with the verdict the report will carry. The console
     # renders the steps in script order and marks them as the call moves; the
     # outcomes are what `evaluate()` decided, not what the UI inferred from
@@ -281,6 +361,34 @@ def main() -> None:
             "rate": adoption.rate,
             "summary": adoption.summary(),
         },
+        "analysis": {
+            "summary": analysis.summary,
+            "summary_quotes": list(analysis.summary_quotes),
+            "items": [{
+                "kind": i.kind.value, "text": i.text, "quote": i.quote,
+                "at": round(i.at_ms / 1000, 1), "speaker": i.speaker,
+            } for i in analysis.items],
+            "metrics": {
+                "agent_ms": m.agent_ms, "customer_ms": m.customer_ms,
+                "longest_agent_monologue_ms": m.longest_agent_monologue_ms,
+                "silence_ms": m.silence_ms, "interruptions": m.interruptions,
+                "talk_ratio": round(m.talk_ratio, 3),
+            },
+            "disposition": None if analysis.disposition is None else {
+                "value": analysis.disposition.value,
+                "quote": analysis.disposition.quote,
+                "at": round(analysis.disposition.at_ms / 1000, 1),
+                "confirmed": analysis.disposition.confirmed_by_agent,
+            },
+            "compliance_rule_ids": list(analysis.compliance_rule_ids),
+            # Extractions the pipeline threw away because their quote was not
+            # in the transcript. Shown, never hidden: a rising count is the
+            # earliest signal the summarising model has drifted.
+            "rejected": analysis.rejected,
+        },
+        "crm_writes": [{
+            "entity": w.entity, "operation": w.operation, "payload": w.payload,
+        } for w in crm_writes(analysis)],
         "floor": [{"call_id": r.call.call_id, "score": round(r.score, 2),
                    "why": r.why} for r in floor],
         # What the copilot chose *not* to say — the headline number of the

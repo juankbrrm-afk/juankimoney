@@ -354,6 +354,13 @@ async function boot() {
     if (ev.key === "ArrowRight") seek(state.t + 5);
   });
 
+  // `#t=43` — how the post-call report hands off. Every quote on that screen
+  // is one click from the second it was said, which is what makes the report
+  // arguable: a supervisor who disagrees with a line item needs to hear it,
+  // not read our transcription of it.
+  const at = new URLSearchParams(location.hash.slice(1)).get("t");
+  if (at !== null && Number.isFinite(Number(at))) seek(Number(at));
+
   paint();
   document.body.dataset.ready = "yes";
 }

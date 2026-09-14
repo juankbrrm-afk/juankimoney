@@ -49,6 +49,7 @@ run "fixtures (regenerate)"      fixtures
 run "console (browser)"          node frontend/console/test/console.test.mjs
 run "dashboard (browser)"        node frontend/dashboard/test/dashboard.test.mjs
 run "player (browser)"           node frontend/player/test/player.test.mjs
+run "report (browser)"           node frontend/report/test/report.test.mjs
 run "extension (browser)"        ext
 
 if git diff --quiet -- frontend/console/call-events.json frontend/dashboard/floor.json; then

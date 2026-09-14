@@ -1,0 +1,486 @@
+/**
+ * The post-call report.
+ *
+ * `docs/06` §6 defines what goes in it. What this screen has to carry
+ * visually is one idea, and every rule below serves it:
+ *
+ *   **The AI proposes. The human disposes.**
+ *
+ * Everything on this page is a claim a model made about somebody's work,
+ * and each one is shown next to the words it was made from. A supervisor who
+ * cannot disagree with a line item will not trust the summary above it, and
+ * a report nobody trusts is a report nobody reads — which is how post-call
+ * analysis becomes the feature that gets cut at renewal.
+ *
+ * Hence: violet for everything generated, a verbatim quote attached to every
+ * extracted fact, the count of what the pipeline threw away printed rather
+ * than hidden, and a disposition that sits there unconfirmed until a person
+ * clicks it.
+ *
+ * Read at a desk, after the call, by somebody with time. Unlike the console
+ * this screen may use density and colour; the console's austerity is a
+ * response to the agent's situation, not a house style.
+ */
+
+* {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+body {
+  margin: 0;
+  background: var(--base);
+  color: var(--primary);
+  font: 14px/1.5 var(--ui);
+  -webkit-font-smoothing: antialiased;
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+.wrap {
+  max-width: 940px;
+  margin: 0 auto;
+  padding: var(--s5) var(--s4) var(--s6);
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s3);
+  flex-wrap: wrap;
+  padding-bottom: var(--s4);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: var(--s5);
+}
+
+.head h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.head__meta {
+  color: var(--tertiary);
+  font-size: 13px;
+}
+
+.head a {
+  margin-left: auto;
+  color: var(--info);
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.head a:hover {
+  text-decoration: underline;
+}
+
+.section {
+  margin-bottom: var(--s6);
+}
+
+.section__label {
+  font-size: 12px;
+  color: var(--tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 var(--s3);
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+}
+
+/* ---------------------------------------------------------------------- */
+/* The summary                                                             */
+/* ---------------------------------------------------------------------- */
+
+/**
+ * Violet, because violet means "an AI wrote this" everywhere in this
+ * product. The supervisor should read this paragraph with their own
+ * judgement engaged, and the colour is the instruction to do that.
+ */
+.summary {
+  border: 1px solid var(--border-strong);
+  border-left: 2px solid var(--ai);
+  background: var(--raised);
+  border-radius: var(--radius);
+  padding: var(--s4);
+}
+
+.summary p {
+  margin: 0 0 var(--s3);
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+/**
+ * The quotes the summary is anchored to.
+ *
+ * `postcall/extract.py` refuses to produce a summary whose quotes cannot be
+ * found in the transcript — it raises rather than writing it to a CRM. This
+ * is that guarantee, visible. The supervisor can click each one and land on
+ * the second it was said.
+ */
+.anchors {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  border-top: 1px solid var(--border);
+  padding-top: var(--s3);
+}
+
+.anchor {
+  display: flex;
+  gap: var(--s2);
+  align-items: baseline;
+  font-size: 13px;
+  color: var(--secondary);
+  text-decoration: none;
+  cursor: pointer;
+  background: none;
+  border: 0;
+  padding: 0;
+  font-family: inherit;
+  text-align: left;
+}
+
+.anchor:hover .anchor__quote {
+  color: var(--primary);
+}
+
+.anchor__t {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--info);
+  flex: none;
+}
+
+.anchor__quote {
+  color: var(--secondary);
+  font-style: italic;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Extracted items                                                         */
+/* ---------------------------------------------------------------------- */
+
+.items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.item {
+  display: grid;
+  grid-template-columns: 116px minmax(0, 1fr);
+  gap: var(--s3);
+  padding: var(--s3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--raised);
+  align-items: start;
+}
+
+.item__kind {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--tertiary);
+  padding-top: 2px;
+}
+
+.item[data-kind="objection"] .item__kind {
+  color: var(--attention);
+}
+
+.item[data-kind="commitment"] .item__kind,
+.item[data-kind="next_step"] .item__kind {
+  color: var(--info);
+}
+
+.item__text {
+  color: var(--primary);
+  margin: 0 0 var(--s2);
+}
+
+/**
+ * The verbatim quote, always. Never collapsed, never behind a hover.
+ *
+ * `Item.__post_init__` raises without one — "an item without a verbatim
+ * quote cannot be traced, cannot be verified, and is indistinguishable from
+ * an invention". This screen cannot receive an item lacking it, so it does
+ * not check; it just shows it.
+ */
+.item__quote {
+  font-size: 13px;
+  color: var(--secondary);
+  font-style: italic;
+  border-left: 2px solid var(--border-strong);
+  padding-left: var(--s3);
+  margin: 0;
+  display: block;
+  cursor: pointer;
+  background: none;
+  border-top: 0;
+  border-right: 0;
+  border-bottom: 0;
+  font-family: inherit;
+  text-align: left;
+  width: 100%;
+}
+
+.item__quote:hover {
+  border-left-color: var(--info);
+  color: var(--primary);
+}
+
+.item__t {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--info);
+  margin-right: var(--s2);
+}
+
+/* ---------------------------------------------------------------------- */
+/* What was thrown away                                                    */
+/* ---------------------------------------------------------------------- */
+
+/**
+ * Printed, not hidden.
+ *
+ * `postcall/extract.py` drops extractions whose quote is not in the
+ * transcript and keeps the count, because *a rising count is the earliest
+ * signal that the summarising model has drifted*. Hiding it when it is zero
+ * and surfacing it only when it is high would remove the baseline that makes
+ * the rise legible.
+ */
+.rejected {
+  display: flex;
+  gap: var(--s2);
+  align-items: baseline;
+  font-size: 12px;
+  color: var(--tertiary);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: var(--s2) var(--s3);
+  margin-top: var(--s3);
+}
+
+.rejected[data-any="yes"] {
+  border-color: var(--attention);
+  color: var(--attention);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Metrics                                                                 */
+/* ---------------------------------------------------------------------- */
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--s3);
+}
+
+.metric {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: var(--s3);
+  background: var(--raised);
+}
+
+.metric__n {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.metric__label {
+  font-size: 12px;
+  color: var(--tertiary);
+}
+
+.metric__note {
+  font-size: 12px;
+  color: var(--tertiary);
+  margin-top: var(--s1);
+}
+
+/* An agent doing most of the talking is the single most coachable thing in
+   this report, so it is the one metric allowed to colour itself. */
+.metric[data-flag="high"] .metric__n {
+  color: var(--attention);
+}
+
+/* The talk-ratio bar. Agent on the left, customer on the right. */
+.split {
+  display: flex;
+  height: 6px;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: var(--s2);
+  background: var(--raised-2);
+}
+
+.split__agent {
+  background: var(--attention);
+}
+
+.split__customer {
+  background: var(--positive);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Disposition — a proposal, never a decision                              */
+/* ---------------------------------------------------------------------- */
+
+/**
+ * The most important interaction on the page.
+ *
+ * `postcall/analysis.py`: *the AI proposes, the human disposes. An
+ * auto-applied disposition is how a pipeline fills with outcomes nobody
+ * chose, and how a forecast built on those outcomes becomes fiction.*
+ *
+ * So the proposal sits here, visibly unapplied, until somebody clicks. The
+ * styling has to make "not yet written" legible at a glance — a proposal
+ * that looks like a saved value is the same failure as auto-applying it,
+ * because nobody will click something that appears already done.
+ */
+.disposition {
+  border: 1px dashed var(--ai);
+  background: var(--ai-bg);
+  border-radius: var(--radius);
+  padding: var(--s4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+.disposition[data-confirmed="yes"] {
+  border-style: solid;
+  border-color: var(--positive);
+  background: var(--positive-bg);
+}
+
+.disposition__row {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  flex-wrap: wrap;
+}
+
+.disposition__value {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.disposition__state {
+  font-size: 12px;
+  color: var(--ai);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.disposition[data-confirmed="yes"] .disposition__state {
+  color: var(--positive);
+}
+
+.disposition__actions {
+  display: flex;
+  gap: var(--s2);
+  margin-left: auto;
+}
+
+.disposition__actions button {
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--primary);
+  border-radius: var(--radius-sm);
+  padding: var(--s2) var(--s4);
+  font: inherit;
+  cursor: pointer;
+}
+
+.disposition__actions button[data-primary] {
+  border-color: var(--positive);
+  color: var(--positive);
+}
+
+.disposition__actions button:hover {
+  background: var(--raised-2);
+}
+
+/* ---------------------------------------------------------------------- */
+/* CRM writes                                                              */
+/* ---------------------------------------------------------------------- */
+
+/**
+ * What will be written, before it is written.
+ *
+ * `shared/crm` refuses to show a button that is going to fail; this is the
+ * same instinct one layer up. A supervisor should be able to see exactly
+ * what is about to land in their CRM, because the thing that destroys trust
+ * in an integration is discovering a note you did not know was being
+ * created.
+ */
+.writes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.write {
+  display: grid;
+  grid-template-columns: 90px minmax(0, 1fr);
+  gap: var(--s3);
+  font-size: 13px;
+  padding: var(--s2) var(--s3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  align-items: baseline;
+}
+
+.write__entity {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ai);
+  text-transform: uppercase;
+}
+
+.write__body {
+  color: var(--secondary);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* The write that only exists once somebody confirms the disposition. */
+.write[data-gated="yes"] {
+  border-style: dashed;
+  border-color: var(--border-strong);
+}
+
+.write[data-gated="yes"] .write__entity {
+  color: var(--tertiary);
+}
+
+@media (max-width: 640px) {
+  .item,
+  .write {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--s2);
+  }
+  .head a {
+    margin-left: 0;
+  }
+  .disposition__actions {
+    margin-left: 0;
+    width: 100%;
+  }
+  .disposition__actions button {
+    flex: 1;
+  }
+}
