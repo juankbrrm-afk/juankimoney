@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pipeline · VoicePilot AI</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230e1011'/%3E%3Crect x='7' y='8' width='5' height='16' rx='1.5' fill='%234c8dff'/%3E%3Crect x='14' y='8' width='5' height='11' rx='1.5' fill='%23a78bfa'/%3E%3Crect x='21' y='8' width='5' height='6' rx='1.5' fill='%233ecf8e'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="../console/tokens.css" />
+    <link rel="stylesheet" href="pipeline.css" />
+  </head>
+  <body>
+    <!--
+      The board is the easy half. The panel beside it is the product.
+
+      Every number in that panel came from `shared/crm/src/pipeline.ts` —
+      including the stage conversion rates, which are measured from this
+      tenant's own closed deals rather than taken from the 10/25/50/75/90
+      defaults every CRM ships and nobody derived from anything.
+    -->
+    <div class="wrap">
+      <header class="head">
+        <h1 id="title">Pipeline</h1>
+        <span class="head__meta" id="meta"></span>
+      </header>
+
+      <div class="layout">
+        <div class="board" id="board"></div>
+
+        <aside class="panel">
+          <div>
+            <p class="panel__label">Forecast</p>
+            <div class="headline" id="headline"></div>
+          </div>
+
+          <!--
+            Shown instead of a number when `forecast()` declines. Not an error
+            state: the product refused to invent a figure, which is the same
+            answer the close model gives when it has no history behind it.
+          -->
+          <div class="refusal" id="refusal" hidden></div>
+
+          <div class="rows" id="rows"></div>
+
+          <div>
+            <p class="panel__label">Sobre qué está calculado</p>
+            <div class="basis" id="basis"></div>
+            <p class="basis__note" id="basis-note"></p>
+          </div>
+
+          <div id="excluded-block" hidden>
+            <p class="panel__label">Excluidos por estancamiento</p>
+            <div class="excluded" id="excluded"></div>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <script type="module" src="pipeline.js"></script>
+  </body>
+</html>

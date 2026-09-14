@@ -1,0 +1,503 @@
+{
+ "pipeline": {
+  "id": "p1",
+  "tenantId": "solaris",
+  "name": "Solar Q3",
+  "stages": [
+   {
+    "id": "new",
+    "name": "Nuevo",
+    "order": 10
+   },
+   {
+    "id": "qualified",
+    "name": "Calificado",
+    "order": 20
+   },
+   {
+    "id": "proposal",
+    "name": "Propuesta",
+    "order": 30
+   },
+   {
+    "id": "negotiation",
+    "name": "Negociación",
+    "order": 40
+   },
+   {
+    "id": "won",
+    "name": "Ganado",
+    "order": 50,
+    "terminal": "won"
+   },
+   {
+    "id": "lost",
+    "name": "Perdido",
+    "order": 60,
+    "terminal": "lost"
+   }
+  ]
+ },
+ "now": 1789398000000,
+ "rates": [
+  {
+   "stageId": "new",
+   "kind": "measured",
+   "rate": 0.17233009708737865,
+   "sample": 412,
+   "name": "Nuevo",
+   "typicalDwellDays": 4
+  },
+  {
+   "stageId": "qualified",
+   "kind": "measured",
+   "rate": 0.4098360655737705,
+   "sample": 244,
+   "name": "Calificado",
+   "typicalDwellDays": 9
+  },
+  {
+   "stageId": "proposal",
+   "kind": "measured",
+   "rate": 0.543046357615894,
+   "sample": 151,
+   "name": "Propuesta",
+   "typicalDwellDays": 12
+  },
+  {
+   "stageId": "negotiation",
+   "kind": "measured",
+   "rate": 0.6804123711340206,
+   "sample": 97,
+   "name": "Negociación",
+   "typicalDwellDays": 8
+  }
+ ],
+ "deals": [
+  {
+   "id": "o-1000",
+   "name": "Michael Reed",
+   "stageId": "new",
+   "amountCents": 2297800,
+   "owner": "Andrés M.",
+   "daysInStage": 4,
+   "committed": false,
+   "stalled": false
+  },
+  {
+   "id": "o-1001",
+   "name": "Denise Fowler",
+   "stageId": "qualified",
+   "amountCents": 4361300,
+   "owner": "Paola R.",
+   "daysInStage": 7,
+   "committed": false,
+   "stalled": false
+  },
+  {
+   "id": "o-1002",
+   "name": "Harold Nguyen",
+   "stageId": "proposal",
+   "amountCents": 2987600,
+   "owner": "Luis T.",
+   "daysInStage": 12,
+   "committed": false,
+   "stalled": false
+  },
+  {
+   "id": "o-1003",
+   "name": "Trent Okafor",
+   "stageId": "negotiation",
+   "amountCents": 4146000,
+   "owner": "Karina S.",
+   "daysInStage": 10,
+   "committed": false,
+   "stalled": false
+  },
+  {
+   "id": "o-1004",
+   "name": "Lena Brooks",
+   "stageId": "new",
+   "amountCents": 4392100,
+   "owner": "Marcela D.",
+   "daysInStage": 0,
+   "committed": false,
+   "stalled": false
+  },
+  {
+   "id": "o-1005",
+   "name": "Sam Whitfield",
+   "stageId": "qualified",
+   "amountCents": 1980100,
+   "owner": "Andrés M.",
+   "daysInStage": 3,
+   "committed": false,
+   "stalled": false
+  },
+  {
+   "id": "o-1006",
+   "name": "Erica Downs",
+   "stageId": "proposal",
+   "amountCents": 1577100,
+   "owner": "Paola R.",
+   "daysInStage": 18,
+   "committed": false,
+   "stalled": false
+  },
+  {
+   "id": "o-1007",
+   "name": "Ahmed Rahimi",
+   "stageId": "negotiation",
+   "amountCents": 1490800,
+   "owner": "Luis T.",
+   "daysInStage": 5,
+   "committed": false,
+   "stalled": false
+  },
+  {
+   "id": "o-1008",
+   "name": "Joyce Tan",
+   "stageId": "new",
+   "amountCents": 3421100,
+   "owner": "Karina S.",
+   "daysInStage": 0,
+   "committed": false,
+   "stalled": false
+  },
+  {
+   "id": "o-1009",
+   "name": "Marcus Hale",
+   "stageId": "qualified",
+   "amountCents": 3828700,
+   "owner": "Marcela D.",
+   "daysInStage": 12,
+   "committed": false,
+   "stalled": false
+  },
+  {
+   "id": "o-1010",
+   "name": "Priya Raman",
+   "stageId": "proposal",
+   "amountCents": 1591100,
+   "owner": "Andrés M.",
+   "daysInStage": 13,
+   "committed": false,
+   "stalled": false
+  },
+  {
+   "id": "o-1011",
+   "name": "Dale Whitmore",
+   "stageId": "negotiation",
+   "amountCents": 2887900,
+   "owner": "Paola R.",
+   "daysInStage": 7,
+   "committed": true,
+   "stalled": false
+  },
+  {
+   "id": "o-1012",
+   "name": "Carmen Ortiz",
+   "stageId": "new",
+   "amountCents": 4077000,
+   "owner": "Luis T.",
+   "daysInStage": 1,
+   "committed": false,
+   "stalled": false
+  },
+  {
+   "id": "o-1013",
+   "name": "Bill Teague",
+   "stageId": "qualified",
+   "amountCents": 3808200,
+   "owner": "Karina S.",
+   "daysInStage": 1,
+   "committed": false,
+   "stalled": false
+  },
+  {
+   "id": "o-1014",
+   "name": "Nadia Farouk",
+   "stageId": "proposal",
+   "amountCents": 1481600,
+   "owner": "Marcela D.",
+   "daysInStage": 3,
+   "committed": false,
+   "stalled": false
+  },
+  {
+   "id": "o-1015",
+   "name": "Greg Lindqvist",
+   "stageId": "negotiation",
+   "amountCents": 3616400,
+   "owner": "Andrés M.",
+   "daysInStage": 9,
+   "committed": false,
+   "stalled": false
+  },
+  {
+   "id": "o-1016",
+   "name": "Rosa Beltrán",
+   "stageId": "new",
+   "amountCents": 3852900,
+   "owner": "Paola R.",
+   "daysInStage": 5,
+   "committed": false,
+   "stalled": false
+  },
+  {
+   "id": "o-1017",
+   "name": "Tim Oyelaran",
+   "stageId": "qualified",
+   "amountCents": 3627500,
+   "owner": "Luis T.",
+   "daysInStage": 11,
+   "committed": false,
+   "stalled": false
+  },
+  {
+   "id": "o-1018",
+   "name": "Hannah Voss",
+   "stageId": "proposal",
+   "amountCents": 2417000,
+   "owner": "Karina S.",
+   "daysInStage": 1,
+   "committed": false,
+   "stalled": false
+  },
+  {
+   "id": "o-1019",
+   "name": "Ken Abara",
+   "stageId": "negotiation",
+   "amountCents": 3376600,
+   "owner": "Marcela D.",
+   "daysInStage": 2,
+   "committed": false,
+   "stalled": false
+  },
+  {
+   "id": "o-1020",
+   "name": "Ilse Márquez",
+   "stageId": "new",
+   "amountCents": 2298200,
+   "owner": "Andrés M.",
+   "daysInStage": 2,
+   "committed": false,
+   "stalled": false
+  },
+  {
+   "id": "o-1021",
+   "name": "Doug Fenwick",
+   "stageId": "qualified",
+   "amountCents": 2338700,
+   "owner": "Paola R.",
+   "daysInStage": 11,
+   "committed": false,
+   "stalled": false
+  },
+  {
+   "id": "o-1022",
+   "name": "Amara Osei",
+   "stageId": "proposal",
+   "amountCents": 3074300,
+   "owner": "Luis T.",
+   "daysInStage": 16,
+   "committed": false,
+   "stalled": false
+  },
+  {
+   "id": "o-1023",
+   "name": "Petra Lindholm",
+   "stageId": "negotiation",
+   "amountCents": 2786000,
+   "owner": "Karina S.",
+   "daysInStage": 2,
+   "committed": false,
+   "stalled": false
+  },
+  {
+   "id": "o-1024",
+   "name": "Victor Salas",
+   "stageId": "new",
+   "amountCents": 2645400,
+   "owner": "Marcela D.",
+   "daysInStage": 3,
+   "committed": false,
+   "stalled": false
+  },
+  {
+   "id": "o-1025",
+   "name": "Jon Whitaker",
+   "stageId": "qualified",
+   "amountCents": 3920800,
+   "owner": "Andrés M.",
+   "daysInStage": 4,
+   "committed": false,
+   "stalled": false
+  },
+  {
+   "id": "o-1026",
+   "name": "Ruth Kimani",
+   "stageId": "proposal",
+   "amountCents": 2459800,
+   "owner": "Paola R.",
+   "daysInStage": 11,
+   "committed": false,
+   "stalled": false
+  },
+  {
+   "id": "o-1027",
+   "name": "Élodie Reyes",
+   "stageId": "negotiation",
+   "amountCents": 3160600,
+   "owner": "Luis T.",
+   "daysInStage": 9,
+   "committed": false,
+   "stalled": false
+  },
+  {
+   "id": "o-1028",
+   "name": "Stan Mikkelsen",
+   "stageId": "new",
+   "amountCents": 3121200,
+   "owner": "Karina S.",
+   "daysInStage": 2,
+   "committed": false,
+   "stalled": false
+  },
+  {
+   "id": "o-1029",
+   "name": "Bea Lindgren",
+   "stageId": "qualified",
+   "amountCents": 1658700,
+   "owner": "Marcela D.",
+   "daysInStage": 3,
+   "committed": false,
+   "stalled": false
+  },
+  {
+   "id": "o-1030",
+   "name": "Omar Haddad",
+   "stageId": "proposal",
+   "amountCents": 2975200,
+   "owner": "Andrés M.",
+   "daysInStage": 91,
+   "committed": false,
+   "stalled": true
+  },
+  {
+   "id": "o-1031",
+   "name": "Fay Corrigan",
+   "stageId": "negotiation",
+   "amountCents": 2285000,
+   "owner": "Paola R.",
+   "daysInStage": 54,
+   "committed": false,
+   "stalled": true
+  },
+  {
+   "id": "o-1032",
+   "name": "Leo Vanterpool",
+   "stageId": "new",
+   "amountCents": 1638900,
+   "owner": "Luis T.",
+   "daysInStage": 27,
+   "committed": false,
+   "stalled": true
+  },
+  {
+   "id": "o-1033",
+   "name": "Marta Quispe",
+   "stageId": "qualified",
+   "amountCents": 2007100,
+   "owner": "Karina S.",
+   "daysInStage": 78,
+   "committed": false,
+   "stalled": true
+  }
+ ],
+ "stalled": [
+  {
+   "id": "o-1033",
+   "name": "Marta Quispe",
+   "stage": "Calificado",
+   "days": 78,
+   "typicalDays": 9,
+   "multiple": 8.7,
+   "amountCents": 2007100
+  },
+  {
+   "id": "o-1030",
+   "name": "Omar Haddad",
+   "stage": "Propuesta",
+   "days": 91,
+   "typicalDays": 12,
+   "multiple": 7.6,
+   "amountCents": 2975200
+  },
+  {
+   "id": "o-1031",
+   "name": "Fay Corrigan",
+   "stage": "Negociación",
+   "days": 54,
+   "typicalDays": 8,
+   "multiple": 6.8,
+   "amountCents": 2285000
+  },
+  {
+   "id": "o-1032",
+   "name": "Leo Vanterpool",
+   "stage": "Nuevo",
+   "days": 27,
+   "typicalDays": 4,
+   "multiple": 6.8,
+   "amountCents": 1638900
+  }
+ ],
+ "forecast": {
+  "kind": "weighted",
+  "deals": 34,
+  "weightedCents": 38029304,
+  "commit": {
+   "amountCents": 2887900,
+   "count": 1
+  },
+  "openAmountCents": 97588700,
+  "excludedStalled": 4,
+  "excludedCents": 8906200,
+  "explanation": "Ponderado sobre 34 negocios abiertos, excluyendo 4 estancados."
+ },
+ "refusals": {
+  "newTenant": {
+   "kind": "uncalibrated",
+   "missing": [
+    {
+     "stageId": "negotiation",
+     "kind": "insufficient",
+     "sample": 4,
+     "needed": 20
+    }
+   ],
+   "commit": {
+    "amountCents": 2887900,
+    "count": 1
+   },
+   "explanation": "Sin forecast: hace falta historial cerrado para derivar las tasas por etapa. La etapa \"negotiation\" tiene 4 de 20 negocios cerrados. Un porcentaje por defecto sería inventado."
+  },
+  "smallPipeline": {
+   "kind": "unreliable",
+   "deals": 9,
+   "needed": 30,
+   "commit": {
+    "amountCents": 0,
+    "count": 0
+   },
+   "openAmountCents": 26653900,
+   "explanation": "Sin forecast ponderado: 9 de 30 negocios abiertos. Una suma ponderada sobre tan pocos no es un resultado posible — un negocio grande la mueve más que todo el resto del pipeline."
+  }
+ },
+ "thresholds": {
+  "minDealsForWeighting": 30,
+  "minHistoryPerStage": 20
+ },
+ "generated_by": "frontend/pipeline/generate_fixture.mjs — real forecast engine"
+}

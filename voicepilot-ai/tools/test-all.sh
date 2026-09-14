@@ -39,7 +39,8 @@ ext() (cd browser-extension && node build.mjs >/dev/null && node test/extension.
 fixtures() {
   (cd frontend/console && python3 generate_fixture.py > call-events.json) &&
   (cd frontend/dashboard && python3 generate_fixture.py > floor.json) &&
-  (cd frontend/import && node --experimental-strip-types generate_fixture.mjs > plan.json)
+  (cd frontend/import && node --experimental-strip-types generate_fixture.mjs > plan.json) &&
+  (cd frontend/pipeline && node --experimental-strip-types generate_fixture.mjs > board.json)
 }
 
 run "copilot-core (python)"      py
@@ -52,9 +53,11 @@ run "dashboard (browser)"        node frontend/dashboard/test/dashboard.test.mjs
 run "player (browser)"           node frontend/player/test/player.test.mjs
 run "report (browser)"           node frontend/report/test/report.test.mjs
 run "import (browser)"           node frontend/import/test/import.test.mjs
+run "pipeline (browser)"         node frontend/pipeline/test/pipeline.test.mjs
 run "extension (browser)"        ext
 
-FIXTURES='frontend/console/call-events.json frontend/dashboard/floor.json frontend/import/plan.json'
+FIXTURES='frontend/console/call-events.json frontend/dashboard/floor.json
+          frontend/import/plan.json frontend/pipeline/board.json'
 if git diff --quiet -- $FIXTURES; then
   printf '\n\033[1m── fixtures match the engines\033[0m\n'
 else

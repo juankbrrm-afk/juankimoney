@@ -1,0 +1,391 @@
+/**
+ * The pipeline board and its forecast.
+ *
+ * `docs/07` §7 scopes the module as kanban with configurable stages. The
+ * kanban is the easy half. The panel beside it is the product, and the design
+ * problem is that the interesting thing it has to communicate is a *basis* —
+ * where a number came from and what was left out of it — which no CRM has
+ * ever found room for next to a big green total.
+ *
+ * So the forecast panel is as tall as the board and reads top to bottom as an
+ * argument: the number, what it was built on, and what it refused to count.
+ * The stage rates are shown with their sample sizes because that is the
+ * sentence that matters — "41% of your qualified deals closed, across 244 of
+ * them" is checkable, and "50%" is not.
+ *
+ * Read at a desk by a sales director who is deciding whether to trust this
+ * instead of their spreadsheet. Density medium, per `docs/12` §4.
+ */
+
+* {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+body {
+  margin: 0;
+  background: var(--base);
+  color: var(--primary);
+  font: 14px/1.5 var(--ui);
+  -webkit-font-smoothing: antialiased;
+}
+
+.num,
+.money {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+.wrap {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: var(--s5) var(--s4) var(--s6);
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s3);
+  flex-wrap: wrap;
+  padding-bottom: var(--s4);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: var(--s4);
+}
+
+.head h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.head__meta {
+  color: var(--tertiary);
+  font-size: 13px;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Layout                                                                  */
+/* ---------------------------------------------------------------------- */
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: var(--s5);
+  align-items: start;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Board                                                                   */
+/* ---------------------------------------------------------------------- */
+
+.board {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(200px, 1fr);
+  gap: var(--s3);
+  overflow-x: auto;
+  padding-bottom: var(--s3);
+}
+
+.column {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.column__head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+  padding-bottom: var(--s2);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: var(--s1);
+}
+
+.column__name {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.column__n {
+  color: var(--tertiary);
+  font-size: 12px;
+}
+
+.column__sum {
+  margin-left: auto;
+  color: var(--secondary);
+  font-size: 12px;
+}
+
+/**
+ * The measured conversion rate, on the column header.
+ *
+ * This is the number every other CRM invents, so it is shown where the stage
+ * is, with its sample size in the tooltip. A director comparing this board to
+ * their old one should be able to see immediately that 41% is not 50%.
+ */
+.column__rate {
+  font-size: 11px;
+  color: var(--ai);
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  padding: 0 var(--s2);
+}
+
+.deal {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--raised);
+  padding: var(--s3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  cursor: default;
+}
+
+.deal__name {
+  font-size: 13px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.deal__amount {
+  font-size: 15px;
+  color: var(--primary);
+}
+
+.deal__meta {
+  display: flex;
+  gap: var(--s2);
+  font-size: 11px;
+  color: var(--tertiary);
+  align-items: baseline;
+}
+
+.deal__days {
+  margin-left: auto;
+}
+
+/**
+ * A deal that has been in its stage far longer than that stage takes.
+ *
+ * Marked on the card as well as counted in the panel, because the panel says
+ * "4 excluded" and the director's next question is which four. Amber rather
+ * than red: nothing is broken, the deal is just almost certainly dead and
+ * nobody has said so.
+ */
+.deal[data-stalled="yes"] {
+  border-color: var(--attention);
+  background: var(--attention-bg);
+}
+
+.deal[data-stalled="yes"] .deal__days {
+  color: var(--attention);
+  font-weight: 600;
+}
+
+/** Somebody put their name on this one. */
+.deal[data-committed="yes"] {
+  border-left: 2px solid var(--positive);
+}
+
+.deal__badge {
+  color: var(--positive);
+  font-size: 11px;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Forecast panel                                                          */
+/* ---------------------------------------------------------------------- */
+
+.panel {
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--raised);
+  padding: var(--s4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+  position: sticky;
+  top: var(--s4);
+}
+
+.panel__label {
+  font-size: 12px;
+  color: var(--tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0;
+}
+
+.headline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+}
+
+.headline__n {
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.headline__sub {
+  font-size: 13px;
+  color: var(--secondary);
+}
+
+/**
+ * The refusal, when there is one.
+ *
+ * Not an error state and it must not look like one. `forecast()` returning
+ * `uncalibrated` means the product declined to invent a number — the same
+ * answer `signals/live.py` gives for an uncalibrated close model, where
+ * *showing "calibrating" beats showing an invented 73%*.
+ *
+ * Styled like the copilot's quiet state for the same reason: silence is a
+ * designed outcome here, and a red box would teach the customer it is a bug
+ * to be fixed rather than a fact about their data.
+ */
+.refusal {
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: var(--s3);
+  color: var(--secondary);
+  font-size: 13px;
+}
+
+.refusal strong {
+  display: block;
+  color: var(--primary);
+  margin-bottom: var(--s1);
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+  font-size: 13px;
+  padding-bottom: var(--s2);
+  border-bottom: 1px solid var(--border);
+  /* The note carries `flex-basis: 100%` to claim its own line. Without
+     wrapping enabled that does nothing and it squeezes in beside the amount
+     as a third column, which is where this panel's explanations went to die. */
+  flex-wrap: wrap;
+}
+
+.row:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.row__k {
+  color: var(--secondary);
+}
+
+.row__v {
+  margin-left: auto;
+  color: var(--primary);
+}
+
+.row__note {
+  flex-basis: 100%;
+  color: var(--tertiary);
+  font-size: 12px;
+}
+
+.row[data-tone="commit"] .row__v {
+  color: var(--positive);
+}
+
+.row[data-tone="excluded"] .row__v {
+  color: var(--attention);
+}
+
+/**
+ * The basis. The part no CRM makes room for.
+ *
+ * "41% of your qualified deals closed, across 244 of them" is a sentence
+ * somebody can check. "50%" is not, and the difference between those two is
+ * why every sales director rebuilds the forecast in a spreadsheet.
+ */
+.basis {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  font-size: 12px;
+}
+
+.basis__row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+  color: var(--secondary);
+}
+
+.basis__rate {
+  color: var(--ai);
+  min-width: 42px;
+  text-align: right;
+}
+
+.basis__n {
+  margin-left: auto;
+  color: var(--tertiary);
+}
+
+.basis__note {
+  color: var(--tertiary);
+  margin: var(--s1) 0 0;
+  line-height: 1.45;
+}
+
+/* The excluded list. Named, because "4 excluded" invites "which four?". */
+.excluded {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  font-size: 12px;
+  color: var(--secondary);
+}
+
+.excluded__row {
+  display: flex;
+  gap: var(--s2);
+  align-items: baseline;
+}
+
+.excluded__mult {
+  color: var(--attention);
+  margin-left: auto;
+}
+
+@media (max-width: 1080px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .panel {
+    position: static;
+  }
+}
+
+@media (max-width: 620px) {
+  .board {
+    grid-auto-flow: row;
+    grid-auto-columns: auto;
+    overflow-x: visible;
+  }
+}
