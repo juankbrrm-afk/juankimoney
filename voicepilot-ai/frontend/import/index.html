@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Importar contactos · VoicePilot AI</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230e1011'/%3E%3Cpath d='M16 7v12M11 15l5 5 5-5' stroke='%233ecf8e' stroke-width='2.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M8 24h16' stroke='%233ecf8e' stroke-width='2.2' stroke-linecap='round'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="../console/tokens.css" />
+    <link rel="stylesheet" href="import.css" />
+  </head>
+  <body>
+    <!--
+      The dry run, before anything is written.
+
+      Every decision here was made by `shared/crm/src/dedupe.ts` running over
+      a real file. That matters more on this page than on any other, because
+      what it displays is a set of *refusals* — "these two rows are not the
+      same person" — and a hand-written fixture would show refusals that no
+      code actually makes.
+    -->
+    <div class="wrap">
+      <header class="head">
+        <h1>Importar contactos</h1>
+        <span class="head__file" id="file"></span>
+        <div class="tally">
+          <div class="tally__item" data-kind="review">
+            <span class="tally__n num" id="t-review">—</span>
+            <span class="tally__label">a revisar</span>
+          </div>
+          <div class="tally__item">
+            <span class="tally__n num" id="t-merge">—</span>
+            <span class="tally__label">fusionar</span>
+          </div>
+          <div class="tally__item">
+            <span class="tally__n num" id="t-create">—</span>
+            <span class="tally__label">nuevos</span>
+          </div>
+        </div>
+      </header>
+
+      <!--
+        The only outcome on this page with a statute behind it. A file
+        claiming a suppressed number is fine to call is not a rare input; it
+        is what a list broker's export looks like.
+      -->
+      <div class="suppression" id="suppression" hidden>
+        <span class="suppression__mark" aria-hidden="true">⛨</span>
+        <div>
+          <strong id="supp-headline"></strong>
+          <p class="suppression__detail" id="supp-detail"></p>
+        </div>
+      </div>
+
+      <section class="section" id="review-section">
+        <h2 class="section__label">Necesitan una persona</h2>
+        <p class="section__hint">
+          Un duplicado que se escapa es visible y barato: alguien lo nota y lo
+          arregla. Una fusión equivocada es invisible y permanente — dos
+          personas pasan a ser un registro y no queda rastro de que alguna vez
+          fueran dos. Por eso solo se fusiona solo por teléfono o email.
+        </p>
+        <div id="reviews"></div>
+      </section>
+
+      <section class="section" id="merge-section">
+        <h2 class="section__label">Se fusionan automáticamente</h2>
+        <p class="section__hint">
+          Coinciden por un identificador. Lo que ya estaba gana sobre lo que
+          trae el archivo — un CSV casi siempre es más viejo que el CRM al que
+          entra — y lo que se descarta se lista.
+        </p>
+        <div id="merges"></div>
+      </section>
+
+      <section class="section" id="create-section">
+        <h2 class="section__label">Se crean</h2>
+        <div class="creates" id="creates"></div>
+      </section>
+
+      <div class="apply">
+        <span class="apply__state" id="apply-state"></span>
+        <button id="apply" type="button" disabled>Aplicar importación</button>
+      </div>
+    </div>
+
+    <script type="module" src="import.js"></script>
+  </body>
+</html>

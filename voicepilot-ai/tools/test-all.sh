@@ -38,7 +38,8 @@ ext() (cd browser-extension && node build.mjs >/dev/null && node test/extension.
 # diff is the finding.
 fixtures() {
   (cd frontend/console && python3 generate_fixture.py > call-events.json) &&
-  (cd frontend/dashboard && python3 generate_fixture.py > floor.json)
+  (cd frontend/dashboard && python3 generate_fixture.py > floor.json) &&
+  (cd frontend/import && node --experimental-strip-types generate_fixture.mjs > plan.json)
 }
 
 run "copilot-core (python)"      py
@@ -50,15 +51,17 @@ run "console (browser)"          node frontend/console/test/console.test.mjs
 run "dashboard (browser)"        node frontend/dashboard/test/dashboard.test.mjs
 run "player (browser)"           node frontend/player/test/player.test.mjs
 run "report (browser)"           node frontend/report/test/report.test.mjs
+run "import (browser)"           node frontend/import/test/import.test.mjs
 run "extension (browser)"        ext
 
-if git diff --quiet -- frontend/console/call-events.json frontend/dashboard/floor.json; then
+FIXTURES='frontend/console/call-events.json frontend/dashboard/floor.json frontend/import/plan.json'
+if git diff --quiet -- $FIXTURES; then
   printf '\n\033[1m── fixtures match the engines\033[0m\n'
 else
   printf '\n\033[33mFixtures changed when regenerated — an engine now produces\n'
   printf 'different output than the committed fixture. Review the diff and\n'
   printf 'commit it if the new behaviour is intended.\033[0m\n'
-  git diff --stat -- frontend/console/call-events.json frontend/dashboard/floor.json
+  git diff --stat -- $FIXTURES
   fail=1
 fi
 

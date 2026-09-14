@@ -1,0 +1,228 @@
+{
+ "file": {
+  "name": "leads-febrero.csv",
+  "rows": 10
+ },
+ "counts": {
+  "create": 2,
+  "merge": 3,
+  "review": 5
+ },
+ "cleanlyApplicable": false,
+ "decisions": [
+  {
+   "action": "create",
+   "row": 1,
+   "name": "Lena Brooks",
+   "incoming": {
+    "firstName": "Lena",
+    "lastName": "Brooks",
+    "phoneE164": "+13055550201",
+    "email": "lena@brooksfamily.net",
+    "company": "—"
+   }
+  },
+  {
+   "action": "merge",
+   "row": 2,
+   "name": "Michael Reed",
+   "basis": "phone",
+   "confidence": 0.99,
+   "existingId": "a1",
+   "changes": [
+    {
+     "field": "timezone",
+     "from": null,
+     "to": "America/New_York"
+    }
+   ],
+   "discarded": [
+    {
+     "field": "email",
+     "from": "mreed@oldmail.com",
+     "to": "m.reed@reedandsons.com"
+    }
+   ],
+   "dncKept": false
+  },
+  {
+   "action": "merge",
+   "row": 3,
+   "name": "Michael Reed",
+   "basis": "phone",
+   "confidence": 0.99,
+   "existingId": "a1",
+   "changes": [],
+   "discarded": [
+    {
+     "field": "firstName",
+     "from": "Mike",
+     "to": "Michael"
+    },
+    {
+     "field": "company",
+     "from": "Reed and Sons LLC",
+     "to": "Reed & Sons"
+    }
+   ],
+   "dncKept": false
+  },
+  {
+   "action": "review",
+   "row": 4,
+   "name": "Maria Gonzalez",
+   "code": "name_and_company",
+   "reason": "same name at the same company — plausible, and not an identifier",
+   "candidates": [
+    {
+     "id": "a2",
+     "name": "Maria Gonzalez",
+     "basis": "name_company",
+     "confidence": 0.55,
+     "autoMergeable": false,
+     "company": "Acme Roofing"
+    }
+   ],
+   "incoming": {
+    "firstName": "Maria",
+    "lastName": "Gonzalez",
+    "company": "Acme Roofing"
+   }
+  },
+  {
+   "action": "review",
+   "row": 5,
+   "name": "Maria Gonzalez",
+   "code": "name_only",
+   "reason": "same name only. Names are not identifiers",
+   "candidates": [
+    {
+     "id": "a2",
+     "name": "Maria Gonzalez",
+     "basis": "name_only",
+     "confidence": 0.2,
+     "autoMergeable": false,
+     "company": "Acme Roofing"
+    }
+   ],
+   "incoming": {
+    "firstName": "Maria",
+    "lastName": "Gonzalez",
+    "company": "Vega Contracting"
+   }
+  },
+  {
+   "action": "merge",
+   "row": 6,
+   "name": "Denise Fowler",
+   "basis": "phone",
+   "confidence": 0.99,
+   "existingId": "a3",
+   "changes": [
+    {
+     "field": "email",
+     "from": null,
+     "to": "denise.fowler@gmail.com"
+    }
+   ],
+   "discarded": [],
+   "dncKept": true
+  },
+  {
+   "action": "review",
+   "row": 7,
+   "name": "Harold Nguyen",
+   "code": "external_id_conflict",
+   "reason": "the two records carry different ids in the same external system, which usually means they are different people there",
+   "candidates": [
+    {
+     "id": "a4",
+     "name": "Harold Nguyen",
+     "basis": "email",
+     "confidence": 0.97,
+     "autoMergeable": true,
+     "company": null
+    }
+   ],
+   "incoming": {
+    "firstName": "Harold",
+    "lastName": "Nguyen",
+    "email": "harold@nguyenhvac.com",
+    "externalIds": {
+     "conn-sf": "003ZZ9"
+    }
+   }
+  },
+  {
+   "action": "review",
+   "row": 8,
+   "name": "Trent Okafor",
+   "code": "existing_duplicates",
+   "reason": "this row matches two different existing contacts on strong identifiers — the existing records are probably duplicates of each other, and merging into either one strands the other",
+   "candidates": [
+    {
+     "id": "a5",
+     "name": "Trent Okafor",
+     "basis": "phone",
+     "confidence": 0.99,
+     "autoMergeable": true,
+     "company": null
+    },
+    {
+     "id": "a6",
+     "name": "Trent Okafor",
+     "basis": "email",
+     "confidence": 0.97,
+     "autoMergeable": true,
+     "company": null
+    }
+   ],
+   "incoming": {
+    "firstName": "Trent",
+    "lastName": "Okafor",
+    "phoneE164": "+13055550177",
+    "email": "trent@okaforsolar.com"
+   }
+  },
+  {
+   "action": "review",
+   "row": 9,
+   "name": "Jose Munoz",
+   "code": "name_and_company",
+   "reason": "same name at the same company — plausible, and not an identifier",
+   "candidates": [
+    {
+     "id": "a7",
+     "name": "José Muñoz",
+     "basis": "name_company",
+     "confidence": 0.55,
+     "autoMergeable": false,
+     "company": "Muñoz Electric"
+    }
+   ],
+   "incoming": {
+    "firstName": "Jose",
+    "lastName": "Munoz",
+    "company": "Munoz Electric"
+   }
+  },
+  {
+   "action": "create",
+   "row": 10,
+   "name": "Sam Whitfield",
+   "incoming": {
+    "firstName": "Sam",
+    "lastName": "Whitfield",
+    "phoneE164": "(305) 555-0199"
+   }
+  }
+ ],
+ "suppression": {
+  "name": "Denise Fowler",
+  "phone": "+17865550110",
+  "fileSaid": false,
+  "kept": true,
+  "reason": "Pidió no ser llamada — 12 feb"
+ },
+ "generated_by": "frontend/import/generate_fixture.mjs — real dedupe engine"
+}

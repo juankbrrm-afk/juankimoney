@@ -304,6 +304,25 @@ export function mergeContacts(existing: Contact, incoming: Partial<Contact>): Me
 // The dry run
 // ---------------------------------------------------------------------------
 
+/**
+ * Why a row needs a person, as a value rather than as prose.
+ *
+ * The `reason` string next to it is written for whoever is reading a log. It
+ * is not an interface: a UI that switches on it breaks when somebody
+ * improves the wording, and a UI that renders it directly ships English into
+ * a Spanish product. The code is the stable thing — same split as the
+ * copilot's `Refusal` enum and its free-text detail.
+ */
+export type ReviewCode =
+  /** The database already holds two records this row matches. */
+  | "existing_duplicates"
+  /** Two ids in one external system: two people there. */
+  | "external_id_conflict"
+  /** Same name at the same company. Plausible, and not an identifier. */
+  | "name_and_company"
+  /** Same name, nothing else. */
+  | "name_only";
+
 export type Decision =
   | { action: "create"; incoming: Partial<Contact>; row: number }
   | {
@@ -317,6 +336,8 @@ export type Decision =
       row: number;
       /** Every candidate, so the reviewer chooses rather than confirms. */
       candidates: Match[];
+      code: ReviewCode;
+      /** For logs and support tickets. Never switched on, never rendered raw. */
       reason: string;
       incoming: Partial<Contact>;
     };
@@ -378,6 +399,7 @@ export function plan(rows: Partial<Contact>[], existing: Contact[]): ImportPlan 
         action: "review",
         row,
         candidates: matches,
+        code: "existing_duplicates",
         reason:
           "this row matches two different existing contacts on strong " +
           "identifiers — the existing records are probably duplicates of " +
@@ -396,6 +418,7 @@ export function plan(rows: Partial<Contact>[], existing: Contact[]): ImportPlan 
           action: "review",
           row,
           candidates: matches,
+          code: "external_id_conflict",
           reason:
             "the two records carry different ids in the same external " +
             "system, which usually means they are different people there",
@@ -407,14 +430,15 @@ export function plan(rows: Partial<Contact>[], existing: Contact[]): ImportPlan 
       return;
     }
 
+    const byName = matches[0]!.basis === "name_company";
     decisions.push({
       action: "review",
       row,
       candidates: matches,
-      reason:
-        matches[0]!.basis === "name_company"
-          ? "same name at the same company — plausible, and not an identifier"
-          : "same name only. Names are not identifiers",
+      code: byName ? "name_and_company" : "name_only",
+      reason: byName
+        ? "same name at the same company — plausible, and not an identifier"
+        : "same name only. Names are not identifiers",
       incoming,
     });
   });
