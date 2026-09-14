@@ -16,7 +16,7 @@
  * Each of those is a rule somebody could break with an innocent CSS change
  * and never notice, because the screen would still look plausible.
  */
-import { loadChromium, chromiumPath } from "./chromium.mjs";
+import { loadChromium, chromiumPath } from "../../../tools/chromium.mjs";
 import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";

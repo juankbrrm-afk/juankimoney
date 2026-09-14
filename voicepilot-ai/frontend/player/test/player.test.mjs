@@ -7,7 +7,7 @@
  * lie about: there is no recording behind it, and it has to say so rather
  * than draw a waveform over silence.
  */
-import { loadChromium, chromiumPath } from "../../console/test/chromium.mjs";
+import { loadChromium, chromiumPath } from "../../../tools/chromium.mjs";
 import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";

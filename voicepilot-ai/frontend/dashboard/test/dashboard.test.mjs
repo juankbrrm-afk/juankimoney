@@ -12,7 +12,7 @@
  * longest call on the floor is going well, one bad call is already
  * acknowledged, and the highest-risk call is the shortest one on the screen.
  */
-import { loadChromium, chromiumPath } from "../../console/test/chromium.mjs";
+import { loadChromium, chromiumPath } from "../../../tools/chromium.mjs";
 import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";

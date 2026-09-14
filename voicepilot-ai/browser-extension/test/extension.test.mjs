@@ -6,7 +6,7 @@
  * permission Chrome rejects. Those fail silently in review and loudly in
  * front of a customer.
  */
-import { chromium } from "playwright-core";
+import { loadChromium, chromiumPath } from "../../tools/chromium.mjs";
 import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
@@ -37,8 +37,9 @@ const server = createServer(async (req, res) => {
 await new Promise((r) => server.listen(0, r));
 const origin = `http://127.0.0.1:${server.address().port}`;
 
+const chromium = await loadChromium();
 const ctx = await chromium.launchPersistentContext("", {
-  executablePath: "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
+  executablePath: chromiumPath(),
   channel: "chromium",
   args: [`--disable-extensions-except=${ext}`, `--load-extension=${ext}`],
 });
