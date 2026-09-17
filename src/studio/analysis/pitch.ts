@@ -153,8 +153,10 @@ export function analyzePitch(buffer: AudioBuffer, frameSize = 1024, hopSize = 51
   const points: PitchPoint[] = [];
   const histogram = new Array(12).fill(0);
 
+  // Umbral bajo a proposito: una grabacion de movil trae mucha silaba floja, y
+  // un umbral alto las descarta todas y deja la voz a medio afinar.
   const level = rms(samples);
-  const gate = Math.max(0.012, level * 0.35);
+  const gate = Math.max(0.004, level * 0.18);
 
   for (let start = 0; start + frameSize <= samples.length; start += hopSize) {
     const frame = samples.subarray(start, start + frameSize);

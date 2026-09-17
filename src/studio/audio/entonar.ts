@@ -37,6 +37,8 @@ export interface EntonarResultado {
   buffer: AudioBuffer;
   /** Cuántas sílabas se han podido entonar. */
   entonadas: number;
+  /** Cuántas había en total, para saber si de verdad ha cantado. */
+  total: number;
   /** Semitonos que se ha movido cada sílaba, de media. */
   movimientoMedio: number;
 }
@@ -90,20 +92,17 @@ export function entonar(
       .map((punto) => punto.midi)
       .sort((a, b) => a - b);
 
-    if (!dentro.length) {
-      destino.set(trozo, desde);
-      continue;
-    }
-
-    const actual = dentro[dentro.length >> 1];
+    // Cuando no se le mide el tono a una sílaba —una consonante, una palabra
+    // soplada, ruido de la habitación— se tira del tono central de la toma en
+    // vez de dejarla como estaba. Saltársela en silencio era lo que hacía que
+    // media canción saliera hablada: cuantas más sílabas se escapan, más suena
+    // a grabación cruda y menos a alguien cantando.
+    const actual = dentro.length ? dentro[dentro.length >> 1] : analisis.medianMidi;
     const objetivo = melodia[i]?.midi ?? actual;
-    const semitonos = (objetivo - actual) * fuerza;
 
-    // Más de una octava de salto es señal de que la medida falló; se deja igual.
-    if (Math.abs(semitonos) > 12) {
-      destino.set(trozo, desde);
-      continue;
-    }
+    // El salto se recorta a una octava en vez de descartar la sílaba: aunque la
+    // medida se haya ido, moverla acerca más al tono que no tocarla.
+    const semitonos = Math.max(-12, Math.min(12, (objetivo - actual) * fuerza));
 
     const ratio = 2 ** (semitonos / 12);
     const periodo = sampleRate / midiToHz(actual);
@@ -119,6 +118,7 @@ export function entonar(
 
   return {
     buffer: salida,
+    total: onsets.length,
     entonadas,
     movimientoMedio: entonadas ? movimiento / entonadas : 0,
   };

@@ -40,6 +40,8 @@ interface Resultado {
   blob: Blob;
   nombre: string;
   url: string;
+  /** Cuántas sílabas se han llevado a la melodía, de cuántas había. */
+  afinadas: string;
 }
 
 function limpio(texto: string): string {
@@ -273,6 +275,7 @@ export function HacerCancion() {
           blob,
           nombre: `${nombre}.${extension}`,
           url: URL.createObjectURL(blob),
+          afinadas: cantada ? `${cantada.entonadas} de ${cantada.total}` : "ninguna",
         });
         setFase("hecha");
       } catch (err) {
@@ -540,7 +543,15 @@ export function HacerCancion() {
             )}
             <Button onClick={() => downloadBlob(resultado.blob, resultado.nombre)}>Guardar</Button>
           </div>
-          <p className="mt-2 text-xs text-neutral-600">{resultado.nombre}</p>
+          <p className="mt-2 text-xs text-neutral-600">
+            {resultado.nombre} · {resultado.afinadas} sílabas llevadas a la melodía
+          </p>
+          {resultado.afinadas === "ninguna" && (
+            <p className="mt-1 text-xs text-amber-500">
+              No he podido afinar nada: la grabación llegó muy floja o con mucho ruido. Acércate
+              más al micro y vuelve a intentarlo.
+            </p>
+          )}
         </Bloque>
       )}
 
